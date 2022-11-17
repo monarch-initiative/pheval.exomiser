@@ -1,14 +1,35 @@
 [tool.poetry]
-name = "exomiser"
+name = "pheval_exomiser"
 version = "0.1.0"
 description = ""
 authors = ["Nico Matentzoglu <nicolas.matentzoglu@gmail.com>"]
 readme = "README.md"
-packages = [{include = "exomiser", from = "src"}]
+packages = [{include = "pheval_exomiser", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.9"
+pheval = { path = "/Users/matentzn/ws/pheval" }
+importlib = "^1.0.4"
 
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+
+[tool.poetry.scripts]
+pheval-exomiser = "pheval_exomiser.cli:main"
+
+[tool.poetry.plugins."pheval.runner"]
+exomiser = "pheval_exomiser.runner:ExomiserPhEvalRunner"
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 100
+include_trailing_comma = true
+reverse_relative = true
 
 [build-system]
 requires = ["poetry-core"]
