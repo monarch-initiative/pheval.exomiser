@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 
 import click
-from pheval.pipeline import PhEvalRunner
+from pheval.runners.runner import PhEvalRunner
 
 
 @dataclass
