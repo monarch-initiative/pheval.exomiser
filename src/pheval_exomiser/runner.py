@@ -1,13 +1,14 @@
 """Exomiser Runner"""
 from dataclasses import dataclass
-import click
 
+import click
 from pheval.pipeline import PhEvalRunner
 
 
 @dataclass
 class ExomiserPhEvalRunner(PhEvalRunner):
-    """_summary_ """
+    """_summary_"""
+
     inputdir: click.Path
     testdatadir: click.Path
     tmpdir: click.Path
@@ -23,5 +24,5 @@ class ExomiserPhEvalRunner(PhEvalRunner):
         print("running with exomiser")
 
     def post_process(self):
-        """post_process """
+        """post_process"""
         print("post processing")

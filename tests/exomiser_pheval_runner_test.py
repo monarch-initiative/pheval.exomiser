@@ -3,7 +3,6 @@ import logging
 import unittest
 
 from click.testing import CliRunner
-
 from pheval.cli_pheval import run
 
 
