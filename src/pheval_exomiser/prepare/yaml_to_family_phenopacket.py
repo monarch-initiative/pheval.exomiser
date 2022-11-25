@@ -4,14 +4,26 @@ import click
 import yaml
 from google.protobuf.json_format import MessageToJson
 from google.protobuf.timestamp_pb2 import Timestamp
-from oaklib.implementations.pronto.pronto_implementation import \
-    ProntoImplementation
+from oaklib.implementations.pronto.pronto_implementation import ProntoImplementation
 from oaklib.resource import OntologyResource
-from phenopackets import (Diagnosis, Family, File, GeneDescriptor,
-                          GenomicInterpretation, Individual, Interpretation,
-                          MetaData, OntologyClass, Pedigree, Phenopacket,
-                          PhenotypicFeature, Resource, VariantInterpretation,
-                          VariationDescriptor, VcfRecord)
+from phenopackets import (
+    Diagnosis,
+    Family,
+    File,
+    GeneDescriptor,
+    GenomicInterpretation,
+    Individual,
+    Interpretation,
+    MetaData,
+    OntologyClass,
+    Pedigree,
+    Phenopacket,
+    PhenotypicFeature,
+    Resource,
+    VariantInterpretation,
+    VariationDescriptor,
+    VcfRecord,
+)
 from pheval_benchmark.utils.utils import DirectoryFiles
 
 path_to_obo = os.path.dirname(os.path.realpath(__file__)).replace(
@@ -27,7 +39,7 @@ go_oi = ProntoImplementation(genotype_resource)
 class YamlToFamilyPhenopacketConversion:
     def __init__(self, file, diagnoses):
         with open(file) as yaml_job_file:
-            self.job_file = yaml.load(yaml_job_file, Loader=yaml.FullLoader)
+            self.job_file = yaml.safe_load(yaml_job_file, Loader=yaml.FullLoader)
         yaml_job_file.close()
         self.output_file = file.replace("yml", "json")
         with open(
@@ -36,8 +48,8 @@ class YamlToFamilyPhenopacketConversion:
             self.gene_id_symbol = {}
             next(gene_set)
             for line in gene_set:
-                l = line.split("\t")
-                self.gene_id_symbol[l[1]] = l[0]
+                l_split = line.split("\t")
+                self.gene_id_symbol[l_split[1]] = l_split[0]
             gene_set.close()
         self.diagnoses = diagnoses
 
@@ -66,9 +78,7 @@ class YamlToFamilyPhenopacketConversion:
                         sex=sex,
                         affected_status=int(p[5]),
                     )
-                    subject = Individual(
-                        id=self.job_file["analysis"]["proband"], sex=sex
-                    )
+                    subject = Individual(id=self.job_file["analysis"]["proband"], sex=sex)
                     persons.append(person)
                 else:
                     person = Pedigree.Person(
@@ -104,38 +114,38 @@ class YamlToFamilyPhenopacketConversion:
             genomic_interpretations = []
             for line in di:
                 line = line.strip("\n")
-                l = line.split("\t")
-                if l[1] == self.job_file["analysis"]["proband"]:
-                    if l[14] == "-":
+                l_split = line.split("\t")
+                if l_split[1] == self.job_file["analysis"]["proband"]:
+                    if l_split[14] == "-":
                         interpretation_status = 0
-                    if l[14] == "Full":
+                    if l_split[14] == "Full":
                         interpretation_status = 3
-                    if l[14] == "Partial":
+                    if l_split[14] == "Partial":
                         interpretation_status = 3
                     try:
                         vcf_record = VcfRecord(
                             genome_assembly=self.job_file["analysis"]["genomeAssembly"],
-                            chrom=l[3],
-                            pos=int(l[4].replace(",", "")),
-                            ref=l[6].split("/")[0],
-                            alt=l[6].split("/")[1],
+                            chrom=l_split[3],
+                            pos=int(l_split[4].replace(",", "")),
+                            ref=l_split[6].split("/")[0],
+                            alt=l_split[6].split("/")[1],
                         )
                         try:
                             gene_context = GeneDescriptor(
-                                value_id=self.gene_id_symbol[l[8]], symbol=l[8]
+                                value_id=self.gene_id_symbol[l_split[8]], symbol=l_split[8]
                             )
                         except KeyError:
-                            gene_context = GeneDescriptor(symbol=l[8])
+                            gene_context = GeneDescriptor(symbol=l_split[8])
                         allelic_state = OntologyClass(
-                            id=list(go_oi.basic_search(l[10].lower()))[0],
-                            label=l[10].lower(),
+                            id=list(go_oi.basic_search(l_split[10].lower()))[0],
+                            label=l_split[10].lower(),
                         )
                         variation_descriptor = VariationDescriptor(
                             id=self.job_file["analysis"]["proband"]
                             + ":"
-                            + l[3]
+                            + l_split[3]
                             + ":"
-                            + l[4],
+                            + l_split[4],
                             gene_context=gene_context,
                             vcf_record=vcf_record,
                             allelic_state=allelic_state,
@@ -146,43 +156,39 @@ class YamlToFamilyPhenopacketConversion:
                             variation_descriptor=variation_descriptor,
                         )
                         genomic_interpretation = GenomicInterpretation(
-                            subject_or_biosample_id=self.job_file["analysis"][
-                                "proband"
-                            ],
+                            subject_or_biosample_id=self.job_file["analysis"]["proband"],
                             interpretation_status=interpretation_status,
                             variant_interpretation=variant_interpretation,
                         )
                         genomic_interpretations.append(genomic_interpretation)
-                        diagnosis = Diagnosis(
-                            genomic_interpretations=genomic_interpretations
-                        )
+                        diagnosis = Diagnosis(genomic_interpretations=genomic_interpretations)
                         interpretation = Interpretation(
                             id=int_id, progress_status="SOLVED", diagnosis=diagnosis
                         )  # All DDD are solved
                     except Exception:
                         vcf_record = VcfRecord(
                             genome_assembly=self.job_file["analysis"]["genomeAssembly"],
-                            chrom=l[3],
-                            pos=int(l[4].replace(",", "")),
+                            chrom=l_split[3],
+                            pos=int(l_split[4].replace(",", "")),
                             ref=".",
                             alt=".",
                         )
                         try:
                             gene_context = GeneDescriptor(
-                                value_id=self.gene_id_symbol[l[8]], symbol=l[8]
+                                value_id=self.gene_id_symbol[l_split[8]], symbol=l_split[8]
                             )
                         except KeyError:
-                            gene_context = GeneDescriptor(symbol=l[8])
+                            gene_context = GeneDescriptor(symbol=l_split[8])
                         allelic_state = OntologyClass(
-                            id=list(go_oi.basic_search(l[10].lower()))[0],
-                            label=l[10].lower(),
+                            id=list(go_oi.basic_search(l_split[10].lower()))[0],
+                            label=l_split[10].lower(),
                         )
                         variation_descriptor = VariationDescriptor(
                             id=self.job_file["analysis"]["proband"]
                             + ":"
-                            + l[3]
+                            + l_split[3]
                             + ":"
-                            + l[4],
+                            + l_split[4],
                             gene_context=gene_context,
                             vcf_record=vcf_record,
                             allelic_state=allelic_state,
@@ -195,16 +201,12 @@ class YamlToFamilyPhenopacketConversion:
                         )
 
                         genomic_interpretation = GenomicInterpretation(
-                            subject_or_biosample_id=self.job_file["analysis"][
-                                "proband"
-                            ],
+                            subject_or_biosample_id=self.job_file["analysis"]["proband"],
                             interpretation_status=interpretation_status,
                             variant_interpretation=variant_interpretation,
                         )
                         genomic_interpretations.append(genomic_interpretation)
-                        diagnosis = Diagnosis(
-                            genomic_interpretations=genomic_interpretations
-                        )
+                        diagnosis = Diagnosis(genomic_interpretations=genomic_interpretations)
                         interpretation = Interpretation(
                             id=int_id, progress_status="SOLVED", diagnosis=diagnosis
                         )

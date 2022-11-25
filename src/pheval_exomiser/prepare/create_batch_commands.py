@@ -6,6 +6,7 @@ from pathlib import Path
 
 import click
 
+# TODO once merged into pheval main branch I can import these as seen in the runner.py file instead of having duplicates
 from .custom_exceptions import MutuallyExclusiveOptionError
 from ..utils.file_utils import files_with_suffix
 from ..utils.phenopacket_utils import PhenopacketReader
@@ -31,9 +32,7 @@ class CommandsWriter:
         except IOError:
             print("Error writing ", self.file)
 
-    def write_command_output_options(
-        self, analysis, sample, vcf, assembly, output_options
-    ):
+    def write_command_output_options(self, analysis, sample, vcf, assembly, output_options):
         try:
             self.file.write(
                 "--analysis "
@@ -59,9 +58,7 @@ class CommandsWriter:
 
 
 class CreateBatchFiles:
-    def __init__(
-        self, analysis, ppackets, vcf, genome_assembly, output_opt, output_options_file
-    ):
+    def __init__(self, analysis, ppackets, vcf, genome_assembly, output_opt, output_options_file):
         self.analysis = analysis
         self.ppackets = ppackets
         self.vcf = vcf
@@ -74,14 +71,11 @@ class CreateBatchFiles:
         commands_writer = CommandsWriter(temp.name)
         if self.output_opt is None:
             arg_dict = dict(
-                (z[0], list(z[1:]))
-                for z in zip(self.ppackets, self.vcf, self.genome_assembly)
+                (z[0], list(z[1:])) for z in zip(self.ppackets, self.vcf, self.genome_assembly)
             )
             if self.output_options_file is None:
                 for key, value in arg_dict.items():
-                    commands_writer.write_command(
-                        self.analysis, key, value[0], value[1]
-                    )
+                    commands_writer.write_command(self.analysis, key, value[0], value[1])
             if self.output_options_file is not None:
                 for key, value in arg_dict.items():
                     commands_writer.write_command_output_options(
@@ -90,9 +84,7 @@ class CreateBatchFiles:
         if self.output_opt is not None:
             arg_dict = dict(
                 (z[0], list(z[1:]))
-                for z in zip(
-                    self.ppackets, self.vcf, self.genome_assembly, self.output_opt
-                )
+                for z in zip(self.ppackets, self.vcf, self.genome_assembly, self.output_opt)
             )
             for key, value in arg_dict.items():
                 commands_writer.write_command_output_options(
@@ -105,14 +97,11 @@ class CreateBatchFiles:
         commands_writer = CommandsWriter(file_name)
         if self.output_opt is None:
             arg_dict = dict(
-                (z[0], list(z[1:]))
-                for z in zip(self.ppackets, self.vcf, self.genome_assembly)
+                (z[0], list(z[1:])) for z in zip(self.ppackets, self.vcf, self.genome_assembly)
             )
             if self.output_options_file is None:
                 for key, value in arg_dict.items():
-                    commands_writer.write_command(
-                        self.analysis, key, value[0], value[1]
-                    )
+                    commands_writer.write_command(self.analysis, key, value[0], value[1])
             if self.output_options_file is not None:
                 for key, value in arg_dict.items():
                     commands_writer.write_command_output_options(
@@ -121,9 +110,7 @@ class CreateBatchFiles:
         if self.output_opt is not None:
             arg_dict = dict(
                 (z[0], list(z[1:]))
-                for z in zip(
-                    self.ppackets, self.vcf, self.genome_assembly, self.output_opt
-                )
+                for z in zip(self.ppackets, self.vcf, self.genome_assembly, self.output_opt)
             )
             for key, value in arg_dict.items():
                 commands_writer.write_command_output_options(

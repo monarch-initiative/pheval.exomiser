@@ -7,7 +7,7 @@ from pathlib import Path
 from google.protobuf.json_format import Parse
 from phenopackets import Family, Phenopacket
 
-from ..exomiser.custom_exceptions import IncorrectFileFormatError
+from ..prepare.custom_exceptions import IncorrectFileFormatError
 
 
 class IncompatibleGenomeAssemblyError(Exception):

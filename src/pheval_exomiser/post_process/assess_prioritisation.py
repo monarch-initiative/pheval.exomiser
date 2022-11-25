@@ -5,13 +5,14 @@ import json
 import os
 from collections import defaultdict
 from dataclasses import dataclass, field
+from pathlib import Path
 from statistics import mean
 
 import click
 import pandas as pd
+
 from ..utils.file_utils import files_with_suffix
 from ..utils.phenopacket_utils import PhenopacketReader
-from pathlib import Path
 
 
 @dataclass
@@ -36,9 +37,7 @@ class PrioritisationRanks:
 
     def record_variant_rank(self):
         self.variant_index += 1
-        self.variant_rank_comparison[self.variant_index][
-            "Phenopacket"
-        ] = self.phenopacket
+        self.variant_rank_comparison[self.variant_index]["Phenopacket"] = self.phenopacket
         self.variant_rank_comparison[self.variant_index]["Variant"] = self.variant
         self.variant_rank_comparison[self.variant_index][self.directory] = self.rank
 
@@ -188,14 +187,14 @@ class RankingDict:
     #         self.output_results[self.identifier]["pValue"] = "N/A"
 
     def add_moi(self):
-        self.output_results[self.identifier][
+        self.output_results[self.identifier]["modeOfInheritance"] = self.original_results[
             "modeOfInheritance"
-        ] = self.original_results["modeOfInheritance"]
+        ]
 
     def add_contributing_variants(self):
-        self.output_results[self.identifier][
+        self.output_results[self.identifier]["contributingVariants"] = self.original_results[
             "contributingVariants"
-        ] = self.original_results["contributingVariants"]
+        ]
 
     def create_ranking_dict(self) -> dict:
         self.add_gene()
@@ -226,9 +225,7 @@ class RankResults:
                     if self.ranking_method in g:
                         if "contributingVariants" in g:
                             identifier = (
-                                g["geneIdentifier"]["geneSymbol"]
-                                + "_"
-                                + g["modeOfInheritance"]
+                                g["geneIdentifier"]["geneSymbol"] + "_" + g["modeOfInheritance"]
                             )
                             exomiser_json_result_dict = RankingDict(
                                 g, identifier, exomiser_json_result, self.ranking_method
@@ -282,11 +279,11 @@ class AssessmentOfPrioritisation:
     def assess_gene(self, rank_stats: RankStats):
         for g in self.genes:
             rank_stats.total += 1
-            for key, info in self.ranks.items():
+            for _key, info in self.ranks.items():
                 if g == info["geneSymbol"] and float(self.threshold) != 0.0:
-                    if self.ranking_method != "pValue" and float(
-                        self.threshold
-                    ) < float(info[self.ranking_method]):
+                    if self.ranking_method != "pValue" and float(self.threshold) < float(
+                        info[self.ranking_method]
+                    ):
                         rank = info["rank"]
                         (
                             self.prioritisation_ranks.rank,
@@ -294,9 +291,9 @@ class AssessmentOfPrioritisation:
                         ) = (rank, g)
                         rank_stats.add_rank(rank)
                         break
-                    if self.ranking_method == "pValue" and float(
-                        self.threshold
-                    ) > float(info[self.ranking_method]):
+                    if self.ranking_method == "pValue" and float(self.threshold) > float(
+                        info[self.ranking_method]
+                    ):
                         rank = info["rank"]
                         (
                             self.prioritisation_ranks.rank,
@@ -321,7 +318,7 @@ class AssessmentOfPrioritisation:
             key, info = variant.items()
             gene = key[1]
             variant = info[1]
-            for key1, info1 in self.ranks.items():
+            for _key1, info1 in self.ranks.items():
                 if gene == info1["geneSymbol"]:
                     cont = info1["contributingVariants"]
                     for cv in cont:
@@ -332,9 +329,9 @@ class AssessmentOfPrioritisation:
                             and cv["alt"] == variant.alt
                             and float(self.threshold) != 0.0
                         ):
-                            if self.ranking_method != "pValue" and float(
-                                self.threshold
-                            ) < float(info1[self.ranking_method]):
+                            if self.ranking_method != "pValue" and float(self.threshold) < float(
+                                info1[self.ranking_method]
+                            ):
                                 rank = info1["rank"]
                                 (
                                     self.prioritisation_ranks.rank,
@@ -349,9 +346,9 @@ class AssessmentOfPrioritisation:
                                 )
                                 rank_stats.add_rank(rank)
                                 break
-                            if self.ranking_method == "pValue" and float(
-                                self.threshold
-                            ) > float(info1[self.ranking_method]):
+                            if self.ranking_method == "pValue" and float(self.threshold) > float(
+                                info1[self.ranking_method]
+                            ):
                                 rank = info1["rank"]
                                 (
                                     self.prioritisation_ranks.rank,
@@ -445,7 +442,7 @@ def assess_prioritisation(
     for directory in directories:
         prioritisation_ranks = PrioritisationRanks(directory=directory)
         gene_rank_stats, variant_rank_stats = RankStats(), RankStats()
-        exomiser_json_results = files_with_suffix(directory, ".json")
+        exomiser_json_results = files_with_suffix(Path(directory), ".json")
         for exomiser_result in exomiser_json_results:
             prioritisation_ranks.phenopacket = exomiser_result
             phenopacket = os.path.join(
@@ -455,9 +452,7 @@ def assess_prioritisation(
             genes = PhenopacketReader.diagnosed_genes(interpretations)
             variants = PhenopacketReader.diagnosed_variants(interpretations)
             exomiser_full_path = os.path.join(directory, exomiser_result)
-            ranking_dict = RankResults(
-                exomiser_full_path, ranking_method
-            ).rank_results()
+            ranking_dict = RankResults(exomiser_full_path, ranking_method).rank_results()
             assess = AssessmentOfPrioritisation(
                 ranking_dict,
                 threshold,
