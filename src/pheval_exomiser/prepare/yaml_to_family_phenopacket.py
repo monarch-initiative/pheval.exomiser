@@ -24,7 +24,7 @@ from phenopackets import (
     VariationDescriptor,
     VcfRecord,
 )
-from pheval_benchmark.utils.utils import DirectoryFiles
+from ..utils.file_utils import files_with_suffix
 
 
 resource = OntologyResource(slug="hp.obo", local=False)
@@ -273,6 +273,6 @@ class YamlToFamilyPhenopacketConversion:
 @click.option("--file-list", "-f", required=True, help="File to convert")
 @click.option("--diagnoses", "-d", required=True, help="Diagnoses file")
 def convert_yaml_to_family_phenopacket(file_list, diagnoses):
-    files = DirectoryFiles(file_list, ".yml").obtain_files_suffix()
+    files = files_with_suffix(file_list, ".yml")
     for file in files:
         YamlToFamilyPhenopacketConversion(file, diagnoses).write_file()
