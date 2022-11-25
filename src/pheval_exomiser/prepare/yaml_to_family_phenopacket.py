@@ -42,9 +42,7 @@ class YamlToFamilyPhenopacketConversion:
             self.job_file = yaml.safe_load(yaml_job_file, Loader=yaml.FullLoader)
         yaml_job_file.close()
         self.output_file = file.replace("yml", "json")
-        with open(
-            os.path.dirname(os.path.realpath(__file__)) + "/hgnc_complete_set.txt"
-        ) as gene_set:
+        with open("../resources/hgnc_complete_set.txt") as gene_set:
             self.gene_id_symbol = {}
             next(gene_set)
             for line in gene_set:
