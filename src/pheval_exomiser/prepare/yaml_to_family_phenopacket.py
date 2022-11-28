@@ -1,5 +1,3 @@
-import os
-
 import click
 import yaml
 from google.protobuf.json_format import MessageToJson
