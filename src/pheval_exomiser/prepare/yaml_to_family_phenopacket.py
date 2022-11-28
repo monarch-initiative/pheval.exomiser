@@ -24,7 +24,6 @@ from phenopackets import (
 )
 from ..utils.file_utils import files_with_suffix
 
-
 resource = OntologyResource(slug="hp.obo", local=False)
 oi = ProntoImplementation(resource)
 genotype_resource = OntologyResource(slug="geno.owl", local=False)
