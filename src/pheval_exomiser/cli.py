@@ -6,7 +6,7 @@ from .prepare.create_batch_commands import prepare_exomiser_batch
 
 @click.group()
 def main():
-    """PhEval - A benchmarking CLI."""
+    """Exomiser runner."""
 
 
 main.add_command(prepare_exomiser_batch)

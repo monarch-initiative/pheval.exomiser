@@ -22,6 +22,7 @@ from phenopackets import (
     VariationDescriptor,
     VcfRecord,
 )
+
 from ..utils.file_utils import files_with_suffix
 
 resource = OntologyResource(slug="hp.obo", local=False)

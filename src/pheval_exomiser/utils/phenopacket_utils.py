@@ -4,10 +4,10 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-from google.protobuf.json_format import Parse
+from google.protobuf.json_format import MessageToJson, Parse
 from phenopackets import Family, Phenopacket
 
-from ..prepare.custom_exceptions import IncorrectFileFormatError
+from pheval.prepare.custom_exceptions import IncorrectFileFormatError
 
 
 class IncompatibleGenomeAssemblyError(Exception):
@@ -48,7 +48,8 @@ class PhenopacketReader:
             self.pheno = Parse(json.dumps(phenopacket), Phenopacket())
         file.close()
 
-    def phenotypic_features(self) -> list:
+    def phenotypic_features(self):
+        """Retrieves a list of all HPO terms."""
         if hasattr(self.pheno, "proband"):
             all_phenotypic_features = self.pheno.proband.phenotypic_features
         else:
@@ -56,6 +57,7 @@ class PhenopacketReader:
         return all_phenotypic_features
 
     def remove_excluded_phenotypic_features(self) -> dict:
+        """Removes any HPO terms labelled as excluded."""
         phenotypic_features = {}
         all_phenotypic_features = self.phenotypic_features()
         for p in all_phenotypic_features:
@@ -65,6 +67,7 @@ class PhenopacketReader:
         return phenotypic_features
 
     def interpretations(self) -> list:
+        """Returns all interpretations of a phenopacket."""
         if hasattr(self.pheno, "proband"):
             pheno_interpretation = self.pheno.proband.interpretations
         else:
@@ -72,6 +75,7 @@ class PhenopacketReader:
         return pheno_interpretation
 
     def causative_variants(self) -> list[CausativeVariant]:
+        """Returns all causative variants listed in a phenopacket - for use in spiked VCF."""
         all_variants = []
         interpretation = self.interpretations()
         for i in interpretation:
@@ -92,9 +96,11 @@ class PhenopacketReader:
         return all_variants
 
     def files(self) -> list:
+        """Returns all files associated with a phenopacket."""
         return self.pheno.files
 
     def vcf_file_data(self, vcf_dir):
+        """Retrieves the genome assembly and vcf name from a phenopacket."""
         compatible_genome_assembly = ["GRCh37", "hg19", "GRCh38", "hg38"]
         ppacket_files = self.files()
         vcf, genome_assembly = "", ""
@@ -115,8 +121,9 @@ class PhenopacketReader:
             genome_assembly = assembly
         return vcf, genome_assembly
 
-    @staticmethod
-    def diagnosed_genes(pheno_interpretation: list) -> list:
+    def diagnosed_genes(self) -> list:
+        """Returns a unique list of all causative genes from a phenopacket."""
+        pheno_interpretation = self.interpretations()
         genes = []
         for i in pheno_interpretation:
             for g in i.diagnosis.genomic_interpretations:
@@ -124,9 +131,10 @@ class PhenopacketReader:
         genes = list(set(genes))
         return genes
 
-    @staticmethod
-    def diagnosed_variants(pheno_interpretation: list) -> list:
+    def diagnosed_variants(self) -> list:
+        """Returns a list of all causative variants from a phenopacket - for use in assess-prioritisation."""
         variants = []
+        pheno_interpretation = self.interpretations()
         for i in pheno_interpretation:
             for g in i.diagnosis.genomic_interpretations:
                 variant = defaultdict(dict)
@@ -136,3 +144,51 @@ class PhenopacketReader:
                 variant["variant"] = g.variant_interpretation.variation_descriptor.vcf_record
                 variants.append(variant)
         return variants
+
+
+class PhenopacketRebuilder:
+    """Rebuilds Phenopacket structure for writing to a file."""
+
+    def __init__(self, phenopacket_contents: PhenopacketReader):
+        self.phenopacket_contents = phenopacket_contents
+
+    def add_randomised_hpo(self, hpo_list):
+        """Adds randomised phenotypic profile to phenopacket."""
+        randomised_ppacket = Phenopacket(
+            id=self.phenopacket_contents.pheno.id,
+            subject=self.phenopacket_contents.pheno.subject,
+            phenotypic_features=hpo_list,
+            interpretations=self.phenopacket_contents.pheno.interpretations,
+            files=self.phenopacket_contents.pheno.files,
+            meta_data=self.phenopacket_contents.pheno.meta_data,
+        )
+        return randomised_ppacket
+
+    def create_json_message(self, phenopacket):
+        """Creates json message for writing to file."""
+        if hasattr(self.phenopacket_contents.pheno, "proband"):
+            family = Family(
+                id=self.phenopacket_contents.pheno.id,
+                proband=phenopacket,
+                pedigree=self.phenopacket_contents.pheno.pedigree,
+                files=self.phenopacket_contents.pheno.files,
+                meta_data=self.phenopacket_contents.pheno.meta_data,
+            )
+            altered_phenopacket = MessageToJson(family)
+        else:
+            altered_phenopacket = MessageToJson(phenopacket)
+        return altered_phenopacket
+
+
+class PhenopacketWriter:
+    """Writes phenopackets back to file."""
+
+    def __init__(self, altered_phenopacket, output_file):
+        self.altered_phenopacket = altered_phenopacket
+        self.output_file = output_file
+
+    def write_file(self):
+        """Writes a json message to a phenopacket .json file."""
+        with open(self.output_file, "w") as outfile:
+            outfile.write(self.altered_phenopacket)
+        outfile.close()

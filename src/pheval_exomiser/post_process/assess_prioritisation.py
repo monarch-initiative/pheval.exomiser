@@ -448,9 +448,9 @@ def assess_prioritisation(
             phenopacket = os.path.join(
                 phenopacket_dir, exomiser_result.name.replace("-exomiser.json", ".json")
             )
-            interpretations = PhenopacketReader(Path(phenopacket)).interpretations()
-            genes = PhenopacketReader.diagnosed_genes(interpretations)
-            variants = PhenopacketReader.diagnosed_variants(interpretations)
+            phenopacket_reader = PhenopacketReader(Path(phenopacket))
+            genes = phenopacket_reader.diagnosed_genes()
+            variants = phenopacket_reader.diagnosed_variants()
             exomiser_full_path = os.path.join(directory, exomiser_result)
             ranking_dict = RankResults(exomiser_full_path, ranking_method).rank_results()
             assess = AssessmentOfPrioritisation(
