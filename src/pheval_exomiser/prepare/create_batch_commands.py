@@ -36,11 +36,11 @@ class CommandCreator:
     """Creates a command for a phenopacket."""
 
     def __init__(
-        self,
-        phenopacket_path: Path,
-        phenopacket: Phenopacket or Family,
-        output_options_dir_files: list[Path] or None,
-        output_options_file: Path or None,
+            self,
+            phenopacket_path: Path,
+            phenopacket: Phenopacket or Family,
+            output_options_dir_files: list[Path] or None,
+            output_options_file: Path or None,
     ):
         self.phenopacket_path = phenopacket_path
         self.phenopacket = phenopacket
@@ -101,10 +101,10 @@ class CommandCreator:
 
 
 def create_commands_list(
-    phenopacket_dir: Path,
-    vcf_dir: Path,
-    output_options_dir: Path or None = None,
-    output_options_file: Path or None = None,
+        phenopacket_dir: Path,
+        vcf_dir: Path,
+        output_options_dir: Path or None = None,
+        output_options_file: Path or None = None,
 ) -> list[ExomiserCommandLineArguments]:
     """Returns a list of Exomiser command line arguments for a directory of phenopackets."""
     phenopacket_paths = files_with_suffix(phenopacket_dir, ".json")
@@ -127,7 +127,7 @@ class CommandsWriter:
         self.file = open(file, "a")
 
     def write_command(
-        self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments
+            self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments
     ) -> None:
         """Writes a command out for exomiser to run."""
         try:
@@ -146,7 +146,7 @@ class CommandsWriter:
             print("Error writing ", self.file)
 
     def write_command_output_options(
-        self, analysis_yaml, command_arguments: ExomiserCommandLineArguments
+            self, analysis_yaml, command_arguments: ExomiserCommandLineArguments
     ) -> None:
         """Writes a command out for exomiser to run - including output option file specified."""
         try:
@@ -177,10 +177,10 @@ class BatchFileWriter:
     """Writes all the commands out to a batch file."""
 
     def __init__(
-        self,
-        analysis_yaml: Path,
-        commands_list: list[ExomiserCommandLineArguments],
-        batch_prefix: str,
+            self,
+            analysis_yaml: Path,
+            commands_list: list[ExomiserCommandLineArguments],
+            batch_prefix: str,
     ):
         self.analysis_yaml = analysis_yaml
         self.commands_list = commands_list
@@ -229,13 +229,13 @@ class BatchFileWriter:
 
 
 def create_batch_file(
-    analysis: Path,
-    phenopacket_dir: Path,
-    vcf_dir: Path,
-    batch_prefix: str,
-    max_jobs: int,
-    output_options_dir: Path = None,
-    output_options_file: Path = None,
+        analysis: Path,
+        phenopacket_dir: Path,
+        vcf_dir: Path,
+        batch_prefix: str,
+        max_jobs: int,
+        output_options_dir: Path = None,
+        output_options_file: Path = None,
 ) -> None:
     """Creates Exomiser batch files."""
     commands = create_commands_list(
@@ -243,7 +243,8 @@ def create_batch_file(
     )
     BatchFileWriter(
         analysis, commands, batch_prefix
-    ).write_all_commands() if max_jobs == 0 else BatchFileWriter(analysis, commands, batch_prefix)
+    ).write_all_commands() if max_jobs == 0 else BatchFileWriter(analysis, commands,
+                                                                 batch_prefix).create_split_batch_files(max_jobs)
 
 
 @click.command()
@@ -311,13 +312,13 @@ def create_batch_file(
     help="Path to the output options file. ",
 )
 def prepare_exomiser_batch(
-    analysis_yaml: Path,
-    phenopacket_dir: Path,
-    vcf_dir: Path,
-    batch_prefix,
-    max_jobs,
-    output_options_dir: Path = None,
-    output_options_file: Path = None,
+        analysis_yaml: Path,
+        phenopacket_dir: Path,
+        vcf_dir: Path,
+        batch_prefix,
+        max_jobs,
+        output_options_dir: Path = None,
+        output_options_file: Path = None,
 ):
     """Generate Exomiser batch files."""
     create_batch_file(
