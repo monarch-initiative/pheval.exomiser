@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
+from phenopackets import Family, Phenopacket
 
 # TODO once merged into pheval main branch I can import these as seen in the runner.py file instead of having duplicates
 from .custom_exceptions import MutuallyExclusiveOptionError
@@ -23,60 +24,77 @@ class ExomiserCommandLineArguments:
     output_options_file: Optional[Path] = None
 
 
+def get_all_files_from_output_opt_directory(output_options_dir: Path) -> list[Path] or None:
+    """Obtains all output options files if directory is specified - otherwise returns none."""
+    if output_options_dir is None:
+        return None
+    else:
+        return all_files(output_options_dir)
+
+
 class CommandCreator:
     """Creates a command for a phenopacket."""
 
     def __init__(
         self,
         phenopacket_path: Path,
-        output_options_dir: Path or None,
+        phenopacket: Phenopacket or Family,
+        output_options_dir_files: list[Path] or None,
         output_options_file: Path or None,
     ):
         self.phenopacket_path = phenopacket_path
-        self.output_options_dir = output_options_dir
+        self.phenopacket = phenopacket
+        self.output_options_dir_files = output_options_dir_files
         self.output_options_file = output_options_file
 
     def find_output_options_file_from_dir(self, output_option_file_paths: list[Path]) -> Path:
         """If a directory for output options corresponding to phenopackets is specified - selects the closest file name
         match for output argument."""
-        output_option_paths_as_string = [
-            str(output_option_path) for output_option_path in output_option_file_paths
-        ]
-        return Path(
+        closest_file_match = Path(
             str(
                 difflib.get_close_matches(
-                    str(self.phenopacket_path), output_option_paths_as_string
+                    str(self.phenopacket_path.name),
+                    [
+                        str(output_option_path.name)
+                        for output_option_path in output_option_file_paths
+                    ],
                 )[0]
             )
         )
+        return [
+            output_option_path
+            for output_option_path in output_option_file_paths
+            if Path(closest_file_match) == Path(output_option_path.name)
+        ][0]
 
     def assign_output_options_file(self) -> Path or None:
         """If a single output option file is to specified to all phenopackets, returns its path,
         otherwise finds the best match from the directory."""
-        if self.output_options_dir is None and self.output_options_file is None:
+        if self.output_options_dir_files is None and self.output_options_file is None:
             return None
         else:
             return (
                 self.output_options_file
-                if self.output_options_dir is None
-                else self.find_output_options_file_from_dir(all_files(self.output_options_dir))
+                if self.output_options_dir_files is None
+                else self.find_output_options_file_from_dir(self.output_options_dir_files)
             )
 
     def add_command_line_arguments(self, vcf_dir: Path) -> ExomiserCommandLineArguments:
         """Returns a dataclass of all the command line arguments corresponding to phenopacket sample."""
-        phenopacket = phenopacket_reader(self.phenopacket_path)
-        vcf_file_data = PhenopacketUtil(phenopacket).vcf_file_data(self.phenopacket_path, vcf_dir)
+        vcf_file_data = PhenopacketUtil(self.phenopacket).vcf_file_data(
+            self.phenopacket_path, vcf_dir
+        )
         output_options_file = self.assign_output_options_file()
         if output_options_file is None:
             return ExomiserCommandLineArguments(
-                sample=self.phenopacket_path,
-                vcf_file=vcf_file_data.uri,
+                sample=Path(self.phenopacket_path),
+                vcf_file=Path(vcf_file_data.uri),
                 vcf_assembly=vcf_file_data.file_attributes["genomeAssembly"],
             )
         if output_options_file is not None:
             return ExomiserCommandLineArguments(
-                sample=self.phenopacket_path,
-                vcf_file=vcf_file_data.uri,
+                sample=Path(self.phenopacket_path),
+                vcf_file=Path(vcf_file_data.uri),
                 vcf_assembly=vcf_file_data.file_attributes["genomeAssembly"],
                 output_options_file=output_options_file,
             )
@@ -91,10 +109,12 @@ def create_commands_list(
     """Returns a list of Exomiser command line arguments for a directory of phenopackets."""
     phenopacket_paths = files_with_suffix(phenopacket_dir, ".json")
     commands = []
+    output_option_dir_files = get_all_files_from_output_opt_directory(output_options_dir)
     for phenopacket_path in phenopacket_paths:
+        phenopacket = phenopacket_reader(phenopacket_path)
         commands.append(
             CommandCreator(
-                phenopacket_path, output_options_dir, output_options_file
+                phenopacket_path, phenopacket, output_option_dir_files, output_options_file
             ).add_command_line_arguments(vcf_dir)
         )
     return commands
