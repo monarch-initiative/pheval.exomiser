@@ -23,7 +23,7 @@ class ExomiserCommandLineArguments:
     output_options_file: Optional[Path] = None
 
 
-class CommandCreater:
+class CommandCreator:
     """Creates a command for a phenopacket."""
 
     def __init__(
@@ -37,7 +37,7 @@ class CommandCreater:
         self.output_options_file = output_options_file
 
     def find_output_options_file_from_dir(self, output_option_file_paths: list[Path]) -> Path:
-        """If a directory for output options corresponding to phenopackets is specified - selects closest file name
+        """If a directory for output options corresponding to phenopackets is specified - selects the closest file name
         match for output argument."""
         output_option_paths_as_string = [
             str(output_option_path) for output_option_path in output_option_file_paths
@@ -93,7 +93,7 @@ def create_commands_list(
     commands = []
     for phenopacket_path in phenopacket_paths:
         commands.append(
-            CommandCreater(
+            CommandCreator(
                 phenopacket_path, output_options_dir, output_options_file
             ).add_command_line_arguments(vcf_dir)
         )
