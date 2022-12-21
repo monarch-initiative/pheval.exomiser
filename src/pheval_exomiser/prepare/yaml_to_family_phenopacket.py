@@ -1,6 +1,11 @@
+import os
+from collections import defaultdict
+from copy import copy
+from pathlib import Path
+
 import click
+import pandas as pd
 import yaml
-from google.protobuf.json_format import MessageToJson
 from google.protobuf.timestamp_pb2 import Timestamp
 from oaklib.implementations.pronto.pronto_implementation import ProntoImplementation
 from oaklib.resource import OntologyResource
@@ -24,253 +29,375 @@ from phenopackets import (
 )
 
 from ..utils.file_utils import files_with_suffix
-
-resource = OntologyResource(slug="hp.obo", local=False)
-oi = ProntoImplementation(resource)
-genotype_resource = OntologyResource(slug="geno.owl", local=False)
-go_oi = ProntoImplementation(genotype_resource)
+from ..utils.phenopacket_utils import write_phenopacket
 
 
-class YamlToFamilyPhenopacketConversion:
-    def __init__(self, file, diagnoses):
-        with open(file) as yaml_job_file:
-            self.job_file = yaml.safe_load(yaml_job_file, Loader=yaml.FullLoader)
-        yaml_job_file.close()
-        self.output_file = file.replace("yml", "json")
-        with open("../resources/hgnc_complete_set.txt") as gene_set:
-            self.gene_id_symbol = {}
-            next(gene_set)
-            for line in gene_set:
-                l_split = line.split("\t")
-                self.gene_id_symbol[l_split[1]] = l_split[0]
-            gene_set.close()
-        self.diagnoses = diagnoses
+def load_ontology():
+    resource = OntologyResource(slug="hp.obo", local=False)
+    return ProntoImplementation(resource)
 
-    def construct_subject_ped(self):
-        ped_file_path = self.job_file["analysis"]["ped"]
-        with open(ped_file_path) as ped:
-            first_line = ped.readline()
-            first_line = first_line.split("\t")
-            family_id = first_line[0]
-            maternal_id = first_line[3]
-            paternal_id = first_line[2]
-            persons = []
-            ped.seek(0)
-            for ped_line in ped:
-                p = ped_line.split("\t")
-                if int(p[4]) == 1:
-                    sex = 2
-                if int(p[4]) == 2:
-                    sex = 1
-                if p[1] == self.job_file["analysis"]["proband"]:
-                    person = Pedigree.Person(
-                        family_id=family_id,
-                        individual_id=p[1],
-                        paternal_id=paternal_id,
-                        maternal_id=maternal_id,
-                        sex=sex,
-                        affected_status=int(p[5]),
-                    )
-                    subject = Individual(id=self.job_file["analysis"]["proband"], sex=sex)
-                    persons.append(person)
-                else:
-                    person = Pedigree.Person(
-                        family_id=family_id,
-                        individual_id=p[1],
-                        sex=sex,
-                        affected_status=int(p[5]),
-                    )
-                    persons.append(person)
-        ped.close()
-        pedigree = Pedigree(persons=persons)
-        return subject, pedigree, family_id
 
-    def create_phenotypic_interpretations(self):
-        ids = self.job_file["analysis"]["hpoIds"]
+def load_genotype_ontology():
+    genotype_resource = OntologyResource(slug="geno.owl", local=False)
+    return ProntoImplementation(genotype_resource)
+
+
+def exomiser_analysis_yml_reader(yaml_job_file_path: Path) -> dict:
+    with open(yaml_job_file_path) as yaml_job_file:
+        yaml_job = yaml.safe_load(yaml_job_file)
+    yaml_job_file.close()
+    return yaml_job
+
+
+def read_diagnoses_file(diagnoses_file_path: Path) -> pd.DataFrame:
+    return pd.read_csv(diagnoses_file_path, delimiter="t")
+
+
+def read_pedigree_file(pedigree_path: Path) -> list[str]:
+    return open(pedigree_path).readlines()
+
+
+# todo 2 functions below to be imported from main pheval repo
+
+
+def read_hgnc_data() -> pd.DataFrame:
+    return pd.read_csv(
+        os.path.dirname(__file__).replace("prepare", "resources/hgnc_complete_set_2022-10-01.txt"),
+        delimiter="\t",
+        dtype=str,
+    )
+
+
+def create_hgnc_dict() -> defaultdict:
+    """Creates reference for updating gene symbols and identifiers."""
+    hgnc_df = read_hgnc_data()
+    hgnc_data = defaultdict(dict)
+    for _index, row in hgnc_df.iterrows():
+        previous_names = []
+        hgnc_data[row["symbol"]]["ensembl_id"] = row["ensembl_gene_id"]
+        hgnc_data[row["symbol"]]["hgnc_id"] = row["hgnc_id"]
+        hgnc_data[row["symbol"]]["entrez_id"] = row["entrez_id"]
+        hgnc_data[row["symbol"]]["refseq_accession"] = row["refseq_accession"]
+        previous = str(row["prev_symbol"]).split("|")
+        for p in previous:
+            previous_names.append(p.strip('"'))
+        hgnc_data[row["symbol"]]["previous_symbol"] = previous_names
+
+    return hgnc_data
+
+
+class ExomiserYamlToPhenopacketConverter:
+    def __init__(self, genotype_ontology, human_phenotype_ontology, hgnc_data):
+        self.genotype_ontology = genotype_ontology
+        self.human_phenotype_ontology = human_phenotype_ontology
+        self.hgnc_data = hgnc_data
+
+    @staticmethod
+    def construct_individual_message(yaml_job: dict, diagnoses: pd.DataFrame) -> Individual:
+        return Individual(
+            id=yaml_job["analysis"]["proband"],
+            sex=diagnoses[diagnoses.ProbandId == yaml_job["analysis"]["proband"]]
+            .iloc[0]["Sex"]
+            .upper(),
+        )
+
+    @staticmethod
+    def get_diagnoses_for_proband(yaml_job: dict, diagnoses: pd.DataFrame):
+        return diagnoses.loc[diagnoses["ProbandId"] == yaml_job["analysis"]["proband"]]
+
+    def construct_phenotypic_interpretations(self, yaml_job: dict) -> list[PhenotypicFeature]:
+        hpo_ids = yaml_job["analysis"]["hpoIds"]
         phenotypic_features = []
-        for i in ids:
+        for hpo_id in hpo_ids:
             try:
-                rels = oi.alias_map_by_curie(i)
-                term = rels[(list(rels.keys())[0])]
-                term = "".join(term)
-                hpo = PhenotypicFeature(type=OntologyClass(id=i, label=term))
+                rels = self.human_phenotype_ontology.entity_alias_map(hpo_id)
+                hpo_term = "".join(rels[(list(rels.keys())[0])])
+                hpo = PhenotypicFeature(type=OntologyClass(id=hpo_id, label=hpo_term))
                 phenotypic_features.append(hpo)
             except AttributeError:
-                hpo = PhenotypicFeature(type=OntologyClass(id=i))
+                hpo = PhenotypicFeature(type=OntologyClass(id=hpo_id))
                 phenotypic_features.append(hpo)
         return phenotypic_features
 
-    def create_interpretations(self):
-        int_id = self.job_file["analysis"]["proband"] + "-interpretation"
-        interpretations = []
-        with open(self.diagnoses) as di:  # the diagnosed genes file
-            genomic_interpretations = []
-            for line in di:
-                line = line.strip("\n")
-                l_split = line.split("\t")
-                if l_split[1] == self.job_file["analysis"]["proband"]:
-                    if l_split[14] == "-":
-                        interpretation_status = 0
-                    if l_split[14] == "Full":
-                        interpretation_status = 3
-                    if l_split[14] == "Partial":
-                        interpretation_status = 3
-                    try:
-                        vcf_record = VcfRecord(
-                            genome_assembly=self.job_file["analysis"]["genomeAssembly"],
-                            chrom=l_split[3],
-                            pos=int(l_split[4].replace(",", "")),
-                            ref=l_split[6].split("/")[0],
-                            alt=l_split[6].split("/")[1],
-                        )
-                        try:
-                            gene_context = GeneDescriptor(
-                                value_id=self.gene_id_symbol[l_split[8]], symbol=l_split[8]
-                            )
-                        except KeyError:
-                            gene_context = GeneDescriptor(symbol=l_split[8])
-                        allelic_state = OntologyClass(
-                            id=list(go_oi.basic_search(l_split[10].lower()))[0],
-                            label=l_split[10].lower(),
-                        )
-                        variation_descriptor = VariationDescriptor(
-                            id=self.job_file["analysis"]["proband"]
-                            + ":"
-                            + l_split[3]
-                            + ":"
-                            + l_split[4],
-                            gene_context=gene_context,
-                            vcf_record=vcf_record,
-                            allelic_state=allelic_state,
-                        )
-                        variant_interpretation = VariantInterpretation(
-                            acmg_pathogenicity_classification="NOT_PROVIDED",
-                            therapeutic_actionability="UNKNOWN_ACTIONABILITY",
-                            variation_descriptor=variation_descriptor,
-                        )
-                        genomic_interpretation = GenomicInterpretation(
-                            subject_or_biosample_id=self.job_file["analysis"]["proband"],
-                            interpretation_status=interpretation_status,
-                            variant_interpretation=variant_interpretation,
-                        )
-                        genomic_interpretations.append(genomic_interpretation)
-                        diagnosis = Diagnosis(genomic_interpretations=genomic_interpretations)
-                        interpretation = Interpretation(
-                            id=int_id, progress_status="SOLVED", diagnosis=diagnosis
-                        )  # All DDD are solved
-                    except Exception:
-                        vcf_record = VcfRecord(
-                            genome_assembly=self.job_file["analysis"]["genomeAssembly"],
-                            chrom=l_split[3],
-                            pos=int(l_split[4].replace(",", "")),
-                            ref=".",
-                            alt=".",
-                        )
-                        try:
-                            gene_context = GeneDescriptor(
-                                value_id=self.gene_id_symbol[l_split[8]], symbol=l_split[8]
-                            )
-                        except KeyError:
-                            gene_context = GeneDescriptor(symbol=l_split[8])
-                        allelic_state = OntologyClass(
-                            id=list(go_oi.basic_search(l_split[10].lower()))[0],
-                            label=l_split[10].lower(),
-                        )
-                        variation_descriptor = VariationDescriptor(
-                            id=self.job_file["analysis"]["proband"]
-                            + ":"
-                            + l_split[3]
-                            + ":"
-                            + l_split[4],
-                            gene_context=gene_context,
-                            vcf_record=vcf_record,
-                            allelic_state=allelic_state,
-                        )
-
-                        variant_interpretation = VariantInterpretation(
-                            acmg_pathogenicity_classification="NOT_PROVIDED",
-                            therapeutic_actionability="UNKNOWN_ACTIONABILITY",
-                            variation_descriptor=variation_descriptor,
-                        )
-
-                        genomic_interpretation = GenomicInterpretation(
-                            subject_or_biosample_id=self.job_file["analysis"]["proband"],
-                            interpretation_status=interpretation_status,
-                            variant_interpretation=variant_interpretation,
-                        )
-                        genomic_interpretations.append(genomic_interpretation)
-                        diagnosis = Diagnosis(genomic_interpretations=genomic_interpretations)
-                        interpretation = Interpretation(
-                            id=int_id, progress_status="SOLVED", diagnosis=diagnosis
-                        )
-            interpretations.append(interpretation)
-        di.close()
-        return interpretations
-
-    def create_phenopacket(self):
-        subject, ped, family_id = self.construct_subject_ped()
-        phenopacket = Phenopacket(
-            id=self.job_file["analysis"]["proband"],
-            subject=subject,
-            phenotypic_features=self.create_phenotypic_interpretations(),
-            interpretations=self.create_interpretations(),
+    @staticmethod
+    def construct_vcf_record(yaml_job: dict, diagnosis: pd.DataFrame) -> VcfRecord:
+        return VcfRecord(
+            genome_assembly=yaml_job["analysis"]["genomeAssembly"],
+            chrom=diagnosis["Chr"],
+            pos=int(diagnosis["Start"]),
+            ref=str(diagnosis["Ref/Alt"]).split("/")[0],
+            alt=str(diagnosis["Ref/Alt"]).split("/")[1],
         )
-        return ped, phenopacket, family_id
 
-    def create_meta_data(self):
-        files = [
+    def construct_allelic_state(self, diagnosis: pd.DataFrame) -> OntologyClass:
+        return OntologyClass(
+            id=list(self.genotype_ontology.basic_search(diagnosis["Genotype"].lower()))[0],
+            label=diagnosis["Genotype"].lower(),
+        )
+
+    def construct_gene_descriptor(self, diagnosis: pd.DataFrame) -> GeneDescriptor:
+        try:
+            return GeneDescriptor(
+                value_id=self.hgnc_data[diagnosis["Gene"]]["ensembl_id"],
+                symbol=diagnosis["Gene"],
+            )
+        except KeyError:
+            for _gene, gene_info in self.hgnc_data.items():
+                for previous_name in gene_info["previous_names"]:
+                    if diagnosis["Gene"] == previous_name:
+                        return GeneDescriptor(
+                            value_id=self.hgnc_data[gene_info["ensembl_id"]],
+                            symbol=diagnosis["Gene"],
+                        )
+
+    def construct_variation_descriptor(
+        self, yaml_job: dict, diagnosis: pd.DataFrame
+    ) -> VariationDescriptor:
+        return VariationDescriptor(
+            id=yaml_job["analysis"]["proband"]
+            + ":"
+            + diagnosis["Chr"]
+            + ":"
+            + diagnosis["Start"]
+            + ":"
+            + diagnosis["Ref/Alt"],
+            gene_context=self.construct_gene_descriptor(diagnosis),
+            vcf_record=self.construct_vcf_record(yaml_job, diagnosis),
+            allelic_state=self.construct_allelic_state(diagnosis),
+        )
+
+    def construct_variant_interpretation(
+        self, yaml_job: dict, diagnosis: pd.DataFrame
+    ) -> VariantInterpretation:
+        return VariantInterpretation(
+            variation_descriptor=self.construct_variation_descriptor(yaml_job, diagnosis),
+        )
+
+    def construct_genomic_interpretations(
+        self, yaml_job: dict, diagnoses: pd.DataFrame
+    ) -> list[GenomicInterpretation]:
+        genomic_interpretations = []
+        for _index, row in self.get_diagnoses_for_proband(yaml_job, diagnoses).iterrows():
+            genomic_interpretation = GenomicInterpretation(
+                subject_or_biosample_id=yaml_job["analysis"]["proband"],
+                variant_interpretation=self.construct_variant_interpretation(
+                    yaml_job=yaml_job, diagnosis=row
+                ),
+            )
+            genomic_interpretations.append(genomic_interpretation)
+        return genomic_interpretations
+
+    def construct_diagnosis(self, yaml_job: dict, diagnoses: pd.DataFrame) -> Diagnosis:
+        return Diagnosis(
+            genomic_interpretations=self.construct_genomic_interpretations(yaml_job, diagnoses)
+        )
+
+    def construct_interpretations(
+        self, yaml_job: dict, diagnoses: pd.DataFrame
+    ) -> list[Interpretation]:
+        return [
+            Interpretation(
+                id=yaml_job["analysis"]["proband"] + "-interpretation",
+                diagnosis=self.construct_diagnosis(yaml_job, diagnoses),
+            )
+        ]
+
+    @staticmethod
+    def construct_meta_data() -> MetaData:
+        timestamp = Timestamp()
+        timestamp.GetCurrentTime()
+        return MetaData(
+            created=timestamp,
+            created_by="pheval-converter",
+            resources=[
+                Resource(
+                    id="hp",
+                    name="human phenotype ontology",
+                    url="http://purl.obolibrary.org/obo/hp.owl",
+                    version="hp/releases/2019-11-08",
+                    namespace_prefix="HP",
+                    iri_prefix="http://purl.obolibrary.org/obo/HP_",
+                )
+            ],
+            phenopacket_schema_version="2.0",
+        )
+
+    @staticmethod
+    def construct_files(yaml_job_file: dict) -> list[File]:
+        return [
             File(
-                uri=self.job_file["analysis"]["vcf"],
+                uri=yaml_job_file["analysis"]["vcf"],
                 file_attributes={
                     "fileFormat": "VCF",
-                    "genomeAssembly": self.job_file["analysis"]["genomeAssembly"],
+                    "genomeAssembly": yaml_job_file["analysis"]["genomeAssembly"],
                 },
             )
         ]
-        resources = [
-            Resource(
-                id="hp",
-                name="human phenotype ontology",
-                url="http://purl.obolibrary.org/obo/hp.owl",
-                version="hp/releases/2019-11-08",
-                namespace_prefix="HP",
-                iri_prefix="http://purl.obolibrary.org/obo/HP_",
+
+
+def construct_pedigree(pedigree: list[str]) -> tuple[str, Pedigree]:
+    persons = []
+    family_id = None
+    for individual in pedigree:
+        entry = individual.split("\t")
+        family_id = entry[0]
+        sex = "."
+        if (
+            int(entry[4]) == 1
+        ):  # until this is fixed with the phenopackets package, sex has to be reassigned
+            sex = 2
+        if int(entry[4]) == 2:
+            sex = 1
+        if str(entry[3]) == "0" and str(entry[2]) == "0":
+            person = Pedigree.Person(
+                family_id=family_id, individual_id=entry[1], sex=sex, affected_status=int(entry[5])
             )
-        ]
-        timestamp = Timestamp()
-        timestamp.GetCurrentTime()
-        meta_data = MetaData(
-            created=timestamp,
-            created_by="pheval-converter",
-            resources=resources,
-            phenopacket_schema_version="2.0",
-        )
-        return files, meta_data
+            persons.append(person)
+        if str(entry[3]) == "0" and str(entry[2]) != "0":
+            person = Pedigree.Person(
+                family_id=family_id,
+                individual_id=entry[1],
+                paternal_id=entry[2],
+                sex=sex,
+                affected_status=int(entry[5]),
+            )
+            persons.append(person)
+        if str(entry[2]) == "0" and str(entry[3]) != "0":
+            person = Pedigree.Person(
+                family_id=family_id,
+                individual_id=entry[1],
+                maternal_id=entry[3],
+                sex=sex,
+                affected_status=int(entry[5]),
+            )
+            persons.append(person)
+        if str(entry[2]) != "0" and str(entry[3] != "0"):
+            person = Pedigree.Person(
+                family_id=family_id,
+                individual_id=entry[1],
+                paternal_id=entry[2],
+                maternal_id=entry[3],
+                sex=sex,
+                affected_status=int(entry[5]),
+            )
+            persons.append(person)
+    return family_id, Pedigree(persons=persons)
 
-    def create_family(self):
-        ped, phenopacket, family_id = self.create_phenopacket()
-        files, metadata = self.create_meta_data()
-        family = Family(
-            id=family_id,
-            proband=phenopacket,
-            pedigree=ped,
-            files=files,
-            meta_data=metadata,
-        )
-        return family
 
-    def write_file(self):
-        family = self.create_family()
-        json = MessageToJson(family)
-        with open(self.output_file, "w") as jsfile:
-            jsfile.write(json)
-        jsfile.close()
+def construct_phenopacket(
+    yaml_job_file: dict,
+    diagnoses: pd.DataFrame,
+    exomiser_yaml_to_phenopacket_converter: ExomiserYamlToPhenopacketConverter,
+) -> Phenopacket:
+    return Phenopacket(
+        id=yaml_job_file["analysis"]["proband"],
+        subject=exomiser_yaml_to_phenopacket_converter.construct_individual_message(
+            yaml_job=yaml_job_file, diagnoses=diagnoses
+        ),
+        phenotypic_features=exomiser_yaml_to_phenopacket_converter.construct_phenotypic_interpretations(
+            yaml_job=yaml_job_file
+        ),
+        interpretations=exomiser_yaml_to_phenopacket_converter.construct_interpretations(
+            yaml_job=yaml_job_file, diagnoses=diagnoses
+        ),
+        files=exomiser_yaml_to_phenopacket_converter.construct_files(yaml_job_file),
+        meta_data=exomiser_yaml_to_phenopacket_converter.construct_meta_data(),
+    )
+
+
+def construct_family(
+    yaml_job_file: dict,
+    diagnoses: pd.DataFrame,
+    exomiser_yaml_to_phenopacket_converter: ExomiserYamlToPhenopacketConverter,
+    pedigree: list[str],
+) -> Family:
+    phenopacket = construct_phenopacket(
+        yaml_job_file, diagnoses, exomiser_yaml_to_phenopacket_converter
+    )
+    proband = copy(phenopacket)
+    del proband.files[:]
+    del proband.meta_data[:]
+    family_id, ped = construct_pedigree(pedigree)
+    return Family(
+        id=family_id,
+        proband=proband,
+        pedigree=ped,
+        files=phenopacket.files,
+        meta_data=phenopacket.meta_data,
+    )
+
+
+def create_phenopacket(
+    yaml_job_file: Path,
+    diagnoses: pd.DataFrame,
+    exomiser_converter: ExomiserYamlToPhenopacketConverter,
+) -> Phenopacket or Family:
+    yaml_job = exomiser_analysis_yml_reader(yaml_job_file)
+    phenopacket = (
+        construct_phenopacket(yaml_job, diagnoses, exomiser_converter)
+        if yaml_job["analysis"]["ped"] == ""
+        else construct_family(
+            yaml_job,
+            diagnoses,
+            exomiser_converter,
+            read_pedigree_file(yaml_job["analysis"]["ped"]),
+        )
+    )
+    return phenopacket
 
 
 @click.command()
-@click.option("--file-list", "-f", required=True, help="File to convert")
-@click.option("--diagnoses", "-d", required=True, help="Diagnoses file")
-def convert_yaml_to_family_phenopacket(file_list, diagnoses):
-    files = files_with_suffix(file_list, ".yml")
-    for file in files:
-        YamlToFamilyPhenopacketConversion(file, diagnoses).write_file()
+@click.option(
+    "--directory",
+    "-d",
+    required=True,
+    help="Directory for Exomiser yaml job files to be converted.",
+    type=Path,
+)
+@click.option("--diagnoses-file", "-d", required=True, help="Diagnoses file", type=Path)
+@click.option(
+    "--output-dir", "-o", required=True, help="Output directory to write phenopackets", type=Path
+)
+def convert_exomiser_analysis_yamls_to_phenopacket(
+    output_dir: Path, directory: Path, diagnoses_file: Path
+):
+    try:
+        output_dir.mkdir()
+    except FileExistsError:
+        pass
+    diagnoses = read_diagnoses_file(diagnoses_file)
+    exomiser_converter = ExomiserYamlToPhenopacketConverter(
+        load_genotype_ontology(), load_ontology(), create_hgnc_dict()
+    )
+    for yaml_job_file in files_with_suffix(directory, ".yml"):
+        phenopacket = create_phenopacket(yaml_job_file, diagnoses, exomiser_converter)
+        write_phenopacket(
+            phenopacket, output_dir.joinpath(yaml_job_file.name.replace(".yml", ".json"))
+        )
+
+
+@click.command()
+@click.option(
+    "--yaml-file",
+    "-y",
+    required=True,
+    help="Path to Exomiser analysis yaml file for phenopacket conversion.",
+    type=Path,
+)
+@click.option("--diagnoses-file", "-d", required=True, help="Diagnoses file", type=Path)
+@click.option(
+    "--output-dir", "-o", required=True, help="Output directory to write phenopackets", type=Path
+)
+def convert_exomiser_analysis_yaml_to_phenopacket(
+    output_dir: Path, yaml_file: Path, diagnoses_file: Path
+):
+    try:
+        output_dir.mkdir()
+    except FileExistsError:
+        pass
+    diagnoses = read_diagnoses_file(diagnoses_file)
+    exomiser_converter = ExomiserYamlToPhenopacketConverter(
+        load_genotype_ontology(), load_ontology(), create_hgnc_dict()
+    )
+    phenopacket = create_phenopacket(yaml_file, diagnoses, exomiser_converter)
+    write_phenopacket(phenopacket, Path(yaml_file.name + ".json"))
