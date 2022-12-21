@@ -12,6 +12,5 @@ def main():
 main.add_command(prepare_exomiser_batch)
 main.add_command(assess_prioritisation)
 
-
 if __name__ == "__main__":
     main()
