@@ -134,7 +134,7 @@ class TestConvertExomiserYamlToPhenopacket(unittest.TestCase):
 
     def test_construct_individual_message(self):
         self.assertEqual(
-            self.subject_1.construct_individual_message(yaml_job_file, diagnoses),
+            self.subject_1.construct_individual(yaml_job_file, diagnoses),
             Individual(id="subject-1", sex="MALE"),
         )
 
