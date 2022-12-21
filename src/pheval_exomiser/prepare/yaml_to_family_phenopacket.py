@@ -384,7 +384,7 @@ def convert_exomiser_analysis_yamls_to_phenopacket(
     output_dir: Path, directory: Path, diagnoses_file: Path
 ):
     """Converts an Exomiser YAML file to a phenopacket schema given a .tsv diagnoses file containing the following
-    required fields: ... """
+    required fields: ..."""
     try:
         output_dir.mkdir()
     except FileExistsError:
@@ -416,7 +416,7 @@ def convert_exomiser_analysis_yaml_to_phenopacket(
     output_dir: Path, yaml_file: Path, diagnoses_file: Path
 ):
     """Converts Exomiser YAML files to the phenopacket schema given a .tsv diagnoses file containing the following
-    required fields: ... """
+    required fields: ..."""
     try:
         output_dir.mkdir()
     except FileExistsError:
