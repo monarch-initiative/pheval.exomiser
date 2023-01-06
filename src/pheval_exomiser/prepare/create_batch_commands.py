@@ -27,11 +27,7 @@ class ExomiserCommandLineArguments:
 
 def get_all_files_from_output_opt_directory(output_options_dir: Path) -> list[Path] or None:
     """Obtains all output options files if directory is specified - otherwise returns none."""
-    if output_options_dir is None:
-        return None
-    else:
-        return all_files(output_options_dir)
-
+    return None if output_options_dir is None else all_files(output_options_dir)
 
 class CommandCreator:
     """Creates a command for a phenopacket."""
