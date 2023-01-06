@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import difflib
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -8,10 +7,9 @@ from typing import Optional
 import click
 from phenopackets import Family, Phenopacket
 
-# TODO once merged into pheval main branch I can import these as seen in the runner.py file instead of having duplicates
-from .custom_exceptions import MutuallyExclusiveOptionError
-from ..utils.file_utils import all_files, files_with_suffix
-from ..utils.phenopacket_utils import PhenopacketUtil, phenopacket_reader
+from pheval.prepare.custom_exceptions import MutuallyExclusiveOptionError
+from pheval.utils.file_utils import all_files, files_with_suffix, obtain_closest_file_name
+from pheval.utils.phenopacket_utils import PhenopacketUtil, phenopacket_reader
 
 
 # TODO consider the application.properties and the specification of a PED file
@@ -45,26 +43,6 @@ class CommandCreator:
         self.output_options_dir_files = output_options_dir_files
         self.output_options_file = output_options_file
 
-    def find_output_options_file_from_dir(self, output_option_file_paths: list[Path]) -> Path:
-        """If a directory for output options corresponding to phenopackets is specified - selects the closest file name
-        match for output argument."""
-        closest_file_match = Path(
-            str(
-                difflib.get_close_matches(
-                    str(self.phenopacket_path.name),
-                    [
-                        str(output_option_path.name)
-                        for output_option_path in output_option_file_paths
-                    ],
-                )[0]
-            )
-        )
-        return [
-            output_option_path
-            for output_option_path in output_option_file_paths
-            if Path(closest_file_match) == Path(output_option_path.name)
-        ][0]
-
     def assign_output_options_file(self) -> Path or None:
         """If a single output option file is to specified to all phenopackets, returns its path,
         otherwise finds the best match from the directory."""
@@ -74,7 +52,7 @@ class CommandCreator:
             return (
                 self.output_options_file
                 if self.output_options_dir_files is None
-                else self.find_output_options_file_from_dir(self.output_options_dir_files)
+                else obtain_closest_file_name(self.phenopacket_path, self.output_options_dir_files)
             )
 
     def add_command_line_arguments(self, vcf_dir: Path) -> ExomiserCommandLineArguments:
