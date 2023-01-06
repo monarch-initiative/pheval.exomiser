@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import difflib
 import json
 from collections import defaultdict
 from dataclasses import dataclass
@@ -15,7 +14,7 @@ from pheval.post_process.post_processing_analysis import (
     RankStatsWriter,
     VariantPrioritisationResultData,
 )
-from pheval.utils.file_utils import all_files, files_with_suffix
+from pheval.utils.file_utils import all_files, files_with_suffix, obtain_closest_file_name
 from pheval.utils.phenopacket_utils import PhenopacketUtil, VariantData, phenopacket_reader
 
 
@@ -307,23 +306,6 @@ class AssessExomiserPrioritisation:
             PrioritisationRankRecorder(
                 rank_stats.total, self.results_directory, variant_match, rank_records
             ).record_rank()
-
-
-def obtain_closest_file_name(exomiser_result: Path, phenopackets: list[Path]) -> Path:
-    """Obtains the closest file name when given a template file name and a list of full path of files to be queried."""
-    closest_file_match = Path(
-        str(
-            difflib.get_close_matches(
-                str(exomiser_result.name),
-                [str(phenopacket_path.name) for phenopacket_path in phenopackets],
-            )[0]
-        )
-    )
-    return [
-        phenopacket_path
-        for phenopacket_path in phenopackets
-        if Path(closest_file_match) == Path(phenopacket_path.name)
-    ][0]
 
 
 def obtain_causative_genes(phenopacket_path):
