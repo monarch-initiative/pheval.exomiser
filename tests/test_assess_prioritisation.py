@@ -1,663 +1,23 @@
 import unittest
 from collections import defaultdict
+from copy import copy
+from pathlib import Path
 
+from pheval.post_process.post_processing_analysis import (
+    GenePrioritisationResultData,
+    RankStats,
+    VariantPrioritisationResultData,
+)
 from pheval.utils.phenopacket_utils import VariantData
 
 from pheval_exomiser.post_process.assess_prioritisation import (
+    AssessExomiserPrioritisation,
     RankExomiserResult,
     SimplifiedExomiserResult,
     StandardiseExomiserResult,
 )
 
-
-class TestSimplifiedExomiserResult(unittest.TestCase):
-    def setUp(self) -> None:
-        self.simplified_exomiser_result = SimplifiedExomiserResult(
-            exomiser_result={
-                "geneIdentifier": {
-                    "geneId": "ENSG00000187172",
-                    "geneSymbol": "BAGE2",
-                    "hgncId": "HGNC:15723",
-                    "hgncSymbol": "BAGE2",
-                    "entrezId": "85319",
-                    "ensemblId": "ENSG00000187172",
-                },
-                "modeOfInheritance": "AUTOSOMAL_RECESSIVE",
-                "combinedScore": 0.0026222891432373043,
-                "variantScore": 0.800000011920929,
-                "pValue": 0.4406854103343465,
-                "contributingVariants": [
-                    {
-                        "genomeAssembly": "HG19",
-                        "contigName": "21",
-                        "start": 11021215,
-                        "end": 11021215,
-                        "ref": "T",
-                        "alt": "TA",
-                        "id": "rs71222366",
-                        "type": "INS",
-                        "length": 1,
-                        "changeLength": 1,
-                        "phredScore": 1139.4,
-                        "variantEffect": "SPLICE_REGION_VARIANT",
-                        "filterStatus": "PASSED",
-                        "contributesToGeneScore": True,
-                        "variantScore": 0.8,
-                        "frequencyScore": 1.0,
-                        "pathogenicityScore": 0.8,
-                        "predictedPathogenic": True,
-                        "passedFilterTypes": [
-                            "FAILED_VARIANT_FILTER",
-                            "PATHOGENICITY_FILTER",
-                            "FREQUENCY_FILTER",
-                            "VARIANT_EFFECT_FILTER",
-                            "INHERITANCE_FILTER",
-                        ],
-                        "frequencyData": {"rsId": "rs71222366", "score": 1.0},
-                        "pathogenicityData": {
-                            "clinVarData": {"primaryInterpretation": "NOT_PROVIDED"}
-                        },
-                        "compatibleInheritanceModes": ["AUTOSOMAL_DOMINANT", "AUTOSOMAL_RECESSIVE"],
-                        "contributingInheritanceModes": [
-                            "AUTOSOMAL_DOMINANT",
-                            "AUTOSOMAL_RECESSIVE",
-                        ],
-                        "transcriptAnnotations": [
-                            {
-                                "variantEffect": "SPLICE_REGION_VARIANT",
-                                "geneSymbol": "BAGE2",
-                                "accession": "ENST00000470054.1",
-                                "hgvsGenomic": "g.37108680_37108681insT",
-                                "hgvsCdna": "n.1714-5_1714-4insT",
-                                "rankType": "INTRON",
-                                "rank": 8,
-                                "rankTotal": 9,
-                            }
-                        ],
-                    },
-                    {
-                        "genomeAssembly": "HG19",
-                        "contigName": "21",
-                        "start": 11038722,
-                        "end": 11038722,
-                        "ref": "C",
-                        "alt": "A",
-                        "id": "rs62209718",
-                        "type": "SNV",
-                        "length": 1,
-                        "phredScore": 786.44,
-                        "variantEffect": "SPLICE_REGION_VARIANT",
-                        "filterStatus": "PASSED",
-                        "contributesToGeneScore": True,
-                        "variantScore": 0.8,
-                        "frequencyScore": 1.0,
-                        "pathogenicityScore": 0.8,
-                        "predictedPathogenic": True,
-                        "passedFilterTypes": [
-                            "FAILED_VARIANT_FILTER",
-                            "PATHOGENICITY_FILTER",
-                            "FREQUENCY_FILTER",
-                            "VARIANT_EFFECT_FILTER",
-                            "INHERITANCE_FILTER",
-                        ],
-                        "frequencyData": {"rsId": "rs10433074", "score": 1.0},
-                        "pathogenicityData": {
-                            "clinVarData": {"primaryInterpretation": "NOT_PROVIDED"}
-                        },
-                        "compatibleInheritanceModes": ["AUTOSOMAL_DOMINANT", "AUTOSOMAL_RECESSIVE"],
-                        "contributingInheritanceModes": ["AUTOSOMAL_RECESSIVE"],
-                        "transcriptAnnotations": [
-                            {
-                                "variantEffect": "SPLICE_REGION_VARIANT",
-                                "geneSymbol": "BAGE2",
-                                "accession": "ENST00000470054.1",
-                                "hgvsGenomic": "g.37091174G>T",
-                                "hgvsCdna": "n.1476+6G>T",
-                                "rankType": "INTRON",
-                                "rank": 6,
-                                "rankTotal": 9,
-                            }
-                        ],
-                    },
-                ],
-                "acmgAssignments": [
-                    {
-                        "variantEvaluation": {
-                            "genomeAssembly": "HG19",
-                            "contigName": "21",
-                            "start": 11021215,
-                            "end": 11021215,
-                            "ref": "T",
-                            "alt": "TA",
-                            "id": "rs71222366",
-                            "type": "INS",
-                            "length": 1,
-                            "changeLength": 1,
-                            "phredScore": 1139.4,
-                            "variantEffect": "SPLICE_REGION_VARIANT",
-                            "filterStatus": "PASSED",
-                            "contributesToGeneScore": True,
-                            "variantScore": 0.8,
-                            "frequencyScore": 1.0,
-                            "pathogenicityScore": 0.8,
-                            "predictedPathogenic": True,
-                            "passedFilterTypes": [
-                                "FAILED_VARIANT_FILTER",
-                                "PATHOGENICITY_FILTER",
-                                "FREQUENCY_FILTER",
-                                "VARIANT_EFFECT_FILTER",
-                                "INHERITANCE_FILTER",
-                            ],
-                            "frequencyData": {"rsId": "rs71222366", "score": 1.0},
-                            "pathogenicityData": {
-                                "clinVarData": {"primaryInterpretation": "NOT_PROVIDED"}
-                            },
-                            "compatibleInheritanceModes": [
-                                "AUTOSOMAL_DOMINANT",
-                                "AUTOSOMAL_RECESSIVE",
-                            ],
-                            "contributingInheritanceModes": [
-                                "AUTOSOMAL_DOMINANT",
-                                "AUTOSOMAL_RECESSIVE",
-                            ],
-                            "transcriptAnnotations": [
-                                {
-                                    "variantEffect": "SPLICE_REGION_VARIANT",
-                                    "geneSymbol": "BAGE2",
-                                    "accession": "ENST00000470054.1",
-                                    "hgvsGenomic": "g.37108680_37108681insT",
-                                    "hgvsCdna": "n.1714-5_1714-4insT",
-                                    "rankType": "INTRON",
-                                    "rank": 8,
-                                    "rankTotal": 9,
-                                }
-                            ],
-                        }
-                    }
-                ],
-            },
-            identifier="BAGE2_AUTOSOMAL_RECESSIVE",
-            simplified_exomiser_result=defaultdict(dict),
-            ranking_method="combinedScore",
-        )
-
-    def test_add_gene(self):
-        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
-        self.simplified_exomiser_result.add_gene()
-        self.assertEqual(
-            self.simplified_exomiser_result.simplified_exomiser_result,
-            {
-                "BAGE2_AUTOSOMAL_RECESSIVE": {
-                    "geneSymbol": "BAGE2",
-                    "geneIdentifier": "ENSG00000187172",
-                }
-            },
-        )
-
-    def test_add_ranking_method_val(self):
-        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
-        self.simplified_exomiser_result.add_ranking_method_val()
-        self.assertEqual(
-            self.simplified_exomiser_result.simplified_exomiser_result,
-            {"BAGE2_AUTOSOMAL_RECESSIVE": {"combinedScore": 0.0026}},
-        )
-
-    def test_add_moi(self):
-        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
-        self.simplified_exomiser_result.add_moi()
-        self.assertEqual(
-            self.simplified_exomiser_result.simplified_exomiser_result,
-            {"BAGE2_AUTOSOMAL_RECESSIVE": {"modeOfInheritance": "AUTOSOMAL_RECESSIVE"}},
-        )
-
-    def test_add_contributing_variants(self):
-        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
-        self.simplified_exomiser_result.add_contributing_variants()
-        self.assertEqual(
-            self.simplified_exomiser_result.simplified_exomiser_result,
-            {
-                "BAGE2_AUTOSOMAL_RECESSIVE": {
-                    "contributingVariants": [
-                        VariantData(chrom="21", pos=11021215, ref="T", alt="TA", gene="BAGE2"),
-                        VariantData(chrom="21", pos=11038722, ref="C", alt="A", gene="BAGE2"),
-                    ]
-                }
-            },
-        )
-
-    def test_create_simplified_result(self):
-        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
-        self.simplified_exomiser_result.create_simplified_result()
-        self.assertEqual(
-            self.simplified_exomiser_result.simplified_exomiser_result,
-            {
-                "BAGE2_AUTOSOMAL_RECESSIVE": {
-                    "geneSymbol": "BAGE2",
-                    "geneIdentifier": "ENSG00000187172",
-                    "combinedScore": 0.0026,
-                    "modeOfInheritance": "AUTOSOMAL_RECESSIVE",
-                    "contributingVariants": [
-                        VariantData(chrom="21", pos=11021215, ref="T", alt="TA", gene="BAGE2"),
-                        VariantData(chrom="21", pos=11038722, ref="C", alt="A", gene="BAGE2"),
-                    ],
-                }
-            },
-        )
-
-
-class TestRankExomiserResult(unittest.TestCase):
-    def setUp(self) -> None:
-        self.combined_score_exomiser_result = RankExomiserResult(
-            simplified_exomiser_result={
-                "SPNS1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SPNS1",
-                    "geneIdentifier": "ENSG00000169682",
-                    "combinedScore": 0.8764321,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                    ],
-                },
-                "ZNF804B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZNF804B",
-                    "geneIdentifier": "ENSG00000182348",
-                    "combinedScore": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                    ],
-                },
-                "SMCO2_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SMCO2",
-                    "geneIdentifier": "ENSG00000165935",
-                    "combinedScore": 0.0,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                    ],
-                },
-                "MROH2B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "MROH2B",
-                    "geneIdentifier": "ENSG00000171495",
-                    "combinedScore": 0.0,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="5", pos=41055906, ref="C", alt="G", gene="MROH2B")
-                    ],
-                },
-                "ZSCAN12_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZSCAN12",
-                    "geneIdentifier": "ENSG00000158691",
-                    "combinedScore": 0.23494,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                    ],
-                },
-                "CASS4_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "CASS4",
-                    "geneIdentifier": "ENSG00000087589",
-                    "combinedScore": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                    ],
-                },
-            },
-            ranking_method="combinedScore",
-        )
-        self.pvalue_exomiser_result = RankExomiserResult(
-            simplified_exomiser_result={
-                "SPNS1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SPNS1",
-                    "geneIdentifier": "ENSG00000169682",
-                    "pValue": 0.8764321,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                    ],
-                },
-                "ZNF804B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZNF804B",
-                    "geneIdentifier": "ENSG00000182348",
-                    "pValue": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                    ],
-                },
-                "SMCO2_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SMCO2",
-                    "geneIdentifier": "ENSG00000165935",
-                    "pValue": 0.321354,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                    ],
-                },
-                "MROH2B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "MROH2B",
-                    "geneIdentifier": "ENSG00000171495",
-                    "pValue": 0.0112456,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="5", pos=41055906, ref="C", alt="G", gene="MROH2B")
-                    ],
-                },
-                "ZSCAN12_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZSCAN12",
-                    "geneIdentifier": "ENSG00000158691",
-                    "pValue": 0.0823742,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                    ],
-                },
-                "CASS4_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "CASS4",
-                    "geneIdentifier": "ENSG00000087589",
-                    "pValue": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                    ],
-                },
-            },
-            ranking_method="pValue",
-        )
-
-    def test_sort_exomiser_result(self):
-        self.assertEqual(
-            self.combined_score_exomiser_result.sort_exomiser_result(),
-            [
-                (
-                    "SPNS1_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "SPNS1",
-                        "geneIdentifier": "ENSG00000169682",
-                        "combinedScore": 0.8764321,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                        ],
-                    },
-                ),
-                (
-                    "ZNF804B_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "ZNF804B",
-                        "geneIdentifier": "ENSG00000182348",
-                        "combinedScore": 0.57778,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                        ],
-                    },
-                ),
-                (
-                    "CASS4_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "CASS4",
-                        "geneIdentifier": "ENSG00000087589",
-                        "combinedScore": 0.57778,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                        ],
-                    },
-                ),
-                (
-                    "ZSCAN12_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "ZSCAN12",
-                        "geneIdentifier": "ENSG00000158691",
-                        "combinedScore": 0.23494,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                        ],
-                    },
-                ),
-                (
-                    "SMCO2_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "SMCO2",
-                        "geneIdentifier": "ENSG00000165935",
-                        "combinedScore": 0.0,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                        ],
-                    },
-                ),
-                (
-                    "MROH2B_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "MROH2B",
-                        "geneIdentifier": "ENSG00000171495",
-                        "combinedScore": 0.0,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="5", pos=41055906, ref="C", alt="G", gene="MROH2B")
-                        ],
-                    },
-                ),
-            ],
-        )
-
-    def test_sort_exomiser_result_pvalue(self):
-        self.assertEqual(
-            self.pvalue_exomiser_result.sort_exomiser_result_pvalue(),
-            [
-                (
-                    "MROH2B_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "MROH2B",
-                        "geneIdentifier": "ENSG00000171495",
-                        "pValue": 0.0112456,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="5", pos=41055906, ref="C", alt="G", gene="MROH2B")
-                        ],
-                    },
-                ),
-                (
-                    "ZSCAN12_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "ZSCAN12",
-                        "geneIdentifier": "ENSG00000158691",
-                        "pValue": 0.0823742,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                        ],
-                    },
-                ),
-                (
-                    "SMCO2_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "SMCO2",
-                        "geneIdentifier": "ENSG00000165935",
-                        "pValue": 0.321354,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                        ],
-                    },
-                ),
-                (
-                    "ZNF804B_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "ZNF804B",
-                        "geneIdentifier": "ENSG00000182348",
-                        "pValue": 0.57778,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                        ],
-                    },
-                ),
-                (
-                    "CASS4_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "CASS4",
-                        "geneIdentifier": "ENSG00000087589",
-                        "pValue": 0.57778,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                        ],
-                    },
-                ),
-                (
-                    "SPNS1_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "SPNS1",
-                        "geneIdentifier": "ENSG00000169682",
-                        "pValue": 0.8764321,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                        ],
-                    },
-                ),
-            ],
-        )
-
-    def test_rank_results(self):
-        self.assertEqual(
-            self.combined_score_exomiser_result.rank_results(),
-            {
-                "SPNS1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SPNS1",
-                    "geneIdentifier": "ENSG00000169682",
-                    "combinedScore": 0.8764321,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                    ],
-                    "rank": 1,
-                },
-                "ZNF804B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZNF804B",
-                    "geneIdentifier": "ENSG00000182348",
-                    "combinedScore": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                    ],
-                    "rank": 2,
-                },
-                "CASS4_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "CASS4",
-                    "geneIdentifier": "ENSG00000087589",
-                    "combinedScore": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                    ],
-                    "rank": 2,
-                },
-                "ZSCAN12_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZSCAN12",
-                    "geneIdentifier": "ENSG00000158691",
-                    "combinedScore": 0.23494,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                    ],
-                    "rank": 4,
-                },
-                "SMCO2_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SMCO2",
-                    "geneIdentifier": "ENSG00000165935",
-                    "combinedScore": 0.0,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                    ],
-                    "rank": 5,
-                },
-                "MROH2B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "MROH2B",
-                    "geneIdentifier": "ENSG00000171495",
-                    "combinedScore": 0.0,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="5", pos=41055906, ref="C", alt="G", gene="MROH2B")
-                    ],
-                    "rank": 5,
-                },
-            },
-        )
-        self.assertEqual(
-            self.pvalue_exomiser_result.rank_results(),
-            {
-                "MROH2B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "MROH2B",
-                    "geneIdentifier": "ENSG00000171495",
-                    "pValue": 0.0112456,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="5", pos=41055906, ref="C", alt="G", gene="MROH2B")
-                    ],
-                    "rank": 1,
-                },
-                "ZSCAN12_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZSCAN12",
-                    "geneIdentifier": "ENSG00000158691",
-                    "pValue": 0.0823742,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                    ],
-                    "rank": 2,
-                },
-                "SMCO2_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SMCO2",
-                    "geneIdentifier": "ENSG00000165935",
-                    "pValue": 0.321354,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                    ],
-                    "rank": 3,
-                },
-                "ZNF804B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZNF804B",
-                    "geneIdentifier": "ENSG00000182348",
-                    "pValue": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                    ],
-                    "rank": 4,
-                },
-                "CASS4_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "CASS4",
-                    "geneIdentifier": "ENSG00000087589",
-                    "pValue": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                    ],
-                    "rank": 4,
-                },
-                "SPNS1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SPNS1",
-                    "geneIdentifier": "ENSG00000169682",
-                    "pValue": 0.8764321,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                    ],
-                    "rank": 6,
-                },
-            },
-        )
-
-
-exomiser_result = [
+example_exomiser_result = [
     {
         "geneSymbol": "PLXNA1",
         "geneIdentifier": {
@@ -2319,9 +1679,430 @@ exomiser_result = [
 ]
 
 
+class TestSimplifiedExomiserResult(unittest.TestCase):
+    def setUp(self) -> None:
+        self.simplified_exomiser_result = SimplifiedExomiserResult(
+            exomiser_result=example_exomiser_result[0]["geneScores"][0],
+            identifier="PLXNA1_AUTOSOMAL_DOMINANT",
+            simplified_exomiser_result=defaultdict(dict),
+            ranking_method="combinedScore",
+        )
+
+    def test_add_gene(self):
+        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
+        self.simplified_exomiser_result.add_gene()
+        self.assertEqual(
+            self.simplified_exomiser_result.simplified_exomiser_result,
+            {
+                "PLXNA1_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                }
+            },
+        )
+
+    def test_add_ranking_method_val(self):
+        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
+        self.simplified_exomiser_result.add_ranking_method_val()
+        self.assertEqual(
+            self.simplified_exomiser_result.simplified_exomiser_result,
+            {"PLXNA1_AUTOSOMAL_DOMINANT": {"combinedScore": 0.0484}},
+        )
+
+    def test_add_moi(self):
+        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
+        self.simplified_exomiser_result.add_moi()
+        self.assertEqual(
+            self.simplified_exomiser_result.simplified_exomiser_result,
+            {"PLXNA1_AUTOSOMAL_DOMINANT": {"modeOfInheritance": "AUTOSOMAL_DOMINANT"}},
+        )
+
+    def test_add_contributing_variants(self):
+        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
+        self.simplified_exomiser_result.add_contributing_variants()
+        self.assertEqual(
+            self.simplified_exomiser_result.simplified_exomiser_result,
+            {
+                "PLXNA1_AUTOSOMAL_DOMINANT": {
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ]
+                }
+            },
+        )
+
+    def test_create_simplified_result(self):
+        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
+        self.simplified_exomiser_result.create_simplified_result()
+        self.assertEqual(
+            self.simplified_exomiser_result.simplified_exomiser_result,
+            {
+                "PLXNA1_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                    "combinedScore": 0.0484,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ],
+                }
+            },
+        )
+
+
+class TestRankExomiserResult(unittest.TestCase):
+    def setUp(self) -> None:
+        self.combined_score_exomiser_result = RankExomiserResult(
+            simplified_exomiser_result={
+                "SPNS1_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "SPNS1",
+                    "geneIdentifier": "ENSG00000169682",
+                    "combinedScore": 0.8764321,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
+                    ],
+                },
+                "ZNF804B_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "ZNF804B",
+                    "geneIdentifier": "ENSG00000182348",
+                    "combinedScore": 0.57778,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
+                    ],
+                },
+                "SMCO2_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "SMCO2",
+                    "geneIdentifier": "ENSG00000165935",
+                    "combinedScore": 0.0,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
+                    ],
+                },
+                "ZSCAN12_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "ZSCAN12",
+                    "geneIdentifier": "ENSG00000158691",
+                    "combinedScore": 0.23494,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
+                    ],
+                },
+                "CASS4_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "CASS4",
+                    "geneIdentifier": "ENSG00000087589",
+                    "combinedScore": 0.57778,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
+                    ],
+                },
+            },
+            ranking_method="combinedScore",
+        )
+        self.pvalue_exomiser_result = RankExomiserResult(
+            simplified_exomiser_result={
+                "SPNS1_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "SPNS1",
+                    "geneIdentifier": "ENSG00000169682",
+                    "pValue": 0.8764321,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
+                    ],
+                },
+                "ZNF804B_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "ZNF804B",
+                    "geneIdentifier": "ENSG00000182348",
+                    "pValue": 0.57778,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
+                    ],
+                },
+                "SMCO2_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "SMCO2",
+                    "geneIdentifier": "ENSG00000165935",
+                    "pValue": 0.321354,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
+                    ],
+                },
+                "ZSCAN12_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "ZSCAN12",
+                    "geneIdentifier": "ENSG00000158691",
+                    "pValue": 0.0823742,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
+                    ],
+                },
+                "CASS4_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "CASS4",
+                    "geneIdentifier": "ENSG00000087589",
+                    "pValue": 0.57778,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
+                    ],
+                },
+            },
+            ranking_method="pValue",
+        )
+
+    def test_sort_exomiser_result(self):
+        self.assertEqual(
+            self.combined_score_exomiser_result.sort_exomiser_result(),
+            [
+                (
+                    "SPNS1_AUTOSOMAL_DOMINANT",
+                    {
+                        "geneSymbol": "SPNS1",
+                        "geneIdentifier": "ENSG00000169682",
+                        "combinedScore": 0.8764321,
+                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                        "contributingVariants": [
+                            VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
+                        ],
+                    },
+                ),
+                (
+                    "ZNF804B_AUTOSOMAL_DOMINANT",
+                    {
+                        "geneSymbol": "ZNF804B",
+                        "geneIdentifier": "ENSG00000182348",
+                        "combinedScore": 0.57778,
+                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                        "contributingVariants": [
+                            VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
+                        ],
+                    },
+                ),
+                (
+                    "CASS4_AUTOSOMAL_DOMINANT",
+                    {
+                        "geneSymbol": "CASS4",
+                        "geneIdentifier": "ENSG00000087589",
+                        "combinedScore": 0.57778,
+                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                        "contributingVariants": [
+                            VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
+                        ],
+                    },
+                ),
+                (
+                    "ZSCAN12_AUTOSOMAL_DOMINANT",
+                    {
+                        "geneSymbol": "ZSCAN12",
+                        "geneIdentifier": "ENSG00000158691",
+                        "combinedScore": 0.23494,
+                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                        "contributingVariants": [
+                            VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
+                        ],
+                    },
+                ),
+                (
+                    "SMCO2_AUTOSOMAL_DOMINANT",
+                    {
+                        "geneSymbol": "SMCO2",
+                        "geneIdentifier": "ENSG00000165935",
+                        "combinedScore": 0.0,
+                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                        "contributingVariants": [
+                            VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
+                        ],
+                    },
+                ),
+            ],
+        )
+
+    def test_sort_exomiser_result_pvalue(self):
+        self.assertEqual(
+            self.pvalue_exomiser_result.sort_exomiser_result_pvalue(),
+            [
+                (
+                    "ZSCAN12_AUTOSOMAL_DOMINANT",
+                    {
+                        "geneSymbol": "ZSCAN12",
+                        "geneIdentifier": "ENSG00000158691",
+                        "pValue": 0.0823742,
+                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                        "contributingVariants": [
+                            VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
+                        ],
+                    },
+                ),
+                (
+                    "SMCO2_AUTOSOMAL_DOMINANT",
+                    {
+                        "geneSymbol": "SMCO2",
+                        "geneIdentifier": "ENSG00000165935",
+                        "pValue": 0.321354,
+                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                        "contributingVariants": [
+                            VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
+                        ],
+                    },
+                ),
+                (
+                    "ZNF804B_AUTOSOMAL_DOMINANT",
+                    {
+                        "geneSymbol": "ZNF804B",
+                        "geneIdentifier": "ENSG00000182348",
+                        "pValue": 0.57778,
+                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                        "contributingVariants": [
+                            VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
+                        ],
+                    },
+                ),
+                (
+                    "CASS4_AUTOSOMAL_DOMINANT",
+                    {
+                        "geneSymbol": "CASS4",
+                        "geneIdentifier": "ENSG00000087589",
+                        "pValue": 0.57778,
+                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                        "contributingVariants": [
+                            VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
+                        ],
+                    },
+                ),
+                (
+                    "SPNS1_AUTOSOMAL_DOMINANT",
+                    {
+                        "geneSymbol": "SPNS1",
+                        "geneIdentifier": "ENSG00000169682",
+                        "pValue": 0.8764321,
+                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                        "contributingVariants": [
+                            VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
+                        ],
+                    },
+                ),
+            ],
+        )
+
+    def test_rank_results(self):
+        self.assertEqual(
+            self.combined_score_exomiser_result.rank_results(),
+            {
+                "SPNS1_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "SPNS1",
+                    "geneIdentifier": "ENSG00000169682",
+                    "combinedScore": 0.8764321,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
+                    ],
+                    "rank": 1,
+                },
+                "ZNF804B_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "ZNF804B",
+                    "geneIdentifier": "ENSG00000182348",
+                    "combinedScore": 0.57778,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
+                    ],
+                    "rank": 2,
+                },
+                "CASS4_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "CASS4",
+                    "geneIdentifier": "ENSG00000087589",
+                    "combinedScore": 0.57778,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
+                    ],
+                    "rank": 2,
+                },
+                "ZSCAN12_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "ZSCAN12",
+                    "geneIdentifier": "ENSG00000158691",
+                    "combinedScore": 0.23494,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
+                    ],
+                    "rank": 4,
+                },
+                "SMCO2_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "SMCO2",
+                    "geneIdentifier": "ENSG00000165935",
+                    "combinedScore": 0.0,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
+                    ],
+                    "rank": 5,
+                },
+            },
+        )
+        self.assertEqual(
+            self.pvalue_exomiser_result.rank_results(),
+            {
+                "ZSCAN12_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "ZSCAN12",
+                    "geneIdentifier": "ENSG00000158691",
+                    "pValue": 0.0823742,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
+                    ],
+                    "rank": 1,
+                },
+                "SMCO2_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "SMCO2",
+                    "geneIdentifier": "ENSG00000165935",
+                    "pValue": 0.321354,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
+                    ],
+                    "rank": 2,
+                },
+                "ZNF804B_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "ZNF804B",
+                    "geneIdentifier": "ENSG00000182348",
+                    "pValue": 0.57778,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
+                    ],
+                    "rank": 3,
+                },
+                "CASS4_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "CASS4",
+                    "geneIdentifier": "ENSG00000087589",
+                    "pValue": 0.57778,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
+                    ],
+                    "rank": 3,
+                },
+                "SPNS1_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "SPNS1",
+                    "geneIdentifier": "ENSG00000169682",
+                    "pValue": 0.8764321,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
+                    ],
+                    "rank": 5,
+                },
+            },
+        )
+
+
 class TestStandardiseExomiserResult(unittest.TestCase):
     def setUp(self) -> None:
-        self.exomiser_result = StandardiseExomiserResult(exomiser_result, "combinedScore")
+        self.exomiser_result = StandardiseExomiserResult(example_exomiser_result, "combinedScore")
 
     def test_simplify_exomiser_result(self):
         self.assertEqual(
@@ -2373,6 +2154,302 @@ class TestStandardiseExomiserResult(unittest.TestCase):
                         VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"),
                     ],
                     "rank": 2,
+                },
+            },
+        )
+
+
+class TestAssessExomiserPrioritisation(unittest.TestCase):
+    def setUp(self) -> None:
+        self.exomiser_results = AssessExomiserPrioritisation(
+            Path("/full/path/to/phenopacket.json"),
+            Path("full/path/to/results/directory"),
+            {
+                "PLXNA1_AUTOSOMAL_DOMINANT": {
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                    "combinedScore": 0.0484,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ],
+                    "rank": 1,
+                },
+                "PLXNA1_AUTOSOMAL_RECESSIVE": {
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                    "combinedScore": 0.046,
+                    "modeOfInheritance": "AUTOSOMAL_RECESSIVE",
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
+                        VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"),
+                    ],
+                    "rank": 2,
+                },
+            },
+            0.0,
+            "combinedScore",
+            ["PLXNA1", "GABA2"],
+            [
+                VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
+                VariantData(chrom="5", pos=3567846563534, ref="T", alt="C", gene="GABA2"),
+            ],
+        )
+        self.gene_rank_stats = RankStats(0, 0, 0, 0)
+        self.gene_rank_records = defaultdict(dict)
+        self.variant_rank_stats = RankStats(0, 0, 0, 0)
+        self.variant_rank_records = defaultdict(dict)
+
+    def test_record_gene_prioritisation_match(self):
+        gene_match = self.exomiser_results.record_gene_prioritisation_match(
+            "PLXNA1",
+            {
+                "geneSymbol": "PLXNA1",
+                "geneIdentifier": "ENSG00000114554",
+                "combinedScore": 0.0484,
+                "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                "contributingVariants": [
+                    VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                ],
+                "rank": 1,
+            },
+            self.gene_rank_stats,
+        )
+        self.assertEqual(
+            gene_match,
+            GenePrioritisationResultData(
+                phenopacket=Path("/full/path/to/phenopacket.json"), gene="PLXNA1", rank=1
+            ),
+        )
+        self.assertEqual(
+            self.gene_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=0, reciprocal_ranks=[1.0]),
+        )
+
+    def test_record_variant_prioritisation_match(self):
+        variant_match = self.exomiser_results.record_variant_prioritisation_match(
+            VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
+            {
+                "geneSymbol": "PLXNA1",
+                "geneIdentifier": "ENSG00000114554",
+                "combinedScore": 0.0484,
+                "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                "contributingVariants": [
+                    VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                ],
+                "rank": 1,
+            },
+            self.variant_rank_stats,
+        )
+        self.assertEqual(
+            variant_match,
+            VariantPrioritisationResultData(
+                phenopacket=Path("/full/path/to/phenopacket.json"),
+                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
+                rank=1,
+            ),
+        )
+
+        self.assertEqual(
+            self.variant_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=0, reciprocal_ranks=[1.0]),
+        )
+
+    def test_assess_gene_with_pvalue_threshold(self):
+        copied_exomiser_result = copy(self.exomiser_results)
+        copied_exomiser_result.threshold = 0.047
+        self.assertEqual(
+            copied_exomiser_result.assess_gene_with_pvalue_threshold(
+                gene="PLXNA1",
+                result_data={
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                    "combinedScore": 0.045,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ],
+                    "rank": 1,
+                },
+                rank_stats=self.gene_rank_stats,
+            ),
+            GenePrioritisationResultData(
+                phenopacket=Path("/full/path/to/phenopacket.json"), gene="PLXNA1", rank=1
+            ),
+        )
+
+    def test_assess_gene_with_threshold(self):
+        copied_exomiser_result = copy(self.exomiser_results)
+        copied_exomiser_result.threshold = 0.047
+        self.assertEqual(
+            copied_exomiser_result.assess_gene_with_threshold(
+                gene="PLXNA1",
+                result_data={
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                    "combinedScore": 0.045,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ],
+                    "rank": 1,
+                },
+                rank_stats=self.gene_rank_stats,
+            ),
+            None,
+        )
+        self.assertEqual(
+            copied_exomiser_result.assess_gene_with_threshold(
+                gene="PLXNA1",
+                result_data={
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                    "combinedScore": 0.1,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ],
+                    "rank": 1,
+                },
+                rank_stats=self.gene_rank_stats,
+            ),
+            GenePrioritisationResultData(
+                phenopacket=Path("/full/path/to/phenopacket.json"), gene="PLXNA1", rank=1
+            ),
+        )
+        self.assertEqual(
+            self.gene_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=0, reciprocal_ranks=[1.0]),
+        )
+
+    def test_assess_variant_with_pvalue_threshold(self):
+        copied_exomiser_result = copy(self.exomiser_results)
+        copied_exomiser_result.threshold = 0.048
+        self.assertEqual(
+            copied_exomiser_result.assess_variant_with_pvalue_threshold(
+                result_data={
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                    "combinedScore": 0.045,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ],
+                    "rank": 1,
+                },
+                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
+                rank_stats=self.variant_rank_stats,
+            ),
+            VariantPrioritisationResultData(
+                phenopacket=Path("/full/path/to/phenopacket.json"),
+                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
+                rank=1,
+            ),
+        )
+        self.assertEqual(
+            copied_exomiser_result.assess_variant_with_pvalue_threshold(
+                result_data={
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                    "combinedScore": 0.5,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ],
+                    "rank": 1,
+                },
+                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
+                rank_stats=self.variant_rank_stats,
+            ),
+            None,
+        )
+
+    def test_assess_variant_with_threshold(self):
+        copied_exomiser_result = copy(self.exomiser_results)
+        copied_exomiser_result.threshold = 0.2
+        self.assertEqual(
+            copied_exomiser_result.assess_variant_with_threshold(
+                result_data={
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                    "combinedScore": 0.5642,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ],
+                    "rank": 1,
+                },
+                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
+                rank_stats=self.variant_rank_stats,
+            ),
+            VariantPrioritisationResultData(
+                phenopacket=Path("/full/path/to/phenopacket.json"),
+                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
+                rank=1,
+            ),
+        )
+        self.assertEqual(
+            copied_exomiser_result.assess_variant_with_threshold(
+                result_data={
+                    "geneSymbol": "PLXNA1",
+                    "geneIdentifier": "ENSG00000114554",
+                    "combinedScore": 0.123,
+                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+                    "contributingVariants": [
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ],
+                    "rank": 1,
+                },
+                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
+                rank_stats=self.variant_rank_stats,
+            ),
+            None,
+        )
+
+    def test_assess_gene_prioritisation(self):
+        self.exomiser_results.assess_gene_prioritisation(
+            self.gene_rank_stats, self.gene_rank_records
+        )
+        self.assertEqual(
+            self.gene_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=2, reciprocal_ranks=[1.0]),
+        )
+        self.assertEqual(
+            self.gene_rank_records,
+            {
+                1: {
+                    "Phenopacket": "phenopacket.json",
+                    "Gene": "PLXNA1",
+                    Path("full/path/to/results/directory"): 1,
+                },
+                2: {
+                    "Phenopacket": "phenopacket.json",
+                    "Gene": "GABA2",
+                    Path("full/path/to/results/directory"): 0,
+                },
+            },
+        )
+
+    def test_assess_variant_prioritisation(self):
+        self.exomiser_results.assess_variant_prioritisation(
+            self.variant_rank_stats, self.variant_rank_records
+        )
+        self.assertEqual(
+            self.variant_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=2, reciprocal_ranks=[1.0]),
+        )
+        self.assertEqual(
+            self.variant_rank_records,
+            {
+                1: {
+                    "Phenopacket": "phenopacket.json",
+                    "Variant": "3_126730873_G_A",
+                    Path("full/path/to/results/directory"): 1,
+                },
+                2: {
+                    "Phenopacket": "phenopacket.json",
+                    "Variant": "5_3567846563534_T_C",
+                    Path("full/path/to/results/directory"): 0,
                 },
             },
         )
