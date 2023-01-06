@@ -309,7 +309,8 @@ class AssessExomiserPrioritisation:
             ).record_rank()
 
 
-def get_closest_file_name(exomiser_result: Path, phenopackets: list[Path]) -> Path:
+def obtain_closest_file_name(exomiser_result: Path, phenopackets: list[Path]) -> Path:
+    """Obtains the closest file name when given a template file name and a list of full path of files to be queried."""
     closest_file_match = Path(
         str(
             difflib.get_close_matches(
@@ -348,7 +349,7 @@ def assess_prioritisation_for_phenopacket(
     variant_rank_stats: RankStats,
     variant_rank_comparison: defaultdict,
 ):
-    phenopacket_path = get_closest_file_name(exomiser_result, all_files(phenopacket_dir))
+    phenopacket_path = obtain_closest_file_name(exomiser_result, all_files(phenopacket_dir))
     proband_causative_genes = obtain_causative_genes(phenopacket_path)
     proband_causative_variants = obtain_causative_variants(phenopacket_path)
     standardised_exomiser_result = StandardiseExomiserResult(
