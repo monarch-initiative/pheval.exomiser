@@ -337,10 +337,6 @@ def obtain_causative_variants(phenopacket_path):
     return phenopacket_util.diagnosed_variants()
 
 
-def assess_exomiser_prioritisation_for_phenopacket():
-    pass
-
-
 def assess_prioritisation_for_phenopacket(
     exomiser_result: Path,
     phenopacket_dir: Path,
@@ -427,7 +423,7 @@ def benchmark_directory(
     variants_stats_writer.close()
 
 
-def assess_prioritisation_for_directories(
+def benchmark_directories(
     directory_list: list[Path],
     phenopacket_dir: Path,
     ranking_method: str,
@@ -558,6 +554,6 @@ def benchmark_comparison(
     output_prefix,
     threshold,
 ):
-    assess_prioritisation_for_directories(
+    benchmark_directories(
         [directory1, directory2], phenopacket_dir, ranking_method, output_prefix, threshold
     )
