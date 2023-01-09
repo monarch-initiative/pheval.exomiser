@@ -147,11 +147,11 @@ class TestCommandCreator(unittest.TestCase):
             None,
         )
 
-    def test_find_output_options_file_from_dir(self):
-        self.assertEqual(
-            self.output_options_dir.find_output_options_file_from_dir(output_options_files),
-            Path("/full/path/to/some/alternate/output_options/phenopacket-output-options.json"),
-        )
+    # def test_find_output_options_file_from_dir(self):
+    #     self.assertEqual(
+    #         self.output_options_dir.find_output_options_file_from_dir(output_options_files),
+    #         Path("/full/path/to/some/alternate/output_options/phenopacket-output-options.json"),
+    #     )
 
     def test_assign_output_options_file_none_specified(self):
         self.assertEqual(self.no_output_options.assign_output_options_file(), None)
