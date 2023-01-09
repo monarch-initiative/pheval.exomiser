@@ -6,7 +6,6 @@ from typing import Optional
 
 import click
 from phenopackets import Family, Phenopacket
-
 from pheval.prepare.custom_exceptions import MutuallyExclusiveOptionError
 from pheval.utils.file_utils import all_files, files_with_suffix, obtain_closest_file_name
 from pheval.utils.phenopacket_utils import PhenopacketUtil, phenopacket_reader
