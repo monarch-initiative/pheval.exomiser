@@ -1,5 +1,5 @@
 import yaml
-from serde import serde
+from serde import serde, T
 from serde.yaml import from_yaml
 from typing import List
 from dataclasses import dataclass
@@ -47,7 +47,6 @@ class ExomiserConfigPrepare:
 @serde
 @dataclass
 class ExomiserConfigRunPrepareBatch:
-    split_jobs: bool
     max_jobs: int
 
 
@@ -70,7 +69,7 @@ class ExomiserConfigRunExomiserConfigs:
 
 @serde
 @dataclass
-class ExomiserConfigSingleRuns:
+class ExomiserConfigSingleRun:
     prepare_batch: ExomiserConfigRunPrepareBatch
     run_identifier: str
     exomiser_configurations: ExomiserConfigRunExomiserConfigs
@@ -86,7 +85,7 @@ class ExomiserConfigSingleRuns:
 @dataclass
 class ExomiserConfigRun:
     environment: str
-    runs: List[ExomiserConfigSingleRuns]
+    runs: List[ExomiserConfigSingleRun]
 
 
 @serde
@@ -107,7 +106,7 @@ class ExomiserConfig:
     post_processing: ExomiserConfigPostProcessing
 
 
-def parse_exomiser_config(config_path: Path):
+def parse_exomiser_config(config_path: Path) -> ExomiserConfig:
     """Reads the config file."""
     with open(config_path, "r") as config_file:
         config = yaml.safe_load(config_file)
