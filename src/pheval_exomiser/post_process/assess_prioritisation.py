@@ -19,6 +19,12 @@ from pheval.utils.phenopacket_utils import PhenopacketUtil, VariantData, phenopa
 
 
 @dataclass
+class CorrespondingExomiserInput:
+    phenopacket_dir: Path
+    results_dir: Path
+
+
+@dataclass
 class SimplifiedExomiserResult:
     exomiser_result: dict
     identifier: str
@@ -407,8 +413,10 @@ def benchmark_directory(
 
 
 def benchmark_directories(
-    directory_list: list[Path],
-    phenopacket_dir: Path,
+    directory1: Path,
+    directory2: Path,
+    phenopacket_dir1: Path,
+    phenopacket_dir2: Path,
     ranking_method: str,
     output_prefix: str,
     threshold: float,
@@ -416,10 +424,13 @@ def benchmark_directories(
     gene_stats_writer = RankStatsWriter(Path(output_prefix + "-gene_summary.tsv"))
     variants_stats_writer = RankStatsWriter(Path(output_prefix + "-variant_summary.tsv"))
     gene_rank_comparison, variant_rank_comparison = defaultdict(dict), defaultdict(dict)
-    for directory in directory_list:
+    for data in [
+        CorrespondingExomiserInput(phenopacket_dir=phenopacket_dir1, results_dir=directory1),
+        CorrespondingExomiserInput(phenopacket_dir=phenopacket_dir2, results_dir=directory2),
+    ]:
         assess_prioritisation_for_results_directory(
-            directory,
-            phenopacket_dir,
+            data.results_dir,
+            data.phenopacket_dir,
             ranking_method,
             threshold,
             gene_rank_comparison,
@@ -498,11 +509,19 @@ def benchmark(directory: Path, phenopacket_dir: Path, ranking_method, output_pre
     type=Path,
 )
 @click.option(
-    "--phenopacket-dir",
+    "--phenopacket-dir1",
     "-p",
     required=True,
     metavar="PATH",
-    help="Full path to directory containing phenopackets.",
+    help="Full path to directory containing phenopackets for input for baseline directory.",
+    type=Path,
+)
+@click.option(
+    "--phenopacket-dir2",
+    "-p",
+    required=True,
+    metavar="PATH",
+    help="Full path to directory containing phenopackets for input for compariosn directory.",
     type=Path,
 )
 @click.option(
@@ -532,11 +551,18 @@ def benchmark(directory: Path, phenopacket_dir: Path, ranking_method, output_pre
 def benchmark_comparison(
     directory1: Path,
     directory2: Path,
-    phenopacket_dir: Path,
+    phenopacket_dir1: Path,
+    phenopacket_dir2: Path,
     ranking_method,
     output_prefix,
     threshold,
 ):
     benchmark_directories(
-        [directory1, directory2], phenopacket_dir, ranking_method, output_prefix, threshold
+        directory1,
+        directory2,
+        phenopacket_dir1,
+        phenopacket_dir2,
+        ranking_method,
+        output_prefix,
+        threshold,
     )
