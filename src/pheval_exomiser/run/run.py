@@ -40,7 +40,8 @@ def edit_application_properties_data_path_for_exomiser(run: ExomiserConfigSingle
     with open(run.exomiser_configurations.path_to_application_properties_config) as exomiser_config:
         exomiser_config_lines = exomiser_config.readlines()
     exomiser_config.close()
-    exomiser_config_lines = [line.replace(line, "exomiser.data-directory=/exomiser-data") if line.startswith("exomiser.data-directory=") else line for line in exomiser_config_lines]
+    exomiser_config_lines = [line.replace(line, "exomiser.data-directory=/exomiser-data") if line.startswith(
+        "exomiser.data-directory=") else line for line in exomiser_config_lines]
     with open(run.exomiser_configurations.path_to_application_properties_config, "w") as exomiser_config:
         exomiser_config.writelines(exomiser_config_lines)
     exomiser_config.close()
@@ -114,10 +115,10 @@ def run_exomiser_local(output_dir: Path, config: ExomiserConfig):
     print("...running exomiser...")
     os.chdir(output_dir)
     for run in config.run.runs:
-        try:
-            os.mkdir(Path(output_dir).joinpath(Path(run.run_identifier + "_results")))
-        except FileExistsError:
-            pass
+        # try:
+        #     os.mkdir(Path(output_dir).joinpath(Path(run.run_identifier + "_results")))
+        # except FileExistsError:
+        #     pass
         prefixed_batch_files = [
             filename
             for filename in all_files(Path(output_dir).joinpath("exomiser_batch_files"))
