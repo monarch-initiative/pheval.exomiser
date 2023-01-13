@@ -25,7 +25,10 @@ def post_process_exomiser_results(output_dir: Path, config: ExomiserConfig):
                 results_dir=Path(output_dir).joinpath(config.run.runs[0].run_identifier + "_results")),
             ranking_method=config.post_processing.ranking_method,
             output_prefix=config.post_processing.output_prefix,
-            threshold=config.post_processing.threshold
+            threshold=config.post_processing.threshold,
+            gene_analysis=config.post_processing.benchmark_gene_prioritisation,
+            variant_analysis=config.post_processing.benchmark_variant_prioritisation
+
         )
     elif len(config.run.runs) == 2:
         benchmark_directories_for_pairwise_comparison(results_directories=[
@@ -38,6 +41,8 @@ def post_process_exomiser_results(output_dir: Path, config: ExomiserConfig):
             ranking_method=config.post_processing.ranking_method,
             output_prefix=config.post_processing.output_prefix,
             threshold=config.post_processing.threshold,
+            gene_analysis=config.post_processing.benchmark_gene_prioritisation,
+            variant_analysis=config.post_processing.benchmark_variant_prioritisation
         )
     else:
         runs = [CorrespondingExomiserInput(phenopacket_dir=run.path_to_input_phenopacket_data,
@@ -45,5 +50,8 @@ def post_process_exomiser_results(output_dir: Path, config: ExomiserConfig):
                 run in config.run.runs]
         benchmark_several_directories(results_directories=runs, ranking_method=config.post_processing.ranking_method,
                                       output_prefix=config.post_processing.output_prefix,
-                                      threshold=config.post_processing.threshold)
+                                      threshold=config.post_processing.threshold,
+                                      gene_analysis=config.post_processing.benchmark_gene_prioritisation,
+                                      variant_analysis=config.post_processing.benchmark_variant_prioritisation
+                                      )
     print("done")
