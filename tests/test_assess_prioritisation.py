@@ -8,12 +8,14 @@ from pheval.post_process.post_processing_analysis import (
     RankStats,
     VariantPrioritisationResultData,
 )
-from pheval.utils.phenopacket_utils import VariantData
+from pheval.utils.phenopacket_utils import ProbandCausativeGene, VariantData
 
 from pheval_exomiser.post_process.assess_prioritisation import (
-    AssessExomiserPrioritisation,
+    AssessExomiserGenePrioritisation,
+    AssessExomiserVariantPrioritisation,
     RankExomiserResult,
-    SimplifiedExomiserResult,
+    SimplifiedExomiserGeneResult,
+    SimplifiedExomiserVariantResult,
     StandardiseExomiserResult,
 )
 
@@ -1679,619 +1681,490 @@ example_exomiser_result = [
 ]
 
 
-class TestSimplifiedExomiserResult(unittest.TestCase):
+class TestSimplifiedGeneResult(unittest.TestCase):
     def setUp(self) -> None:
-        self.simplified_exomiser_result = SimplifiedExomiserResult(
-            exomiser_result=example_exomiser_result[0]["geneScores"][0],
-            identifier="PLXNA1_AUTOSOMAL_DOMINANT",
-            simplified_exomiser_result=defaultdict(dict),
+        self.simplified_exomiser_gene_result = SimplifiedExomiserGeneResult(
+            exomiser_result=example_exomiser_result[0],
+            simplified_exomiser_gene_result=[],
             ranking_method="combinedScore",
         )
 
-    def test_add_gene(self):
-        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
-        self.simplified_exomiser_result.add_gene()
+    def test_add_gene_record(self):
         self.assertEqual(
-            self.simplified_exomiser_result.simplified_exomiser_result,
+            self.simplified_exomiser_gene_result.add_gene_record(),
+            {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554"},
+        )
+
+    def test_add_ranking_score(self):
+        self.assertEqual(
+            self.simplified_exomiser_gene_result.add_ranking_score(
+                {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554"}
+            ),
             {
-                "PLXNA1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                }
+                "gene_symbol": "PLXNA1",
+                "gene_identifier": "ENSG00000114554",
+                "combinedScore": 0.0484,
             },
         )
 
-    def test_add_ranking_method_val(self):
-        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
-        self.simplified_exomiser_result.add_ranking_method_val()
+    def test_create_simplified_gene_result(self):
         self.assertEqual(
-            self.simplified_exomiser_result.simplified_exomiser_result,
-            {"PLXNA1_AUTOSOMAL_DOMINANT": {"combinedScore": 0.0484}},
-        )
-
-    def test_add_moi(self):
-        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
-        self.simplified_exomiser_result.add_moi()
-        self.assertEqual(
-            self.simplified_exomiser_result.simplified_exomiser_result,
-            {"PLXNA1_AUTOSOMAL_DOMINANT": {"modeOfInheritance": "AUTOSOMAL_DOMINANT"}},
-        )
-
-    def test_add_contributing_variants(self):
-        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
-        self.simplified_exomiser_result.add_contributing_variants()
-        self.assertEqual(
-            self.simplified_exomiser_result.simplified_exomiser_result,
-            {
-                "PLXNA1_AUTOSOMAL_DOMINANT": {
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ]
-                }
-            },
-        )
-
-    def test_create_simplified_result(self):
-        self.assertEqual(self.simplified_exomiser_result.simplified_exomiser_result, {})
-        self.simplified_exomiser_result.create_simplified_result()
-        self.assertEqual(
-            self.simplified_exomiser_result.simplified_exomiser_result,
-            {
-                "PLXNA1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
+            self.simplified_exomiser_gene_result.create_simplified_gene_result(),
+            [
+                {
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
                     "combinedScore": 0.0484,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
                 }
-            },
+            ],
+        )
+
+
+class TestSimplifiedExomiserVariantResult(unittest.TestCase):
+    def setUp(self) -> None:
+        self.simplified_exomiser_variant_result = SimplifiedExomiserVariantResult(
+            exomiser_result=example_exomiser_result[0]["geneScores"][0],
+            simplified_exomiser_variant_result=[],
+            ranking_method="combinedScore",
+            ranking_score=0.6589364,
+        )
+
+    def test_create_simplified_variant_result(self):
+        self.assertEqual(
+            self.simplified_exomiser_variant_result.create_simplified_variant_result(),
+            [
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.6589364,
+                }
+            ],
         )
 
 
 class TestRankExomiserResult(unittest.TestCase):
     def setUp(self) -> None:
-        self.combined_score_exomiser_result = RankExomiserResult(
-            simplified_exomiser_result={
-                "SPNS1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SPNS1",
-                    "geneIdentifier": "ENSG00000169682",
-                    "combinedScore": 0.8764321,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                    ],
+        self.simplified_gene_result = RankExomiserResult(
+            simplified_exomiser_result=[
+                {
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "combinedScore": 0.8764,
                 },
-                "ZNF804B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZNF804B",
-                    "geneIdentifier": "ENSG00000182348",
-                    "combinedScore": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                    ],
+                {
+                    "gene_symbol": "SPNS1",
+                    "gene_identifier": "ENSG00000169682",
+                    "combinedScore": 0.3765,
                 },
-                "SMCO2_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SMCO2",
-                    "geneIdentifier": "ENSG00000165935",
-                    "combinedScore": 0.0,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                    ],
+                {
+                    "gene_symbol": "ZNF804B",
+                    "gene_identifier": "ENSG00000182348",
+                    "combinedScore": 0.5777,
                 },
-                "ZSCAN12_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZSCAN12",
-                    "geneIdentifier": "ENSG00000158691",
-                    "combinedScore": 0.23494,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                    ],
+                {
+                    "gene_symbol": "SMCO2",
+                    "gene_identifier": "ENSG00000165935",
+                    "combinedScore": 0.5777,
                 },
-                "CASS4_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "CASS4",
-                    "geneIdentifier": "ENSG00000087589",
-                    "combinedScore": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                    ],
-                },
-            },
+            ],
             ranking_method="combinedScore",
         )
-        self.pvalue_exomiser_result = RankExomiserResult(
-            simplified_exomiser_result={
-                "SPNS1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SPNS1",
-                    "geneIdentifier": "ENSG00000169682",
-                    "pValue": 0.8764321,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                    ],
+        self.simplified_variant_result = RankExomiserResult(
+            simplified_exomiser_result=[
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.8764,
                 },
-                "ZNF804B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZNF804B",
-                    "geneIdentifier": "ENSG00000182348",
-                    "pValue": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                    ],
+                {
+                    "variant": VariantData(
+                        chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1"
+                    ),
+                    "combinedScore": 0.3765,
                 },
-                "SMCO2_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SMCO2",
-                    "geneIdentifier": "ENSG00000165935",
-                    "pValue": 0.321354,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                    ],
+                {
+                    "variant": VariantData(
+                        chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B"
+                    ),
+                    "combinedScore": 0.5777,
                 },
-                "ZSCAN12_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZSCAN12",
-                    "geneIdentifier": "ENSG00000158691",
-                    "pValue": 0.0823742,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                    ],
+                {
+                    "variant": VariantData(
+                        chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2"
+                    ),
+                    "combinedScore": 0.5777,
                 },
-                "CASS4_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "CASS4",
-                    "geneIdentifier": "ENSG00000087589",
-                    "pValue": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                    ],
-                },
-            },
+            ],
+            ranking_method="combinedScore",
+        )
+        self.simplified_gene_result_pvalue = RankExomiserResult(
+            simplified_exomiser_result=[
+                {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554", "pValue": 0.8764},
+                {"gene_symbol": "SPNS1", "gene_identifier": "ENSG00000169682", "pValue": 0.3765},
+                {"gene_symbol": "ZNF804B", "gene_identifier": "ENSG00000182348", "pValue": 0.5777},
+                {"gene_symbol": "SMCO2", "gene_identifier": "ENSG00000165935", "pValue": 0.5777},
+            ],
             ranking_method="pValue",
         )
 
-    def test_sort_exomiser_result(self):
+    def test_sort_exomiser_result_gene(self):
         self.assertEqual(
-            self.combined_score_exomiser_result.sort_exomiser_result(),
+            self.simplified_gene_result.sort_exomiser_result(),
             [
-                (
-                    "SPNS1_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "SPNS1",
-                        "geneIdentifier": "ENSG00000169682",
-                        "combinedScore": 0.8764321,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                        ],
-                    },
-                ),
-                (
-                    "ZNF804B_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "ZNF804B",
-                        "geneIdentifier": "ENSG00000182348",
-                        "combinedScore": 0.57778,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                        ],
-                    },
-                ),
-                (
-                    "CASS4_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "CASS4",
-                        "geneIdentifier": "ENSG00000087589",
-                        "combinedScore": 0.57778,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                        ],
-                    },
-                ),
-                (
-                    "ZSCAN12_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "ZSCAN12",
-                        "geneIdentifier": "ENSG00000158691",
-                        "combinedScore": 0.23494,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                        ],
-                    },
-                ),
-                (
-                    "SMCO2_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "SMCO2",
-                        "geneIdentifier": "ENSG00000165935",
-                        "combinedScore": 0.0,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                        ],
-                    },
-                ),
+                {
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "combinedScore": 0.8764,
+                },
+                {
+                    "gene_symbol": "ZNF804B",
+                    "gene_identifier": "ENSG00000182348",
+                    "combinedScore": 0.5777,
+                },
+                {
+                    "gene_symbol": "SMCO2",
+                    "gene_identifier": "ENSG00000165935",
+                    "combinedScore": 0.5777,
+                },
+                {
+                    "gene_symbol": "SPNS1",
+                    "gene_identifier": "ENSG00000169682",
+                    "combinedScore": 0.3765,
+                },
+            ],
+        )
+
+    def test_sort_exomiser_result_variant(self):
+        self.assertEqual(
+            self.simplified_variant_result.sort_exomiser_result(),
+            [
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.8764,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B"
+                    ),
+                    "combinedScore": 0.5777,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2"
+                    ),
+                    "combinedScore": 0.5777,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1"
+                    ),
+                    "combinedScore": 0.3765,
+                },
             ],
         )
 
     def test_sort_exomiser_result_pvalue(self):
         self.assertEqual(
-            self.pvalue_exomiser_result.sort_exomiser_result_pvalue(),
+            self.simplified_gene_result_pvalue.sort_exomiser_result_pvalue(),
             [
-                (
-                    "ZSCAN12_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "ZSCAN12",
-                        "geneIdentifier": "ENSG00000158691",
-                        "pValue": 0.0823742,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                        ],
-                    },
-                ),
-                (
-                    "SMCO2_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "SMCO2",
-                        "geneIdentifier": "ENSG00000165935",
-                        "pValue": 0.321354,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                        ],
-                    },
-                ),
-                (
-                    "ZNF804B_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "ZNF804B",
-                        "geneIdentifier": "ENSG00000182348",
-                        "pValue": 0.57778,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                        ],
-                    },
-                ),
-                (
-                    "CASS4_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "CASS4",
-                        "geneIdentifier": "ENSG00000087589",
-                        "pValue": 0.57778,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                        ],
-                    },
-                ),
-                (
-                    "SPNS1_AUTOSOMAL_DOMINANT",
-                    {
-                        "geneSymbol": "SPNS1",
-                        "geneIdentifier": "ENSG00000169682",
-                        "pValue": 0.8764321,
-                        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                        "contributingVariants": [
-                            VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                        ],
-                    },
-                ),
+                {"gene_symbol": "SPNS1", "gene_identifier": "ENSG00000169682", "pValue": 0.3765},
+                {"gene_symbol": "ZNF804B", "gene_identifier": "ENSG00000182348", "pValue": 0.5777},
+                {"gene_symbol": "SMCO2", "gene_identifier": "ENSG00000165935", "pValue": 0.5777},
+                {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554", "pValue": 0.8764},
             ],
         )
 
-    def test_rank_results(self):
+    def test_rank_results_gene(self):
         self.assertEqual(
-            self.combined_score_exomiser_result.rank_results(),
-            {
-                "SPNS1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SPNS1",
-                    "geneIdentifier": "ENSG00000169682",
-                    "combinedScore": 0.8764321,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                    ],
+            self.simplified_gene_result.rank_results(),
+            [
+                {
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "combinedScore": 0.8764,
                     "rank": 1,
                 },
-                "ZNF804B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZNF804B",
-                    "geneIdentifier": "ENSG00000182348",
-                    "combinedScore": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                    ],
+                {
+                    "gene_symbol": "ZNF804B",
+                    "gene_identifier": "ENSG00000182348",
+                    "combinedScore": 0.5777,
                     "rank": 2,
                 },
-                "CASS4_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "CASS4",
-                    "geneIdentifier": "ENSG00000087589",
-                    "combinedScore": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                    ],
+                {
+                    "gene_symbol": "SMCO2",
+                    "gene_identifier": "ENSG00000165935",
+                    "combinedScore": 0.5777,
                     "rank": 2,
                 },
-                "ZSCAN12_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZSCAN12",
-                    "geneIdentifier": "ENSG00000158691",
-                    "combinedScore": 0.23494,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                    ],
+                {
+                    "gene_symbol": "SPNS1",
+                    "gene_identifier": "ENSG00000169682",
+                    "combinedScore": 0.3765,
                     "rank": 4,
                 },
-                "SMCO2_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SMCO2",
-                    "geneIdentifier": "ENSG00000165935",
-                    "combinedScore": 0.0,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                    ],
-                    "rank": 5,
-                },
-            },
+            ],
         )
+
+    def test_rank_results_variant(self):
         self.assertEqual(
-            self.pvalue_exomiser_result.rank_results(),
-            {
-                "ZSCAN12_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZSCAN12",
-                    "geneIdentifier": "ENSG00000158691",
-                    "pValue": 0.0823742,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="6", pos=28359223, ref="C", alt="A", gene="ZSCAN12")
-                    ],
-                    "rank": 1,
-                },
-                "SMCO2_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SMCO2",
-                    "geneIdentifier": "ENSG00000165935",
-                    "pValue": 0.321354,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2")
-                    ],
-                    "rank": 2,
-                },
-                "ZNF804B_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "ZNF804B",
-                    "geneIdentifier": "ENSG00000182348",
-                    "pValue": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B")
-                    ],
-                    "rank": 3,
-                },
-                "CASS4_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "CASS4",
-                    "geneIdentifier": "ENSG00000087589",
-                    "pValue": 0.57778,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="20", pos=55026995, ref="G", alt="A", gene="CASS4")
-                    ],
-                    "rank": 3,
-                },
-                "SPNS1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "SPNS1",
-                    "geneIdentifier": "ENSG00000169682",
-                    "pValue": 0.8764321,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1")
-                    ],
-                    "rank": 5,
-                },
-            },
-        )
-
-
-class TestStandardiseExomiserResult(unittest.TestCase):
-    def setUp(self) -> None:
-        self.exomiser_result = StandardiseExomiserResult(example_exomiser_result, "combinedScore")
-
-    def test_simplify_exomiser_result(self):
-        self.assertEqual(
-            self.exomiser_result.simplify_exomiser_result(),
-            {
-                "PLXNA1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.0484,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
-                },
-                "PLXNA1_AUTOSOMAL_RECESSIVE": {
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.046,
-                    "modeOfInheritance": "AUTOSOMAL_RECESSIVE",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                        VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"),
-                    ],
-                },
-            },
-        )
-
-    def test_standardise_result(self):
-        self.assertEqual(
-            self.exomiser_result.standardise_result(),
-            {
-                "PLXNA1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.0484,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
-                    "rank": 1,
-                },
-                "PLXNA1_AUTOSOMAL_RECESSIVE": {
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.046,
-                    "modeOfInheritance": "AUTOSOMAL_RECESSIVE",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                        VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"),
-                    ],
-                    "rank": 2,
-                },
-            },
-        )
-
-
-class TestAssessExomiserPrioritisation(unittest.TestCase):
-    def setUp(self) -> None:
-        self.exomiser_results = AssessExomiserPrioritisation(
-            Path("/full/path/to/phenopacket.json"),
-            Path("full/path/to/results/directory"),
-            {
-                "PLXNA1_AUTOSOMAL_DOMINANT": {
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.0484,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
-                    "rank": 1,
-                },
-                "PLXNA1_AUTOSOMAL_RECESSIVE": {
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.046,
-                    "modeOfInheritance": "AUTOSOMAL_RECESSIVE",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                        VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"),
-                    ],
-                    "rank": 2,
-                },
-            },
-            0.0,
-            "combinedScore",
-            ["PLXNA1", "GABA2"],
+            self.simplified_variant_result.rank_results(),
             [
-                VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                VariantData(chrom="5", pos=3567846563534, ref="T", alt="C", gene="GABA2"),
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "rank": 1,
+                    "combinedScore": 0.8764,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B"
+                    ),
+                    "rank": 2,
+                    "combinedScore": 0.5777,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2"
+                    ),
+                    "rank": 2,
+                    "combinedScore": 0.5777,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1"
+                    ),
+                    "rank": 4,
+                    "combinedScore": 0.3765,
+                },
+            ],
+        )
+
+    def test_rank_results_pvalue(self):
+        self.assertEqual(
+            self.simplified_gene_result_pvalue.rank_results(),
+            [
+                {
+                    "gene_symbol": "SPNS1",
+                    "gene_identifier": "ENSG00000169682",
+                    "pValue": 0.3765,
+                    "rank": 1,
+                },
+                {
+                    "gene_symbol": "ZNF804B",
+                    "gene_identifier": "ENSG00000182348",
+                    "pValue": 0.5777,
+                    "rank": 2,
+                },
+                {
+                    "gene_symbol": "SMCO2",
+                    "gene_identifier": "ENSG00000165935",
+                    "pValue": 0.5777,
+                    "rank": 2,
+                },
+                {
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "pValue": 0.8764,
+                    "rank": 4,
+                },
+            ],
+        )
+
+
+class TestStandardiseExomiserResults(unittest.TestCase):
+    def setUp(self) -> None:
+        self.standardised_result = StandardiseExomiserResult(
+            exomiser_json_result=example_exomiser_result, ranking_method="combinedScore"
+        )
+
+    def test_simplify_gene_result(self):
+        self.assertEqual(
+            self.standardised_result.simplify_gene_result(),
+            [
+                {
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "combinedScore": 0.0484,
+                }
+            ],
+        )
+
+    def test_simplify_variant_result(self):
+        self.assertEqual(
+            self.standardised_result.simplify_variant_result(),
+            [
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                },
+            ],
+        )
+
+    def test_standardise_gene_result(self):
+        self.assertEqual(
+            self.standardised_result.standardise_gene_result(),
+            [
+                {
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "combinedScore": 0.0484,
+                    "rank": 1,
+                }
+            ],
+        )
+
+    def test_standardise_variant_result(self):
+        self.assertEqual(
+            self.standardised_result.standardise_variant_result(),
+            [
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                    "rank": 1,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                    "rank": 1,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                    "rank": 1,
+                },
+            ],
+        )
+
+
+class TestAssessExomiserGenePrioritisation(unittest.TestCase):
+    def setUp(self) -> None:
+        self.assess_gene_prioritisation = AssessExomiserGenePrioritisation(
+            phenopacket_path=Path("/path/to/phenopacket.json"),
+            results_dir=Path("/path/to/results_dir"),
+            standardised_exomiser_gene_result=[
+                {
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "combinedScore": 0.8764,
+                    "rank": 1,
+                },
+                {
+                    "gene_symbol": "ZNF804B",
+                    "gene_identifier": "ENSG00000182348",
+                    "combinedScore": 0.5777,
+                    "rank": 2,
+                },
+                {
+                    "gene_symbol": "SMCO2",
+                    "gene_identifier": "ENSG00000165935",
+                    "combinedScore": 0.5777,
+                    "rank": 2,
+                },
+                {
+                    "gene_symbol": "SPNS1",
+                    "gene_identifier": "ENSG00000169682",
+                    "combinedScore": 0.3765,
+                    "rank": 4,
+                },
+            ],
+            threshold=0.0,
+            ranking_method="combinedScore",
+            proband_causative_genes=[
+                ProbandCausativeGene(gene_symbol="PLXNA1", gene_identifier="ENSG00000114554"),
+                ProbandCausativeGene(gene_symbol="LARGE1", gene_identifier="ENSG00000133424"),
+            ],
+        )
+        self.assess_gene_prioritisation_pvalue = AssessExomiserGenePrioritisation(
+            phenopacket_path=Path("/path/to/phenopacket.json"),
+            results_dir=Path("/path/to/results_dir"),
+            standardised_exomiser_gene_result=[
+                {
+                    "gene_symbol": "SPNS1",
+                    "gene_identifier": "ENSG00000169682",
+                    "pValue": 0.3765,
+                    "rank": 1,
+                },
+                {
+                    "gene_symbol": "ZNF804B",
+                    "gene_identifier": "ENSG00000182348",
+                    "pValue": 0.5777,
+                    "rank": 2,
+                },
+                {
+                    "gene_symbol": "SMCO2",
+                    "gene_identifier": "ENSG00000165935",
+                    "pValue": 0.5777,
+                    "rank": 2,
+                },
+                {
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "pValue": 0.8764,
+                    "rank": 4,
+                },
+            ],
+            threshold=0.0,
+            ranking_method="pValue",
+            proband_causative_genes=[
+                ProbandCausativeGene(gene_symbol="PLXNA1", gene_identifier="ENSG00000114554"),
+                ProbandCausativeGene(gene_symbol="LARGE1", gene_identifier="ENSG00000133424"),
             ],
         )
         self.gene_rank_stats = RankStats(0, 0, 0, 0)
         self.gene_rank_records = defaultdict(dict)
-        self.variant_rank_stats = RankStats(0, 0, 0, 0)
-        self.variant_rank_records = defaultdict(dict)
 
     def test_record_gene_prioritisation_match(self):
-        gene_match = self.exomiser_results.record_gene_prioritisation_match(
-            "PLXNA1",
-            {
-                "geneSymbol": "PLXNA1",
-                "geneIdentifier": "ENSG00000114554",
-                "combinedScore": 0.0484,
-                "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                "contributingVariants": [
-                    VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                ],
-                "rank": 1,
-            },
-            self.gene_rank_stats,
-        )
         self.assertEqual(
-            gene_match,
-            GenePrioritisationResultData(
-                phenopacket=Path("/full/path/to/phenopacket.json"), gene="PLXNA1", rank=1
-            ),
-        )
-        self.assertEqual(
-            self.gene_rank_stats,
-            RankStats(top=1, top3=1, top5=1, found=1, total=0, reciprocal_ranks=[1.0]),
-        )
-
-    def test_record_variant_prioritisation_match(self):
-        variant_match = self.exomiser_results.record_variant_prioritisation_match(
-            VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-            {
-                "geneSymbol": "PLXNA1",
-                "geneIdentifier": "ENSG00000114554",
-                "combinedScore": 0.0484,
-                "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                "contributingVariants": [
-                    VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                ],
-                "rank": 1,
-            },
-            self.variant_rank_stats,
-        )
-        self.assertEqual(
-            variant_match,
-            VariantPrioritisationResultData(
-                phenopacket=Path("/full/path/to/phenopacket.json"),
-                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                rank=1,
-            ),
-        )
-
-        self.assertEqual(
-            self.variant_rank_stats,
-            RankStats(top=1, top3=1, top5=1, found=1, total=0, reciprocal_ranks=[1.0]),
-        )
-
-    def test_assess_gene_with_pvalue_threshold(self):
-        copied_exomiser_result = copy(self.exomiser_results)
-        copied_exomiser_result.threshold = 0.047
-        self.assertEqual(
-            copied_exomiser_result.assess_gene_with_pvalue_threshold(
-                gene="PLXNA1",
-                result_data={
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.045,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
+            self.assess_gene_prioritisation.record_gene_prioritisation_match(
+                gene=ProbandCausativeGene(gene_symbol="PLXNA1", gene_identifier="ENSG00000114554"),
+                result_entry={
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "combinedScore": 0.8764,
                     "rank": 1,
                 },
                 rank_stats=self.gene_rank_stats,
             ),
             GenePrioritisationResultData(
-                phenopacket=Path("/full/path/to/phenopacket.json"), gene="PLXNA1", rank=1
+                phenopacket=Path("/path/to/phenopacket.json"), gene="PLXNA1", rank=1
             ),
         )
 
-    def test_assess_gene_with_threshold(self):
-        copied_exomiser_result = copy(self.exomiser_results)
-        copied_exomiser_result.threshold = 0.047
+    def test_assess_gene_with_pvalue_threshold_fails_cutoff(self):
+        assess_pvalue_threshold = copy(self.assess_gene_prioritisation_pvalue)
+        assess_pvalue_threshold.threshold = 0.1
         self.assertEqual(
-            copied_exomiser_result.assess_gene_with_threshold(
-                gene="PLXNA1",
-                result_data={
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.045,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
+            assess_pvalue_threshold.assess_gene_with_pvalue_threshold(
+                gene=ProbandCausativeGene(gene_symbol="PLXNA1", gene_identifier="ENSG00000114554"),
+                result_entry={
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "pValue": 0.8764,
                     "rank": 1,
                 },
                 rank_stats=self.gene_rank_stats,
@@ -2299,22 +2172,26 @@ class TestAssessExomiserPrioritisation(unittest.TestCase):
             None,
         )
         self.assertEqual(
-            copied_exomiser_result.assess_gene_with_threshold(
-                gene="PLXNA1",
-                result_data={
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.1,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
+            self.gene_rank_stats,
+            RankStats(top=0, top3=0, top5=0, found=0, total=0, reciprocal_ranks=[]),
+        )
+
+    def test_assess_gene_with_pvalue_threshold_meets_cutoff(self):
+        assess_pvalue_threshold = copy(self.assess_gene_prioritisation_pvalue)
+        assess_pvalue_threshold.threshold = 0.9
+        self.assertEqual(
+            assess_pvalue_threshold.assess_gene_with_pvalue_threshold(
+                gene=ProbandCausativeGene(gene_symbol="PLXNA1", gene_identifier="ENSG00000114554"),
+                result_entry={
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "pValue": 0.8764,
                     "rank": 1,
                 },
                 rank_stats=self.gene_rank_stats,
             ),
             GenePrioritisationResultData(
-                phenopacket=Path("/full/path/to/phenopacket.json"), gene="PLXNA1", rank=1
+                phenopacket=Path("/path/to/phenopacket.json"), gene="PLXNA1", rank=1
             ),
         )
         self.assertEqual(
@@ -2322,92 +2199,52 @@ class TestAssessExomiserPrioritisation(unittest.TestCase):
             RankStats(top=1, top3=1, top5=1, found=1, total=0, reciprocal_ranks=[1.0]),
         )
 
-    def test_assess_variant_with_pvalue_threshold(self):
-        copied_exomiser_result = copy(self.exomiser_results)
-        copied_exomiser_result.threshold = 0.048
+    def test_assess_gene_with_threshold_fails_cutoff(self):
+        assess_with_threshold = copy(self.assess_gene_prioritisation)
+        assess_with_threshold.threshold = 0.9
         self.assertEqual(
-            copied_exomiser_result.assess_variant_with_pvalue_threshold(
-                result_data={
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.045,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
+            assess_with_threshold.assess_gene_with_threshold(
+                gene=ProbandCausativeGene(gene_symbol="PLXNA1", gene_identifier="ENSG00000114554"),
+                result_entry={
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "combinedScore": 0.8764,
                     "rank": 1,
                 },
-                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                rank_stats=self.variant_rank_stats,
-            ),
-            VariantPrioritisationResultData(
-                phenopacket=Path("/full/path/to/phenopacket.json"),
-                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                rank=1,
-            ),
-        )
-        self.assertEqual(
-            copied_exomiser_result.assess_variant_with_pvalue_threshold(
-                result_data={
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.5,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
-                    "rank": 1,
-                },
-                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                rank_stats=self.variant_rank_stats,
+                rank_stats=self.gene_rank_stats,
             ),
             None,
         )
-
-    def test_assess_variant_with_threshold(self):
-        copied_exomiser_result = copy(self.exomiser_results)
-        copied_exomiser_result.threshold = 0.2
         self.assertEqual(
-            copied_exomiser_result.assess_variant_with_threshold(
-                result_data={
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.5642,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
+            self.gene_rank_stats,
+            RankStats(top=0, top3=0, top5=0, found=0, total=0, reciprocal_ranks=[]),
+        )
+
+    def test_assess_gene_with_threshold_meets_cutoff(self):
+        assess_with_threshold = copy(self.assess_gene_prioritisation)
+        assess_with_threshold.threshold = 0.5
+        self.assertEqual(
+            assess_with_threshold.assess_gene_with_threshold(
+                gene=ProbandCausativeGene(gene_symbol="PLXNA1", gene_identifier="ENSG00000114554"),
+                result_entry={
+                    "gene_symbol": "PLXNA1",
+                    "gene_identifier": "ENSG00000114554",
+                    "combinedScore": 0.8764,
                     "rank": 1,
                 },
-                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                rank_stats=self.variant_rank_stats,
+                rank_stats=self.gene_rank_stats,
             ),
-            VariantPrioritisationResultData(
-                phenopacket=Path("/full/path/to/phenopacket.json"),
-                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                rank=1,
+            GenePrioritisationResultData(
+                phenopacket=Path("/path/to/phenopacket.json"), gene="PLXNA1", rank=1
             ),
         )
         self.assertEqual(
-            copied_exomiser_result.assess_variant_with_threshold(
-                result_data={
-                    "geneSymbol": "PLXNA1",
-                    "geneIdentifier": "ENSG00000114554",
-                    "combinedScore": 0.123,
-                    "modeOfInheritance": "AUTOSOMAL_DOMINANT",
-                    "contributingVariants": [
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ],
-                    "rank": 1,
-                },
-                variant=VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"),
-                rank_stats=self.variant_rank_stats,
-            ),
-            None,
+            self.gene_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=0, reciprocal_ranks=[1.0]),
         )
 
-    def test_assess_gene_prioritisation(self):
-        self.exomiser_results.assess_gene_prioritisation(
+    def test_assess_gene_prioritisation_no_threshold(self):
+        self.assess_gene_prioritisation.assess_gene_prioritisation(
             self.gene_rank_stats, self.gene_rank_records
         )
         self.assertEqual(
@@ -2420,18 +2257,358 @@ class TestAssessExomiserPrioritisation(unittest.TestCase):
                 1: {
                     "Phenopacket": "phenopacket.json",
                     "Gene": "PLXNA1",
-                    Path("full/path/to/results/directory"): 1,
+                    Path("/path/to/results_dir"): 1,
                 },
                 2: {
                     "Phenopacket": "phenopacket.json",
-                    "Gene": "GABA2",
-                    Path("full/path/to/results/directory"): 0,
+                    "Gene": "LARGE1",
+                    Path("/path/to/results_dir"): 0,
                 },
             },
         )
 
-    def test_assess_variant_prioritisation(self):
-        self.exomiser_results.assess_variant_prioritisation(
+    def test_assess_gene_prioritisation_threshold_fails_pvalue_cutoff(self):
+        assess_with_threshold = copy(self.assess_gene_prioritisation_pvalue)
+        assess_with_threshold.threshold = 0.01
+        assess_with_threshold.assess_gene_prioritisation(
+            self.gene_rank_stats, self.gene_rank_records
+        )
+        self.assertEqual(
+            self.gene_rank_stats,
+            RankStats(top=0, top3=0, top5=0, found=0, total=2, reciprocal_ranks=[]),
+        )
+        self.assertEqual(
+            self.gene_rank_records,
+            {
+                1: {
+                    "Phenopacket": "phenopacket.json",
+                    "Gene": "PLXNA1",
+                    Path("/path/to/results_dir"): 0,
+                },
+                2: {
+                    "Phenopacket": "phenopacket.json",
+                    "Gene": "LARGE1",
+                    Path("/path/to/results_dir"): 0,
+                },
+            },
+        )
+
+    def test_assess_gene_prioritisation_threshold_meets_pvalue_cutoff(self):
+        assess_with_threshold = copy(self.assess_gene_prioritisation_pvalue)
+        assess_with_threshold.threshold = 0.9
+        assess_with_threshold.assess_gene_prioritisation(
+            self.gene_rank_stats, self.gene_rank_records
+        )
+        self.assertEqual(
+            self.gene_rank_stats,
+            RankStats(top=0, top3=0, top5=1, found=1, total=2, reciprocal_ranks=[0.25]),
+        )
+        self.assertEqual(
+            self.gene_rank_records,
+            {
+                1: {
+                    "Phenopacket": "phenopacket.json",
+                    "Gene": "PLXNA1",
+                    Path("/path/to/results_dir"): 4,
+                },
+                2: {
+                    "Phenopacket": "phenopacket.json",
+                    "Gene": "LARGE1",
+                    Path("/path/to/results_dir"): 0,
+                },
+            },
+        )
+
+    def test_assess_gene_prioritisation_threshold_fails_cutoff(self):
+        assess_with_threshold = copy(self.assess_gene_prioritisation)
+        assess_with_threshold.threshold = 0.9
+        assess_with_threshold.assess_gene_prioritisation(
+            self.gene_rank_stats, self.gene_rank_records
+        )
+        self.assertEqual(
+            self.gene_rank_stats,
+            RankStats(top=0, top3=0, top5=0, found=0, total=2, reciprocal_ranks=[]),
+        )
+        self.assertEqual(
+            self.gene_rank_records,
+            {
+                1: {
+                    "Phenopacket": "phenopacket.json",
+                    "Gene": "PLXNA1",
+                    Path("/path/to/results_dir"): 0,
+                },
+                2: {
+                    "Phenopacket": "phenopacket.json",
+                    "Gene": "LARGE1",
+                    Path("/path/to/results_dir"): 0,
+                },
+            },
+        )
+
+    def test_assess_gene_prioritisation_threshold_meets_cutoff(self):
+        assess_with_threshold = copy(self.assess_gene_prioritisation)
+        assess_with_threshold.threshold = 0.1
+        assess_with_threshold.assess_gene_prioritisation(
+            self.gene_rank_stats, self.gene_rank_records
+        )
+        self.assertEqual(
+            self.gene_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=2, reciprocal_ranks=[1.0]),
+        )
+        self.assertEqual(
+            self.gene_rank_records,
+            {
+                1: {
+                    "Phenopacket": "phenopacket.json",
+                    "Gene": "PLXNA1",
+                    Path("/path/to/results_dir"): 1,
+                },
+                2: {
+                    "Phenopacket": "phenopacket.json",
+                    "Gene": "LARGE1",
+                    Path("/path/to/results_dir"): 0,
+                },
+            },
+        )
+
+
+class TestAssessExomiserVariantPrioritisation(unittest.TestCase):
+    def setUp(self) -> None:
+        self.assess_variant_prioritisation = AssessExomiserVariantPrioritisation(
+            phenopacket_path=Path("/path/to/phenopacket.json"),
+            results_dir=Path("/path/to/results_dir"),
+            standardised_exomiser_variant_result=[
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                    "rank": 1,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                    "rank": 1,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                    "rank": 1,
+                },
+            ],
+            threshold=0.0,
+            ranking_method="combinedScore",
+            proband_causative_variants=[
+                VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"),
+                VariantData(chrom="16", pos=133564345, ref="C", alt="T", gene="FAKE1"),
+            ],
+        )
+        self.assess_variant_prioritisation_pvalue = AssessExomiserVariantPrioritisation(
+            phenopacket_path=Path("/path/to/phenopacket.json"),
+            results_dir=Path("/path/to/results_dir"),
+            standardised_exomiser_variant_result=[
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "pValue": 0.0484,
+                    "rank": 1,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "pValue": 0.0484,
+                    "rank": 1,
+                },
+                {
+                    "variant": VariantData(
+                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "pValue": 0.0484,
+                    "rank": 1,
+                },
+            ],
+            threshold=0.0,
+            ranking_method="pValue",
+            proband_causative_variants=[
+                VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"),
+                VariantData(chrom="16", pos=133564345, ref="C", alt="T", gene="FAKE1"),
+            ],
+        )
+        self.variant_rank_stats = RankStats()
+        self.variant_rank_records = defaultdict(dict)
+
+    def test_record_variant_prioritisation_match(self):
+        self.assertEqual(
+            self.assess_variant_prioritisation.record_variant_prioritisation_match(
+                result_entry={
+                    "variant": VariantData(
+                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "pValue": 0.0484,
+                    "rank": 1,
+                },
+                rank_stats=self.variant_rank_stats,
+            ),
+            VariantPrioritisationResultData(
+                phenopacket=Path("/path/to/phenopacket.json"),
+                variant=VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"),
+                rank=1,
+            ),
+        )
+
+    def test_assess_variant_with_pvalue_threshold_fails_cutoff(self):
+        assess_with_threshold = copy(self.assess_variant_prioritisation_pvalue)
+        assess_with_threshold.threshold = 0.01
+        self.assertEqual(
+            assess_with_threshold.assess_variant_with_pvalue_threshold(
+                result_entry={
+                    "variant": VariantData(
+                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "pValue": 0.0484,
+                    "rank": 1,
+                },
+                rank_stats=self.variant_rank_stats,
+            ),
+            None,
+        )
+        self.assertEqual(
+            self.variant_rank_stats,
+            RankStats(top=0, top3=0, top5=0, found=0, total=0, reciprocal_ranks=[]),
+        )
+
+    def test_assess_variant_with_pvalue_threshold_meets_cutoff(self):
+        assess_with_threshold = copy(self.assess_variant_prioritisation_pvalue)
+        assess_with_threshold.threshold = 0.9
+        self.assertEqual(
+            assess_with_threshold.assess_variant_with_pvalue_threshold(
+                result_entry={
+                    "variant": VariantData(
+                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "pValue": 0.0484,
+                    "rank": 1,
+                },
+                rank_stats=self.variant_rank_stats,
+            ),
+            VariantPrioritisationResultData(
+                phenopacket=Path("/path/to/phenopacket.json"),
+                variant=VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"),
+                rank=1,
+            ),
+        )
+        self.assertEqual(
+            self.variant_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=0, reciprocal_ranks=[1.0]),
+        )
+
+    def test_assess_variant_with_threshold_fails_cutoff(self):
+        assess_with_threshold = copy(self.assess_variant_prioritisation)
+        assess_with_threshold.threshold = 0.9
+        self.assertEqual(
+            assess_with_threshold.assess_variant_with_threshold(
+                result_entry={
+                    "variant": VariantData(
+                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                    "rank": 1,
+                },
+                rank_stats=self.variant_rank_stats,
+            ),
+            None,
+        )
+        self.assertEqual(
+            self.variant_rank_stats,
+            RankStats(top=0, top3=0, top5=0, found=0, total=0, reciprocal_ranks=[]),
+        )
+
+    def test_assess_variant_with_threshold_meets_cutoff(self):
+        assess_with_threshold = copy(self.assess_variant_prioritisation)
+        assess_with_threshold.threshold = 0.1
+        self.assertEqual(
+            assess_with_threshold.assess_variant_with_pvalue_threshold(
+                result_entry={
+                    "variant": VariantData(
+                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
+                    ),
+                    "combinedScore": 0.0484,
+                    "rank": 1,
+                },
+                rank_stats=self.variant_rank_stats,
+            ),
+            VariantPrioritisationResultData(
+                phenopacket=Path("/path/to/phenopacket.json"),
+                variant=VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"),
+                rank=1,
+            ),
+        )
+        self.assertEqual(
+            self.variant_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=0, reciprocal_ranks=[1.0]),
+        )
+
+    def test_assess_variant_prioritisation_no_threshold(self):
+        self.assess_variant_prioritisation.assess_variant_prioritisation(
+            self.variant_rank_stats, self.variant_rank_records
+        )
+
+        self.assertEqual(
+            self.variant_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=2, reciprocal_ranks=[1.0]),
+        )
+        self.assertEqual(
+            self.variant_rank_records,
+            {
+                1: {
+                    "Phenopacket": "phenopacket.json",
+                    "Variant": "3_126741108_G_A",
+                    Path("/path/to/results_dir"): 1,
+                },
+                2: {
+                    "Phenopacket": "phenopacket.json",
+                    "Variant": "16_133564345_C_T",
+                    Path("/path/to/results_dir"): 0,
+                },
+            },
+        )
+
+    def test_assess_variant_prioritisation_fails_pvalue_cutoff(self):
+        assess_with_threshold = copy(self.assess_variant_prioritisation_pvalue)
+        assess_with_threshold.threshold = 0.01
+        assess_with_threshold.assess_variant_prioritisation(
+            self.variant_rank_stats, self.variant_rank_records
+        )
+        self.assertEqual(
+            self.variant_rank_stats,
+            RankStats(top=0, top3=0, top5=0, found=0, total=2, reciprocal_ranks=[]),
+        )
+        self.assertEqual(
+            self.variant_rank_records,
+            {
+                1: {
+                    "Phenopacket": "phenopacket.json",
+                    "Variant": "3_126741108_G_A",
+                    Path("/path/to/results_dir"): 0,
+                },
+                2: {
+                    "Phenopacket": "phenopacket.json",
+                    "Variant": "16_133564345_C_T",
+                    Path("/path/to/results_dir"): 0,
+                },
+            },
+        )
+
+    def test_assess_variant_prioritisation_meets_pvalue_cutoff(self):
+        assess_with_threshold = copy(self.assess_variant_prioritisation_pvalue)
+        assess_with_threshold.threshold = 0.9
+        assess_with_threshold.assess_variant_prioritisation(
             self.variant_rank_stats, self.variant_rank_records
         )
         self.assertEqual(
@@ -2443,13 +2620,65 @@ class TestAssessExomiserPrioritisation(unittest.TestCase):
             {
                 1: {
                     "Phenopacket": "phenopacket.json",
-                    "Variant": "3_126730873_G_A",
-                    Path("full/path/to/results/directory"): 1,
+                    "Variant": "3_126741108_G_A",
+                    Path("/path/to/results_dir"): 1,
                 },
                 2: {
                     "Phenopacket": "phenopacket.json",
-                    "Variant": "5_3567846563534_T_C",
-                    Path("full/path/to/results/directory"): 0,
+                    "Variant": "16_133564345_C_T",
+                    Path("/path/to/results_dir"): 0,
+                },
+            },
+        )
+
+    def test_assess_variant_prioritisation_fails_cutoff(self):
+        assess_with_threshold = copy(self.assess_variant_prioritisation)
+        assess_with_threshold.threshold = 0.9
+        assess_with_threshold.assess_variant_prioritisation(
+            self.variant_rank_stats, self.variant_rank_records
+        )
+        self.assertEqual(
+            self.variant_rank_stats,
+            RankStats(top=0, top3=0, top5=0, found=0, total=2, reciprocal_ranks=[]),
+        )
+        self.assertEqual(
+            self.variant_rank_records,
+            {
+                1: {
+                    "Phenopacket": "phenopacket.json",
+                    "Variant": "3_126741108_G_A",
+                    Path("/path/to/results_dir"): 0,
+                },
+                2: {
+                    "Phenopacket": "phenopacket.json",
+                    "Variant": "16_133564345_C_T",
+                    Path("/path/to/results_dir"): 0,
+                },
+            },
+        )
+
+    def test_assess_variant_prioritisation_meets_cutoff(self):
+        assess_with_threshold = copy(self.assess_variant_prioritisation_pvalue)
+        assess_with_threshold.threshold = 0.1
+        assess_with_threshold.assess_variant_prioritisation(
+            self.variant_rank_stats, self.variant_rank_records
+        )
+        self.assertEqual(
+            self.variant_rank_stats,
+            RankStats(top=1, top3=1, top5=1, found=1, total=2, reciprocal_ranks=[1.0]),
+        )
+        self.assertEqual(
+            self.variant_rank_records,
+            {
+                1: {
+                    "Phenopacket": "phenopacket.json",
+                    "Variant": "3_126741108_G_A",
+                    Path("/path/to/results_dir"): 1,
+                },
+                2: {
+                    "Phenopacket": "phenopacket.json",
+                    "Variant": "16_133564345_C_T",
+                    Path("/path/to/results_dir"): 0,
                 },
             },
         )
