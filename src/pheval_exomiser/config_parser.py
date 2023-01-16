@@ -1,9 +1,10 @@
-import yaml
-from serde import serde, T
-from serde.yaml import from_yaml
-from typing import List
 from dataclasses import dataclass
 from pathlib import Path
+from typing import List
+
+import yaml
+from serde import serde
+from serde.yaml import from_yaml
 
 
 @serde
