@@ -9,7 +9,9 @@ from pheval.prepare.update_phenopacket import update_phenopackets
 from pheval_exomiser.config_parser import ExomiserConfig
 
 
-def prepare_updated_phenopackets(input_dir: Path, testdata_dir: Path, config: ExomiserConfig) -> None:
+def prepare_updated_phenopackets(
+    input_dir: Path, testdata_dir: Path, config: ExomiserConfig
+) -> None:
     """Updates the gene data for phenopackets."""
     try:
         Path(input_dir).mkdir()
@@ -30,9 +32,10 @@ def prepare_scrambled_phenopackets(input_dir: Path, testdata_dir: Path, config: 
     """Scrambles the phenopacket phenotypic profiles."""
     if config.prepare.scramble.scramble_phenopacket != 0:
         print("...scrambling phenopacket phenotypic profiles...")
-        create_scrambled_phenopackets(output_dir=input_dir.joinpath(
-            f"scrambled_phenopackets_{config.prepare.scramble.scramble_phenopacket}"
-        ),
+        create_scrambled_phenopackets(
+            output_dir=input_dir.joinpath(
+                f"scrambled_phenopackets_{config.prepare.scramble.scramble_phenopacket}"
+            ),
             output_file_suffix=f"scrambled_{config.prepare.scramble.scramble_phenopacket}",
             phenopacket_dir=testdata_dir.joinpath("phenopackets"),
             scramble_factor=config.prepare.scramble.scramble_phenopacket,
