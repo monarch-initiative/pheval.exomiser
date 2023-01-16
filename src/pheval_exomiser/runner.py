@@ -1,8 +1,10 @@
 """Exomiser Runner"""
 from dataclasses import dataclass
 from pathlib import Path
+
 from pheval.runners.runner import PhEvalRunner
 
+from pheval_exomiser.config_parser import parse_exomiser_config
 from pheval_exomiser.post_process.post_process import post_process_exomiser_results
 from pheval_exomiser.prepare.prepare import (
     prepare_scrambled_phenopackets,
@@ -10,7 +12,6 @@ from pheval_exomiser.prepare.prepare import (
     prepare_updated_phenopackets,
 )
 from pheval_exomiser.run.run import prepare_batch_files, run_exomiser
-from pheval_exomiser.config_parser import parse_exomiser_config
 
 
 @dataclass
@@ -32,18 +33,24 @@ class ExomiserPhEvalRunner(PhEvalRunner):
         except FileExistsError:
             pass
         prepare_updated_phenopackets(
-            input_dir=Path(self.input_dir).joinpath("phenopackets"), testdata_dir=Path(self.testdata_dir), config=config
+            input_dir=Path(self.input_dir).joinpath("phenopackets"),
+            testdata_dir=Path(self.testdata_dir),
+            config=config,
         )
         prepare_scrambled_phenopackets(
             input_dir=Path(self.input_dir), testdata_dir=Path(self.testdata_dir), config=config
         )
-        prepare_spiked_vcfs(input_dir=Path(self.input_dir), testdata_dir=Path(self.testdata_dir), config=config)
+        prepare_spiked_vcfs(
+            input_dir=Path(self.input_dir), testdata_dir=Path(self.testdata_dir), config=config
+        )
 
     def run(self):
         """run"""
         print("running with exomiser")
         config = parse_exomiser_config(self.config_file)
-        prepare_batch_files(input_dir=Path(self.input_dir), output_dir=Path(self.output_dir), config=config)
+        prepare_batch_files(
+            input_dir=Path(self.input_dir), output_dir=Path(self.output_dir), config=config
+        )
         run_exomiser(output_dir=self.output_dir, config=config)
 
     def post_process(self):
