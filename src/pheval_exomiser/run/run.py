@@ -2,10 +2,15 @@ import os
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+
 # import yaml
 from pheval.utils.file_utils import all_files
 
-from pheval_exomiser.config_parser import ExomiserConfig, ExomiserConfigSingleRun
+from pheval_exomiser.config_parser import (
+    ExomiserConfig,
+    ExomiserConfigRunExomiserManualConfigs,
+    ExomiserConfigSingleRun,
+)
 from pheval_exomiser.prepare.create_batch_commands import create_batch_file
 
 
@@ -36,13 +41,20 @@ class ExomiserConfigParameters:
 #     output_options.close()
 #     return Path(input_dir).joinpath("output_options/output_options.yaml")
 
+
 def edit_application_properties_data_path_for_exomiser(run: ExomiserConfigSingleRun):
     with open(run.exomiser_configurations.path_to_application_properties_config) as exomiser_config:
         exomiser_config_lines = exomiser_config.readlines()
     exomiser_config.close()
-    exomiser_config_lines = [line.replace(line, "exomiser.data-directory=/exomiser-data") if line.startswith(
-        "exomiser.data-directory=") else line for line in exomiser_config_lines]
-    with open(run.exomiser_configurations.path_to_application_properties_config, "w") as exomiser_config:
+    exomiser_config_lines = [
+        line.replace(line, "exomiser.data-directory=/exomiser-data")
+        if line.startswith("exomiser.data-directory=")
+        else line
+        for line in exomiser_config_lines
+    ]
+    with open(
+        run.exomiser_configurations.path_to_application_properties_config, "w"
+    ) as exomiser_config:
         exomiser_config.writelines(exomiser_config_lines)
     exomiser_config.close()
 
@@ -68,18 +80,20 @@ def prepare_batch_files(input_dir: Path, output_dir: Path, config: ExomiserConfi
             run.run_identifier,
             run.prepare_batch.max_jobs,
             run.path_to_output_option_directory,
-            run.path_to_output_option_file  # if output_options_file is None else output_options_file
+            run.path_to_output_option_file,  # if output_options_file is None else output_options_file
         )
 
 
 def mount_docker(output_dir: Path, run: ExomiserConfigSingleRun) -> BasicDockerMountsForExomiser:
-    phenopacket_test_data = f'"{run.path_to_input_phenopacket_data}{os.sep}:/exomiser-testdata-phenopacket"'
-    vcf_test_data = (
-        f'"{run.path_to_input_vcf}{os.sep}:/exomiser-testdata-vcf"'
+    phenopacket_test_data = (
+        f'"{run.path_to_input_phenopacket_data}{os.sep}:/exomiser-testdata-phenopacket"'
     )
+    vcf_test_data = f'"{run.path_to_input_vcf}{os.sep}:/exomiser-testdata-vcf"'
     exomiser_yaml = f'"{run.path_to_analysis_yaml.parents[0]}{os.sep}:/exomiser-yaml-template"'
     batch_file_path = f'"{Path(output_dir).joinpath("exomiser_batch_files").absolute()}{os.sep}:/exomiser-batch-file"'
-    exomiser_data_dir = f'"{run.exomiser_configurations.exomiser_data_directory}{os.sep}:/exomiser-data"'
+    exomiser_data_dir = (
+        f'"{run.exomiser_configurations.exomiser_data_directory}{os.sep}:/exomiser-data"'
+    )
     # TODO add mount for results directory to be specified in the output-options
     return BasicDockerMountsForExomiser(
         phenopacket_test_data=phenopacket_test_data,
@@ -92,22 +106,29 @@ def mount_docker(output_dir: Path, run: ExomiserConfigSingleRun) -> BasicDockerM
 
 def add_exomiser_config_file_for_docker(run: ExomiserConfigSingleRun) -> ExomiserConfigParameters:
     return ExomiserConfigParameters(
-        application_properties_path=run.exomiser_configurations.path_to_application_properties_config.parents[0]
+        application_properties_path=run.exomiser_configurations.path_to_application_properties_config.parents[
+            0
+        ]
     )
 
 
-def add_exomiser_config_parameters_for_docker(run: ExomiserConfigSingleRun) -> ExomiserConfigParameters:
+def add_exomiser_config_parameters_for_docker(
+    configs: ExomiserConfigRunExomiserManualConfigs,
+) -> ExomiserConfigParameters:
     return ExomiserConfigParameters(
-        exomiser_hg19_version=run.exomiser_configurations.application_properties_arguments.exomiser_hg19_version,
-        exomiser_hg38_version=run.exomiser_configurations.application_properties_arguments.exomiser_hg38_version,
-        exomiser_phenotype_version=run.exomiser_configurations.application_properties_arguments.exomiser_phenotype_version)
+        exomiser_hg19_version=configs.exomiser_hg19_version,
+        exomiser_hg38_version=configs.exomiser_hg38_version,
+        exomiser_phenotype_version=configs.exomiser_phenotype_version,
+    )
 
 
 def exomiser_config_parameters(run: ExomiserConfigSingleRun) -> ExomiserConfigParameters:
     return (
         add_exomiser_config_file_for_docker(run)
         if run.exomiser_configurations.path_to_application_properties_config is not None
-        else add_exomiser_config_parameters_for_docker(run)
+        else add_exomiser_config_parameters_for_docker(
+            run.exomiser_configurations.application_properties_arguments
+        )
     )
 
 
@@ -124,7 +145,9 @@ def run_exomiser_local(output_dir: Path, config: ExomiserConfig):
             for filename in all_files(Path(output_dir).joinpath("exomiser_batch_files"))
             if filename.name.startswith(run.run_identifier)
         ]
-        exomiser_config_path = run.path_to_exomiser_software_directory.joinpath("application.properties")
+        exomiser_config_path = run.path_to_exomiser_software_directory.joinpath(
+            "application.properties"
+        )
         exomiser_jar_file = [
             filename
             for filename in all_files(run.path_to_exomiser_software_directory)
@@ -144,7 +167,10 @@ def run_exomiser_local(output_dir: Path, config: ExomiserConfig):
                 ],
                 shell=False,
             )
-        os.rename(Path(output_dir).joinpath("results"), Path(output_dir).joinpath(run.run_identifier + "_results"))
+        os.rename(
+            Path(output_dir).joinpath("results"),
+            Path(output_dir).joinpath(run.run_identifier + "_results"),
+        )
 
 
 def create_docker_run_command(output_dir: Path, run: ExomiserConfigSingleRun, batch_file: Path):
@@ -164,8 +190,7 @@ def create_docker_run_command(output_dir: Path, run: ExomiserConfigSingleRun, ba
             docker_mounts.batch_file_path,
             "-v",
             docker_mounts.exomiser_yaml,
-            f"exomiser/exomiser-cli:{run.exomiser_configurations.exomiser_version}"
-            "--batch",
+            f"exomiser/exomiser-cli:{run.exomiser_configurations.exomiser_version}" "--batch",
             "/exomiser-batch-file/" + batch_file.name,
             f"--exomiser.data-directory=/exomiser-data"
             f"--exomiser.hg19.data-version={exomiser_config_params.exomiser_hg19_version}",
@@ -191,7 +216,7 @@ def create_docker_run_command(output_dir: Path, run: ExomiserConfigSingleRun, ba
             f"exomiser/exomiser-cli:{run.exomiser_configurations.exomiser_version}",
             "--batch",
             "/exomiser-batch-file/" + batch_file.name,
-            f"--spring.config.location=/exomiser-config/application.properties",
+            "--spring.config.location=/exomiser-config/application.properties",
         ]
 
 
@@ -211,9 +236,13 @@ def run_exomiser_docker(output_dir: Path, config: ExomiserConfig):
                 " ".join(docker_command),
                 shell=True,
             )
-        os.rename(Path(output_dir).joinpath("results"), Path(output_dir).joinpath(run.run_identifier + "_results"))
+        os.rename(
+            Path(output_dir).joinpath("results"),
+            Path(output_dir).joinpath(run.run_identifier + "_results"),
+        )
 
 
 def run_exomiser(output_dir: Path, config: ExomiserConfig):
-    run_exomiser_local(output_dir, config) if config.run.environment == "local" else run_exomiser_docker(output_dir,
-                                                                                                         config)
+    run_exomiser_local(
+        output_dir, config
+    ) if config.run.environment == "local" else run_exomiser_docker(output_dir, config)
