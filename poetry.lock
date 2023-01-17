@@ -1537,17 +1537,6 @@ linkml-runtime = ">=1.2.15,<2.0.0"
 SQLAlchemy-Utils = ">=0.38.2,<0.39.0"
 
 [[package]]
-name = "serde"
-version = "0.9.0"
-description = "Define, serialize, deserialize, and validate Python data structures."
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.extras]
-ext = ["chardet (>=3.0.0,<4.0.0)", "validators (>=0.12.0)"]
-
-[[package]]
 name = "setuptools"
 version = "66.0.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
@@ -2046,7 +2035,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<4.0.0"
-content-hash = "d710de69f44b3432036b271254044985f319af5c93375f9e355813bf6b2cbdf4"
+content-hash = "a154f8f18dd78f705778cee31be06404ee395a1cfd573792efd05c23faa2d612"
 
 [metadata.files]
 aiohttp = [
@@ -3077,10 +3066,6 @@ scipy = [
 semsql = [
     {file = "semsql-0.2.5-py3-none-any.whl", hash = "sha256:9c2dc682cfd63c726aa0b27754ed5aa4c48926b0c182801c98202255112755d0"},
     {file = "semsql-0.2.5.tar.gz", hash = "sha256:049544bcac42c05fd21d9be9ba3b9696935a7ae2f54769ebd32abd0ea36e1d1d"},
-]
-serde = [
-    {file = "serde-0.9.0-py3-none-any.whl", hash = "sha256:4887a2077209ef34214be3a18c7796cf442621e30830859c7659fbd784dff299"},
-    {file = "serde-0.9.0.tar.gz", hash = "sha256:5dbbf0910e736d9136a97b8e9b301b76a9f3b19f88d45bc5974b0fc68a5bc3fb"},
 ]
 setuptools = [
     {file = "setuptools-66.0.0-py3-none-any.whl", hash = "sha256:a78d01d1e2c175c474884671dde039962c9d74c7223db7369771fcf6e29ceeab"},
