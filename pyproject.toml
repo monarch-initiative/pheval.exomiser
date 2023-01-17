@@ -2,7 +2,10 @@
 name = "pheval_exomiser"
 version = "0.1.0"
 description = ""
-authors = ["Nico Matentzoglu <nicolas.matentzoglu@gmail.com>", "Vinicius de Souza <souzadevinicius@gmail.com>"]
+authors = ["Yasemin Bridges <y.bridges@qmul.ac.uk>",
+  "Julius Jacobsen <j.jacobsen@qmul.ac.uk>",
+  "Nico Matentzoglu <nicolas.matentzoglu@gmail.com>",
+  "Vinícius de Souza <souzadevinicius@gmail.com>"]
 readme = "README.md"
 packages = [{include = "pheval_exomiser", from = "src"}]
 
