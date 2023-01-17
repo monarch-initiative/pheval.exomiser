@@ -25,7 +25,7 @@ from pheval.utils.phenopacket_utils import (
 
 @dataclass
 class CorrespondingExomiserInput:
-    """Tracks the corresponding input data for Exomiser and its corresponding result directory."""
+    """Tracks the input data for Exomiser and its corresponding result directory."""
 
     phenopacket_dir: Path
     results_dir: Path
@@ -42,7 +42,7 @@ class ExomiserSummaryStatsForRuns:
 
 @dataclass
 class SimplifiedExomiserGeneResult:
-    """Dataclass for creating a simplified gene result from the Exomiser json."""
+    """A simplified gene result format from Exomiser json."""
 
     exomiser_result: dict
     simplified_exomiser_gene_result: list
@@ -63,14 +63,14 @@ class SimplifiedExomiserGeneResult:
         return simplified_result_entry
 
     def create_simplified_gene_result(self) -> [dict]:
-        """Creates the simplified Exomiser Gene result."""
+        """Creates a simplified Exomiser Gene result."""
         self.simplified_exomiser_gene_result.append(self.add_ranking_score(self.add_gene_record()))
         return self.simplified_exomiser_gene_result
 
 
 @dataclass
 class SimplifiedExomiserVariantResult:
-    """Dataclass for creating a simplified Exomiser variant result."""
+    """A simplified variant result format from Exomiser json."""
 
     exomiser_result: dict
     simplified_exomiser_variant_result: list
@@ -96,7 +96,7 @@ class SimplifiedExomiserVariantResult:
 
 
 class RankExomiserResult:
-    """Adds rank to simplified Exomiser gene/variant results - taking care of ex-aequo scores."""
+    """Adds ranks to simplified Exomiser gene/variant results - taking care of ex-aequo scores."""
 
     def __init__(self, simplified_exomiser_result: [dict], ranking_method: str):
         self.simplified_exomiser_result = simplified_exomiser_result
@@ -188,7 +188,7 @@ class StandardiseExomiserResult:
 
 
 class AssessExomiserGenePrioritisation:
-    """Class for assessing Exomiser gene prioritisation."""
+    """Assess Exomiser gene prioritisation."""
 
     def __init__(
         self,
@@ -266,7 +266,7 @@ class AssessExomiserGenePrioritisation:
 
 
 class AssessExomiserVariantPrioritisation:
-    """Class for assessing Exomiser variant prioritisation."""
+    """Assess Exomiser variant prioritisation."""
 
     def __init__(
         self,
@@ -549,21 +549,20 @@ def benchmark_directories_for_pairwise_comparison(
     variants_stats_writer.close() if variant_analysis else None
 
 
-def merge_dict(dict1, dict2):
-    """Merges two nested dictionaries on commonalities."""
-    for key, val in dict1.items():
+def merge_results(result1, result2):
+    """Merges two nested dictionaries containing results on commonalities."""
+    for key, val in result1.items():
         if type(val) == dict:
-            if key in dict2 and type(dict2[key] == dict):
-                merge_dict(dict1[key], dict2[key])
+            if key in result2 and type(result2[key] == dict):
+                merge_results(result1[key], result2[key])
         else:
-            if key in dict2:
-                dict1[key] = dict2[key]
+            if key in result2:
+                result1[key] = result2[key]
 
-    for key, val in dict2.items():
-        if key not in dict1:
-            dict1[key] = val
-
-    return dict1
+    for key, val in result2.items():
+        if key not in result1:
+            result1[key] = val
+    return result1
 
 
 @dataclass
@@ -585,7 +584,7 @@ class TrackVariantComparisons:
 def generate_gene_rank_comparisons(comparison_ranks: [tuple]) -> None:
     """Generates the gene rank comparison of two result directories."""
     for pair in comparison_ranks:
-        merged_results = merge_dict(pair[0].gene_results, pair[1].gene_results)
+        merged_results = merge_results(pair[0].gene_results, pair[1].gene_results)
         RankComparisonGenerator(merged_results).generate_gene_comparison_output(
             f"{pair[0].directory.name}__v__{pair[1].directory.name}"
         )
@@ -594,7 +593,7 @@ def generate_gene_rank_comparisons(comparison_ranks: [tuple]) -> None:
 def generate_variant_rank_comparisons(comparison_ranks: [tuple]) -> None:
     """Generates the variant rank comparison of two result directories."""
     for pair in comparison_ranks:
-        merged_results = merge_dict(pair[0].variant_results, pair[1].variant_results)
+        merged_results = merge_results(pair[0].variant_results, pair[1].variant_results)
         RankComparisonGenerator(merged_results).generate_variant_comparison_output(
             f"{pair[0].directory.name}__v__{pair[1].directory.name}"
         )
