@@ -27,9 +27,8 @@ from phenopackets import (
     VariationDescriptor,
     VcfRecord,
 )
-
-from ..utils.file_utils import files_with_suffix
-from ..utils.phenopacket_utils import write_phenopacket
+from pheval.utils.file_utils import files_with_suffix
+from pheval.utils.phenopacket_utils import write_phenopacket
 
 
 def load_ontology():
@@ -162,24 +161,24 @@ class ExomiserYamlToPhenopacketConverter:
                         )
 
     def construct_variation_descriptor(
-        self, yaml_job: dict, diagnosis: pd.DataFrame
+            self, yaml_job: dict, diagnosis: pd.DataFrame
     ) -> VariationDescriptor:
         """Constructs a variation descriptor for a diagnosis."""
         return VariationDescriptor(
             id=yaml_job["analysis"]["proband"]
-            + ":"
-            + diagnosis["Chr"]
-            + ":"
-            + diagnosis["Start"]
-            + ":"
-            + diagnosis["Ref/Alt"],
+               + ":"
+               + diagnosis["Chr"]
+               + ":"
+               + diagnosis["Start"]
+               + ":"
+               + diagnosis["Ref/Alt"],
             gene_context=self.construct_gene_descriptor(diagnosis),
             vcf_record=self.construct_vcf_record(yaml_job, diagnosis),
             allelic_state=self.construct_allelic_state(diagnosis),
         )
 
     def construct_variant_interpretation(
-        self, yaml_job: dict, diagnosis: pd.DataFrame
+            self, yaml_job: dict, diagnosis: pd.DataFrame
     ) -> VariantInterpretation:
         """Constructs the variant interpretation for a diagnosis."""
         return VariantInterpretation(
@@ -187,7 +186,7 @@ class ExomiserYamlToPhenopacketConverter:
         )
 
     def construct_genomic_interpretations(
-        self, yaml_job: dict, diagnoses: pd.DataFrame
+            self, yaml_job: dict, diagnoses: pd.DataFrame
     ) -> list[GenomicInterpretation]:
         """Constructs a list of genomic interpretations for a proband."""
         genomic_interpretations = []
@@ -208,7 +207,7 @@ class ExomiserYamlToPhenopacketConverter:
         )
 
     def construct_interpretations(
-        self, yaml_job: dict, diagnoses: pd.DataFrame
+            self, yaml_job: dict, diagnoses: pd.DataFrame
     ) -> list[Interpretation]:
         """Constructs interpretations for a proband."""
         return [
@@ -262,7 +261,7 @@ def construct_pedigree(pedigree: list[str]) -> tuple[str, Pedigree]:
         family_id = entry[0]
         sex = "."
         if (
-            int(entry[4]) == 1
+                int(entry[4]) == 1
         ):  # until this is fixed with the phenopackets package, sex has to be reassigned
             sex = 2
         if int(entry[4]) == 2:
@@ -304,9 +303,9 @@ def construct_pedigree(pedigree: list[str]) -> tuple[str, Pedigree]:
 
 
 def construct_phenopacket(
-    yaml_job_file: dict,
-    diagnoses: pd.DataFrame,
-    exomiser_yaml_to_phenopacket_converter: ExomiserYamlToPhenopacketConverter,
+        yaml_job_file: dict,
+        diagnoses: pd.DataFrame,
+        exomiser_yaml_to_phenopacket_converter: ExomiserYamlToPhenopacketConverter,
 ) -> Phenopacket:
     """Constucts a phenopacket."""
     return Phenopacket(
@@ -326,10 +325,10 @@ def construct_phenopacket(
 
 
 def construct_family(
-    yaml_job_file: dict,
-    diagnoses: pd.DataFrame,
-    exomiser_yaml_to_phenopacket_converter: ExomiserYamlToPhenopacketConverter,
-    pedigree: list[str],
+        yaml_job_file: dict,
+        diagnoses: pd.DataFrame,
+        exomiser_yaml_to_phenopacket_converter: ExomiserYamlToPhenopacketConverter,
+        pedigree: list[str],
 ) -> Family:
     """Constructs a Family"""
     phenopacket = construct_phenopacket(
@@ -349,9 +348,9 @@ def construct_family(
 
 
 def create_phenopacket(
-    yaml_job_file: Path,
-    diagnoses: pd.DataFrame,
-    exomiser_converter: ExomiserYamlToPhenopacketConverter,
+        yaml_job_file: Path,
+        diagnoses: pd.DataFrame,
+        exomiser_converter: ExomiserYamlToPhenopacketConverter,
 ) -> Phenopacket or Family:
     """Constructs either a family or phenopacket from an analysis yaml."""
     yaml_job = exomiser_analysis_yml_reader(yaml_job_file)
@@ -381,7 +380,7 @@ def create_phenopacket(
     "--output-dir", "-o", required=True, help="Output directory to write phenopackets", type=Path
 )
 def convert_exomiser_analysis_yamls_to_phenopacket(
-    output_dir: Path, directory: Path, diagnoses_file: Path
+        output_dir: Path, directory: Path, diagnoses_file: Path
 ):
     """Converts an Exomiser YAML file to a phenopacket schema given a .tsv diagnoses file containing the following
     required fields: ..."""
@@ -413,7 +412,7 @@ def convert_exomiser_analysis_yamls_to_phenopacket(
     "--output-dir", "-o", required=True, help="Output directory to write phenopackets", type=Path
 )
 def convert_exomiser_analysis_yaml_to_phenopacket(
-    output_dir: Path, yaml_file: Path, diagnoses_file: Path
+        output_dir: Path, yaml_file: Path, diagnoses_file: Path
 ):
     """Converts Exomiser YAML files to the phenopacket schema given a .tsv diagnoses file containing the following
     required fields: ..."""
