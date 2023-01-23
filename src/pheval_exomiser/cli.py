@@ -1,6 +1,6 @@
 import click
 
-from .post_process.assess_prioritisation import benchmark, benchmark_comparison
+from .post_process.post_process_results_format import post_process_exomiser_results
 from .prepare.create_batch_commands import prepare_exomiser_batch
 
 
@@ -10,9 +10,7 @@ def main():
 
 
 main.add_command(prepare_exomiser_batch)
-main.add_command(benchmark)
-main.add_command(benchmark_comparison)
-
+main.add_command(post_process_exomiser_results)
 
 if __name__ == "__main__":
     main()
