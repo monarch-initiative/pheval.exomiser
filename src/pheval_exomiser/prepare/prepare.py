@@ -12,7 +12,7 @@ from pheval_exomiser.config_parser import ExomiserConfig
 def prepare_updated_phenopackets(
     input_dir: Path, testdata_dir: Path, config: ExomiserConfig
 ) -> None:
-    """Updates the gene data for phenopackets."""
+    """Update the gene data for phenopackets."""
     try:
         Path(input_dir).mkdir()
     except FileExistsError:
@@ -29,7 +29,7 @@ def prepare_updated_phenopackets(
 
 
 def prepare_scrambled_phenopackets(input_dir: Path, testdata_dir: Path, config: ExomiserConfig):
-    """Scrambles the phenopacket phenotypic profiles."""
+    """Scramble the phenopacket phenotypic profiles."""
     if config.prepare.scramble.scramble_phenopacket != 0:
         print("...scrambling phenopacket phenotypic profiles...")
         create_scrambled_phenopackets(
@@ -43,7 +43,7 @@ def prepare_scrambled_phenopackets(input_dir: Path, testdata_dir: Path, config: 
 
 
 def prepare_spiked_vcfs(input_dir: Path, testdata_dir: Path, config: ExomiserConfig):
-    """Creates spiked vcf files with proband variants."""
+    """Create spiked vcf files with proband variants."""
     if config.prepare.create_spiked_vcf.spike is True:
         print("...spiking vcfs...")
         create_spiked_vcfs(
