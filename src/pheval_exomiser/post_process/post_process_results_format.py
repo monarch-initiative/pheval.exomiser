@@ -12,7 +12,7 @@ from pheval.utils.phenopacket_utils import (
 
 @dataclass
 class CorrespondingExomiserInput:
-    """Tracks the input data for Exomiser and its corresponding result directory."""
+    """Track the input data for Exomiser and its corresponding result directory."""
 
     phenopacket_dir: Path
     results_dir: Path
@@ -27,21 +27,21 @@ class SimplifiedExomiserGeneResult:
     ranking_method: str
 
     def add_gene_record(self) -> dict:
-        """Adds the gene and gene identifier record to simplified result format."""
+        """Add the gene and gene identifier record to simplified result format."""
         return {
             "gene_symbol": self.exomiser_result["geneSymbol"],
             "gene_identifier": self.exomiser_result["geneIdentifier"]["geneId"],
         }
 
     def add_ranking_score(self, simplified_result_entry: dict) -> dict:
-        """Adds the ranking score to simplified result format."""
+        """Add the ranking score to simplified result format."""
         simplified_result_entry[self.ranking_method] = round(
             self.exomiser_result[self.ranking_method], 4
         )
         return simplified_result_entry
 
     def create_simplified_gene_result(self) -> [dict]:
-        """Creates a simplified Exomiser Gene result."""
+        """Create a simplified Exomiser Gene result."""
         self.simplified_exomiser_gene_result.append(self.add_ranking_score(self.add_gene_record()))
         return self.simplified_exomiser_gene_result
 
@@ -56,7 +56,7 @@ class SimplifiedExomiserVariantResult:
     ranking_score: float
 
     def create_simplified_variant_result(self) -> [dict]:
-        """Adds data for contributing variants to simplified result format."""
+        """Add data for contributing variants to simplified result format."""
         for cv in self.exomiser_result["contributingVariants"]:
             self.simplified_exomiser_variant_result.append(
                 {
@@ -74,7 +74,7 @@ class SimplifiedExomiserVariantResult:
 
 
 class RankExomiserResult:
-    """Adds ranks to simplified Exomiser gene/variant results - taking care of ex-aequo scores."""
+    """Add ranks to simplified Exomiser gene/variant results - taking care of ex-aequo scores."""
 
     def __init__(self, simplified_exomiser_result: [dict], ranking_method: str):
         self.simplified_exomiser_result = simplified_exomiser_result
@@ -89,7 +89,7 @@ class RankExomiserResult:
         )
 
     def sort_exomiser_result_pvalue(self) -> [dict]:
-        """Sorts simplified Exomiser result by pvalue, most significant value first."""
+        """Sort simplified Exomiser result by pvalue, most significant value first."""
         return sorted(
             self.simplified_exomiser_result,
             key=lambda d: d[self.ranking_method],
@@ -97,7 +97,7 @@ class RankExomiserResult:
         )
 
     def rank_results(self) -> [dict]:
-        """Adds ranks to the Exomiser results, equal scores are given the same rank e.g., 1,1,3."""
+        """Add ranks to the Exomiser results, equal scores are given the same rank e.g., 1,1,3."""
         sorted_exomiser_result = (
             self.sort_exomiser_result_pvalue()
             if self.ranking_method == "pValue"
@@ -115,7 +115,7 @@ class RankExomiserResult:
 
 
 def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
-    """Loads Exomiser json result."""
+    """Load Exomiser json result."""
     with open(exomiser_result_path) as exomiser_json_result:
         exomiser_result = json.load(exomiser_json_result)
     exomiser_json_result.close()
@@ -123,14 +123,14 @@ def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
 
 
 class StandardiseExomiserResult:
-    """Standardises Exomiser output into simplified gene and variant results for analysis."""
+    """Standardise Exomiser output into simplified gene and variant results for analysis."""
 
     def __init__(self, exomiser_json_result: [dict], ranking_method: str):
         self.exomiser_json_result = exomiser_json_result
         self.ranking_method = ranking_method
 
     def simplify_gene_result(self) -> [dict]:
-        """Simplifies Exomiser json output into gene results."""
+        """Simplify Exomiser json output into gene results."""
         simplified_exomiser_result = []
         for result in self.exomiser_json_result:
             if self.ranking_method in result:
@@ -140,7 +140,7 @@ class StandardiseExomiserResult:
         return simplified_exomiser_result
 
     def simplify_variant_result(self) -> [dict]:
-        """Simplifies Exomiser json output into variant results."""
+        """Simplify Exomiser json output into variant results."""
         simplified_exomiser_result = []
         for result in self.exomiser_json_result:
             for gene_hit in result["geneScores"]:
@@ -155,26 +155,27 @@ class StandardiseExomiserResult:
         return simplified_exomiser_result
 
     def standardise_gene_result(self) -> [dict]:
-        """Standardises Exomiser json to gene results for analysis."""
+        """Standardise Exomiser json to gene results for analysis."""
         simplified_exomiser_result = self.simplify_gene_result()
         return RankExomiserResult(simplified_exomiser_result, self.ranking_method).rank_results()
 
     def standardise_variant_result(self) -> [dict]:
-        """Standardises Exomiser json to gene results for analysis."""
+        """Standardise Exomiser json to gene results for analysis."""
         simplified_exomiser_result = self.simplify_variant_result()
         return RankExomiserResult(simplified_exomiser_result, self.ranking_method).rank_results()
 
 
-def standardised_results(results_dir: Path, output_dir: Path, ranking_method) -> None:
+def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method) -> None:
+    """Write standardised gene and variant results from default Exomiser json output."""
     try:
         output_dir.joinpath("standardised_gene_results/").mkdir()
         output_dir.joinpath("standardised_variant_results/").mkdir()
     except FileExistsError:
         pass
     for result in files_with_suffix(results_dir, ".json"):
-        gene_result = read_exomiser_json_result(result)
-        standardised_gene_result = StandardiseExomiserResult(gene_result, ranking_method).standardise_gene_result()
-        standardised_variant_result = StandardiseExomiserResult(gene_result,
+        exomiser_result = read_exomiser_json_result(result)
+        standardised_gene_result = StandardiseExomiserResult(exomiser_result, ranking_method).standardise_gene_result()
+        standardised_variant_result = StandardiseExomiserResult(exomiser_result,
                                                                 ranking_method).standardise_variant_result()
         with open(output_dir.joinpath("standardised_gene_results/" + result.stem + "-standardised_gene_result.json"),
                   "w") as output:
@@ -215,4 +216,5 @@ def standardised_results(results_dir: Path, output_dir: Path, ranking_method) ->
     show_default=True,
 )
 def post_process_exomiser_results(output_dir: Path, results_dir: Path, ranking_method):
-    standardised_results(results_dir, output_dir, ranking_method)
+    """Post-process Exomiser json results into standardised gene and variant outputs."""
+    create_standardised_results(results_dir, output_dir, ranking_method)
