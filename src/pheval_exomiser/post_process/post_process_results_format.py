@@ -3,11 +3,10 @@ import dataclasses
 import json
 from dataclasses import dataclass
 from pathlib import Path
+
 import click
 from pheval.utils.file_utils import files_with_suffix
-from pheval.utils.phenopacket_utils import (
-    VariantData,
-)
+from pheval.utils.phenopacket_utils import VariantData
 
 
 @dataclass
@@ -60,13 +59,15 @@ class SimplifiedExomiserVariantResult:
         for cv in self.exomiser_result["contributingVariants"]:
             self.simplified_exomiser_variant_result.append(
                 {
-                    "variant": dataclasses.asdict(VariantData(
-                        cv["contigName"],
-                        cv["start"],
-                        cv["ref"],
-                        cv["alt"],
-                        self.exomiser_result["geneIdentifier"]["geneSymbol"],
-                    )),
+                    "variant": dataclasses.asdict(
+                        VariantData(
+                            cv["contigName"],
+                            cv["start"],
+                            cv["ref"],
+                            cv["alt"],
+                            self.exomiser_result["geneIdentifier"]["geneSymbol"],
+                        )
+                    ),
                     self.ranking_method: self.ranking_score,
                 }
             )
@@ -174,17 +175,26 @@ def create_standardised_results(results_dir: Path, output_dir: Path, ranking_met
         pass
     for result in files_with_suffix(results_dir, ".json"):
         exomiser_result = read_exomiser_json_result(result)
-        standardised_gene_result = StandardiseExomiserResult(exomiser_result, ranking_method).standardise_gene_result()
-        standardised_variant_result = StandardiseExomiserResult(exomiser_result,
-                                                                ranking_method).standardise_variant_result()
-        with open(output_dir.joinpath("standardised_gene_results/" + result.stem + "-standardised_gene_result.json"),
-                  "w") as output:
+        standardised_gene_result = StandardiseExomiserResult(
+            exomiser_result, ranking_method
+        ).standardise_gene_result()
+        standardised_variant_result = StandardiseExomiserResult(
+            exomiser_result, ranking_method
+        ).standardise_variant_result()
+        with open(
+            output_dir.joinpath(
+                "standardised_gene_results/" + result.stem + "-standardised_gene_result.json"
+            ),
+            "w",
+        ) as output:
             json.dump(standardised_gene_result, output)
         output.close()
         with open(
-                output_dir.joinpath(
-                    "standardised_variant_results/" + result.stem + "-standardised_variant_result.json"),
-                "w") as output:
+            output_dir.joinpath(
+                "standardised_variant_results/" + result.stem + "-standardised_variant_result.json"
+            ),
+            "w",
+        ) as output:
             json.dump(standardised_variant_result, output)
         output.close()
 
@@ -211,8 +221,8 @@ def create_standardised_results(results_dir: Path, output_dir: Path, ranking_met
     "-r",
     required=True,
     help="ranking method",
-    type=click.Choice(['combinedScore', 'priorityScore', 'variantScore' 'pValue']),
-    default='combinedScore',
+    type=click.Choice(["combinedScore", "priorityScore", "variantScore" "pValue"]),
+    default="combinedScore",
     show_default=True,
 )
 def post_process_exomiser_results(output_dir: Path, results_dir: Path, ranking_method):
