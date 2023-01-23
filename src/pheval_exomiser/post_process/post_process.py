@@ -9,5 +9,7 @@ def post_process_result_format(output_dir: Path, config: ExomiserConfig):
     print("...standardising results format...")
     create_standardised_results(
         results_dir=Path(output_dir).joinpath("exomiser_results"),
-        output_dir=output_dir, ranking_method=config.post_process.ranking_method)
+        output_dir=output_dir,
+        ranking_method=config.post_process.ranking_method,
+    )
     print("done")
