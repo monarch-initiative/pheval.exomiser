@@ -6,7 +6,6 @@ from typing import Optional
 
 import click
 
-# import yaml
 from phenopackets import Family, Phenopacket
 from pheval.prepare.custom_exceptions import MutuallyExclusiveOptionError
 from pheval.utils.file_utils import all_files, files_with_suffix, obtain_closest_file_name
@@ -15,7 +14,7 @@ from pheval.utils.phenopacket_utils import PhenopacketUtil, phenopacket_reader
 
 @dataclass
 class ExomiserCommandLineArguments:
-    """Stores command line arguments for each phenopacket to be run with Exomiser."""
+    """Store command line arguments for each phenopacket to be run with Exomiser."""
 
     sample: Path
     vcf_file: Path
@@ -24,7 +23,7 @@ class ExomiserCommandLineArguments:
 
 
 def get_all_files_from_output_opt_directory(output_options_dir: Path) -> list[Path] or None:
-    """Obtains all output options files if directory is specified - otherwise returns none."""
+    """Obtain all output options files if directory is specified - otherwise returns none."""
     return None if output_options_dir is None else all_files(output_options_dir)
 
 
@@ -43,14 +42,14 @@ def get_all_files_from_output_opt_directory(output_options_dir: Path) -> list[Pa
 
 
 class CommandCreator:
-    """Creates a command for a phenopacket."""
+    """Create a command for a phenopacket."""
 
     def __init__(
-        self,
-        phenopacket_path: Path,
-        phenopacket: Phenopacket or Family,
-        output_options_dir_files: list[Path] or None,
-        output_options_file: Path or None,
+            self,
+            phenopacket_path: Path,
+            phenopacket: Phenopacket or Family,
+            output_options_dir_files: list[Path] or None,
+            output_options_file: Path or None,
     ):
         self.phenopacket_path = phenopacket_path
         self.phenopacket = phenopacket
@@ -58,8 +57,8 @@ class CommandCreator:
         self.output_options_file = output_options_file
 
     def assign_output_options_file(self) -> Path or None:
-        """If a single output option file is to specified to all phenopackets, returns its path,
-        otherwise finds the best match from the directory."""
+        """Return the path of a single output option yaml if specified,
+        otherwise return the best match from a directory."""
         if self.output_options_dir_files is None and self.output_options_file is None:
             return None
         else:
@@ -70,7 +69,7 @@ class CommandCreator:
             )
 
     def add_command_line_arguments(self, vcf_dir: Path) -> ExomiserCommandLineArguments:
-        """Returns a dataclass of all the command line arguments corresponding to phenopacket sample."""
+        """Return a dataclass of all the command line arguments corresponding to phenopacket sample."""
         vcf_file_data = PhenopacketUtil(self.phenopacket).vcf_file_data(
             self.phenopacket_path, vcf_dir
         )
@@ -91,12 +90,12 @@ class CommandCreator:
 
 
 def create_command_arguments(
-    phenopacket_dir: Path,
-    vcf_dir: Path,
-    output_options_dir: Path or None = None,
-    output_options_file: Path or None = None,
+        phenopacket_dir: Path,
+        vcf_dir: Path,
+        output_options_dir: Path or None = None,
+        output_options_file: Path or None = None,
 ) -> list[ExomiserCommandLineArguments]:
-    """Returns a list of Exomiser command line arguments for a directory of phenopackets."""
+    """Return a list of Exomiser command line arguments for a directory of phenopackets."""
     phenopacket_paths = files_with_suffix(phenopacket_dir, ".json")
     commands = []
     output_option_dir_files = get_all_files_from_output_opt_directory(output_options_dir)
@@ -114,15 +113,15 @@ def create_command_arguments(
 
 
 class CommandsWriter:
-    """Writes a command out to file."""
+    """Write a command to file."""
 
     def __init__(self, file: Path):
         self.file = open(file, "a")
 
     def write_command(
-        self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments
+            self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments
     ) -> None:
-        """Writes a command out for exomiser to run."""
+        """Write a command out for exomiser to run."""
         try:
             self.file.write(
                 "--analysis "
@@ -139,9 +138,9 @@ class CommandsWriter:
             print("Error writing ", self.file)
 
     def write_docker_command(
-        self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments
+            self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments
     ) -> None:
-        """Writes a docker command out for exomiser to run."""
+        """Write a docker command out for exomiser to run."""
         try:
             self.file.write(
                 "--analysis "
@@ -158,9 +157,9 @@ class CommandsWriter:
             print("Error writing ", self.file)
 
     def write_command_output_options(
-        self, analysis_yaml, command_arguments: ExomiserCommandLineArguments
+            self, analysis_yaml, command_arguments: ExomiserCommandLineArguments
     ) -> None:
-        """Writes a command out for exomiser to run - including output option file specified."""
+        """Write a command out for exomiser to run - including output option file specified."""
         try:
             self.file.write(
                 "--analysis "
@@ -179,9 +178,9 @@ class CommandsWriter:
             print("Error writing ", self.file)
 
     def write_docker_command_output_options(
-        self, analysis_yaml, command_arguments: ExomiserCommandLineArguments
+            self, analysis_yaml, command_arguments: ExomiserCommandLineArguments
     ) -> None:
-        """Writes a docker command out for exomiser to run - including output option file specified."""
+        """Write a docker command out for exomiser to run - including output option file specified."""
         try:
             self.file.write(
                 "--analysis "
@@ -203,6 +202,7 @@ class CommandsWriter:
             print("Error writing ", self.file)
 
     def close(self) -> None:
+        """Close file."""
         try:
             self.file.close()
         except IOError:
@@ -210,14 +210,14 @@ class CommandsWriter:
 
 
 class BatchFileWriter:
-    """Writes all the commands out to a batch file."""
+    """Write all the commands out to a batch file."""
 
     def __init__(
-        self,
-        analysis_yaml: Path,
-        command_arguments_list: list[ExomiserCommandLineArguments],
-        output_dir: Path,
-        batch_prefix: str,
+            self,
+            analysis_yaml: Path,
+            command_arguments_list: list[ExomiserCommandLineArguments],
+            output_dir: Path,
+            batch_prefix: str,
     ):
         self.analysis_yaml = analysis_yaml
         self.command_arguments_list = command_arguments_list
@@ -225,7 +225,7 @@ class BatchFileWriter:
         self.batch_prefix = batch_prefix
 
     def write_commands(self, commands_writer: CommandsWriter) -> None:
-        """Writes command arguments to a file."""
+        """Write command arguments to a file."""
         for command_arguments in self.command_arguments_list:
             commands_writer.write_command(
                 self.analysis_yaml, command_arguments
@@ -235,7 +235,7 @@ class BatchFileWriter:
         commands_writer.close()
 
     def write_docker_commands(self, commands_writer: CommandsWriter) -> None:
-        """Writes docker command arguments to a file."""
+        """Write docker command arguments to a file."""
         for command_arguments in self.command_arguments_list:
             commands_writer.write_docker_command(
                 self.analysis_yaml, command_arguments
@@ -245,35 +245,35 @@ class BatchFileWriter:
         commands_writer.close()
 
     def write_temp_file(self) -> str:
-        """Writes commands out to a temporary file."""
+        """Write commands out to a temporary file."""
         temp = tempfile.NamedTemporaryFile(delete=False)
         commands_writer = CommandsWriter(Path(temp.name))
         self.write_commands(commands_writer)
         return temp.name
 
     def write_docker_temp_file(self) -> str:
-        """Writes docker commands out to a temporary file."""
+        """Write docker commands out to a temporary file."""
         temp = tempfile.NamedTemporaryFile(delete=False)
         commands_writer = CommandsWriter(Path(temp.name))
         self.write_docker_commands(commands_writer)
         return temp.name
 
     def write_all_commands(self) -> None:
-        """Writes all commands out to a single file."""
+        """Write all commands out to a single file."""
         commands_writer = CommandsWriter(
             Path(self.output_dir).joinpath(self.batch_prefix + "-exomiser-batch.txt")
         )
         self.write_commands(commands_writer)
 
     def write_all_docker_commands(self) -> None:
-        """Writes all docker commands out to a single file."""
+        """Write all docker commands out to a single file."""
         commands_writer = CommandsWriter(
             Path(self.output_dir).joinpath(self.batch_prefix + "-exomiser-batch.txt")
         )
         self.write_docker_commands(commands_writer)
 
     def create_split_batch_files(self, max_jobs: int) -> None:
-        """Splits temp file into separate batch files, dependent on the number of max jobs allocated to each file."""
+        """Split temp file into separate batch files, dependent on the number of max jobs allocated to each file."""
         temp_file_name = self.write_temp_file()
         lines_per_file, f_name = max_jobs, 0
         splitfile = None
@@ -294,7 +294,7 @@ class BatchFileWriter:
         Path(temp_file_name).unlink()
 
     def create_docker_split_batch_files(self, max_jobs: int) -> None:
-        """Splits temp file into separate batch files, dependent on the number of max jobs allocated to each file."""
+        """Split temp file into separate batch files, dependent on the number of max jobs allocated to each file."""
         temp_file_name = self.write_docker_temp_file()
         lines_per_file, f_name = max_jobs, 0
         splitfile = None
@@ -316,17 +316,17 @@ class BatchFileWriter:
 
 
 def create_batch_file(
-    environment: str,
-    analysis: Path,
-    phenopacket_dir: Path,
-    vcf_dir: Path,
-    output_dir: Path,
-    batch_prefix: str,
-    max_jobs: int,
-    output_options_dir: Path = None,
-    output_options_file: Path = None,
+        environment: str,
+        analysis: Path,
+        phenopacket_dir: Path,
+        vcf_dir: Path,
+        output_dir: Path,
+        batch_prefix: str,
+        max_jobs: int,
+        output_options_dir: Path = None,
+        output_options_file: Path = None,
 ) -> None:
-    """Creates Exomiser batch files."""
+    """Create Exomiser batch files."""
     try:
         Path(output_dir).joinpath("exomiser_batch_files").mkdir()
     except FileExistsError:
@@ -428,15 +428,15 @@ def create_batch_file(
     help="Path to the output options file. ",
 )
 def prepare_exomiser_batch(
-    environment: str,
-    analysis_yaml: Path,
-    phenopacket_dir: Path,
-    vcf_dir: Path,
-    output_dir: Path,
-    batch_prefix,
-    max_jobs,
-    output_options_dir: Path = None,
-    output_options_file: Path = None,
+        environment: str,
+        analysis_yaml: Path,
+        phenopacket_dir: Path,
+        vcf_dir: Path,
+        output_dir: Path,
+        batch_prefix,
+        max_jobs,
+        output_options_dir: Path = None,
+        output_options_file: Path = None,
 ):
     """Generate Exomiser batch files."""
     create_batch_file(
