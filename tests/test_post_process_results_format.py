@@ -1,5 +1,6 @@
 import dataclasses
 import unittest
+
 from pheval.utils.phenopacket_utils import VariantData
 
 from pheval_exomiser.post_process.post_process_results_format import (
@@ -1724,9 +1725,9 @@ class TestSimplifiedExomiserVariantResult(unittest.TestCase):
             self.simplified_exomiser_variant_result.create_simplified_variant_result(),
             [
                 {
-                    "variant": dataclasses.asdict(VariantData(
-                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
-                    )),
+                    "variant": dataclasses.asdict(
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ),
                     "combinedScore": 0.6589364,
                 }
             ],
@@ -1989,21 +1990,21 @@ class TestStandardiseExomiserResults(unittest.TestCase):
             self.standardised_result.simplify_variant_result(),
             [
                 {
-                    "variant": dataclasses.asdict(VariantData(
-                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
-                    )),
+                    "variant": dataclasses.asdict(
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ),
                     "combinedScore": 0.0484,
                 },
                 {
-                    "variant": dataclasses.asdict(VariantData(
-                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
-                    )),
+                    "variant": dataclasses.asdict(
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ),
                     "combinedScore": 0.0484,
                 },
                 {
-                    "variant": dataclasses.asdict(VariantData(
-                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
-                    )),
+                    "variant": dataclasses.asdict(
+                        VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1")
+                    ),
                     "combinedScore": 0.0484,
                 },
             ],
@@ -2027,23 +2028,23 @@ class TestStandardiseExomiserResults(unittest.TestCase):
             self.standardised_result.standardise_variant_result(),
             [
                 {
-                    "variant": dataclasses.asdict(VariantData(
-                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
-                    )),
+                    "variant": dataclasses.asdict(
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ),
                     "combinedScore": 0.0484,
                     "rank": 1,
                 },
                 {
-                    "variant": dataclasses.asdict(VariantData(
-                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
-                    )),
+                    "variant": dataclasses.asdict(
+                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
+                    ),
                     "combinedScore": 0.0484,
                     "rank": 1,
                 },
                 {
-                    "variant": dataclasses.asdict(VariantData(
-                        chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1"
-                    )),
+                    "variant": dataclasses.asdict(
+                        VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1")
+                    ),
                     "combinedScore": 0.0484,
                     "rank": 1,
                 },
