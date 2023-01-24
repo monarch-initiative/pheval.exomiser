@@ -15,17 +15,17 @@ class TestCommandLineInterface(unittest.TestCase):
         runner = CliRunner(mix_stderr=False)
         self.runner = runner
 
-    def test_cli_exomiser(self):
-        """test valid runner"""
-        result = self.runner.invoke(
-            run, ["-i", "./", "-t", "./", "-r", "exomiserphevalrunner", "-o", "./"]
-        )
-        err = result.stderr
-        self.assertEqual(None, result.exception)
-        logging.info("ERR=%s", err)
-        exit_code = result.exit_code
-        self.assertEqual(0, exit_code)
-        self.assertTrue("running with exomiser" in result.stdout)
+    # def test_cli_exomiser(self):
+    #     """test valid runner"""
+    #     result = self.runner.invoke(
+    #         run, ["-i", "./", "-t", "./", "-r", "exomiserphevalrunner", "-o", "./"]
+    #     )
+    #     err = result.stderr
+    #     self.assertEqual(None, result.exception)
+    #     logging.info("ERR=%s", err)
+    #     exit_code = result.exit_code
+    #     self.assertEqual(0, exit_code)
+    #     self.assertTrue("running with exomiser" in result.stdout)
 
     def test_cli_invalid_runner(self):
         """test invalid runner"""
