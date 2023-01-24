@@ -133,7 +133,6 @@ class ExomiserConfigRunExomiserConfigs:
 @dataclass
 class ExomiserConfigRun:
     environment: str
-    run_identifier: str
     path_to_exomiser_software_directory: Path
     path_to_analysis_yaml: Path
     exomiser_configurations: ExomiserConfigRunExomiserConfigs
