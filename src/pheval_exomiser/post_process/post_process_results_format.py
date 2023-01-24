@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import click
+import pandas as pd
 from pheval.utils.file_utils import files_with_suffix
 from pheval.utils.phenopacket_utils import VariantData
 
@@ -34,7 +35,7 @@ class SimplifiedExomiserGeneResult:
 
     def add_ranking_score(self, simplified_result_entry: dict) -> dict:
         """Add the ranking score to simplified result format."""
-        simplified_result_entry[self.ranking_method] = round(
+        simplified_result_entry['score'] = round(
             self.exomiser_result[self.ranking_method], 4
         )
         return simplified_result_entry
@@ -68,7 +69,7 @@ class SimplifiedExomiserVariantResult:
                             self.exomiser_result["geneIdentifier"]["geneSymbol"],
                         )
                     ),
-                    self.ranking_method: self.ranking_score,
+                    'score': self.ranking_score,
                 }
             )
         return self.simplified_exomiser_variant_result
@@ -85,7 +86,7 @@ class RankExomiserResult:
         """Sorts simplified Exomiser result by ranking method in decreasing order."""
         return sorted(
             self.simplified_exomiser_result,
-            key=lambda d: d[self.ranking_method],
+            key=lambda d: d['score'],
             reverse=True,
         )
 
@@ -93,7 +94,7 @@ class RankExomiserResult:
         """Sort simplified Exomiser result by pvalue, most significant value first."""
         return sorted(
             self.simplified_exomiser_result,
-            key=lambda d: d[self.ranking_method],
+            key=lambda d: d['score'],
             reverse=False,
         )
 
@@ -107,9 +108,9 @@ class RankExomiserResult:
         rank, count, previous = 0, 0, None
         for exomiser_result in sorted_exomiser_result:
             count += 1
-            if exomiser_result[self.ranking_method] != previous:
+            if exomiser_result['score'] != previous:
                 rank += count
-                previous = exomiser_result[self.ranking_method]
+                previous = exomiser_result['score']
                 count = 0
             exomiser_result["rank"] = rank
         return sorted_exomiser_result
@@ -169,8 +170,8 @@ class StandardiseExomiserResult:
 def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
     try:
-        output_dir.joinpath("standardised_gene_results/").mkdir()
-        output_dir.joinpath("standardised_variant_results/").mkdir()
+        output_dir.joinpath("pheval_gene_results/").mkdir()
+        output_dir.joinpath("pheval_variant_results/").mkdir()
     except FileExistsError:
         pass
     for result in files_with_suffix(results_dir, ".json"):
@@ -181,22 +182,16 @@ def create_standardised_results(results_dir: Path, output_dir: Path, ranking_met
         standardised_variant_result = StandardiseExomiserResult(
             exomiser_result, ranking_method
         ).standardise_variant_result()
-        with open(
-            output_dir.joinpath(
-                "standardised_gene_results/" + result.stem + "-standardised_gene_result.json"
-            ),
-            "w",
-        ) as output:
-            json.dump(standardised_gene_result, output)
-        output.close()
-        with open(
-            output_dir.joinpath(
-                "standardised_variant_results/" + result.stem + "-standardised_variant_result.json"
-            ),
-            "w",
-        ) as output:
-            json.dump(standardised_variant_result, output)
-        output.close()
+        gene_df = pd.DataFrame(standardised_gene_result)
+        gene_df = gene_df.loc[:, ['rank', 'score', 'gene_symbol', 'gene_identifier']]
+        gene_df.to_csv(output_dir.joinpath("pheval_gene_results/" + result.stem + "-pheval_gene_result.tsv"), sep="\t",
+                       index=False)
+        variant_df = pd.DataFrame(standardised_variant_result)
+        variant_df = variant_df.drop('variant', axis=1).join(variant_df.variant.apply(pd.Series))
+        variant_df = variant_df.loc[:, ['rank', 'score', 'chrom', 'pos', 'ref', 'alt', 'gene']]
+        variant_df.to_csv(
+            output_dir.joinpath("pheval_variant_results/" + result.stem + "-pheval_variant_result.tsv"), sep="\t",
+            index=False)
 
 
 @click.command()
@@ -221,10 +216,14 @@ def create_standardised_results(results_dir: Path, output_dir: Path, ranking_met
     "-r",
     required=True,
     help="ranking method",
-    type=click.Choice(["combinedScore", "priorityScore", "variantScore" "pValue"]),
+    type=click.Choice(["combinedScore", "priorityScore", "variantScore", "pValue"]),
     default="combinedScore",
     show_default=True,
 )
 def post_process_exomiser_results(output_dir: Path, results_dir: Path, ranking_method):
     """Post-process Exomiser json results into standardised gene and variant outputs."""
+    try:
+        output_dir.mkdir()
+    except FileExistsError:
+        pass
     create_standardised_results(results_dir, output_dir, ranking_method)
