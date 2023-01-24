@@ -1694,7 +1694,7 @@ class TestSimplifiedExomiserGeneResult(unittest.TestCase):
             {
                 "gene_symbol": "PLXNA1",
                 "gene_identifier": "ENSG00000114554",
-                "combinedScore": 0.0484,
+                "score": 0.0484,
             },
         )
 
@@ -1705,7 +1705,7 @@ class TestSimplifiedExomiserGeneResult(unittest.TestCase):
                 {
                     "gene_symbol": "PLXNA1",
                     "gene_identifier": "ENSG00000114554",
-                    "combinedScore": 0.0484,
+                    "score": 0.0484,
                 }
             ],
         )
@@ -1728,7 +1728,7 @@ class TestSimplifiedExomiserVariantResult(unittest.TestCase):
                     "variant": dataclasses.asdict(
                         VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
                     ),
-                    "combinedScore": 0.6589364,
+                    "score": 0.6589364,
                 }
             ],
         )
@@ -1741,22 +1741,22 @@ class TestRankExomiserResult(unittest.TestCase):
                 {
                     "gene_symbol": "PLXNA1",
                     "gene_identifier": "ENSG00000114554",
-                    "combinedScore": 0.8764,
+                    "score": 0.8764,
                 },
                 {
                     "gene_symbol": "SPNS1",
                     "gene_identifier": "ENSG00000169682",
-                    "combinedScore": 0.3765,
+                    "score": 0.3765,
                 },
                 {
                     "gene_symbol": "ZNF804B",
                     "gene_identifier": "ENSG00000182348",
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                 },
                 {
                     "gene_symbol": "SMCO2",
                     "gene_identifier": "ENSG00000165935",
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                 },
             ],
             ranking_method="combinedScore",
@@ -1767,35 +1767,35 @@ class TestRankExomiserResult(unittest.TestCase):
                     "variant": VariantData(
                         chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
                     ),
-                    "combinedScore": 0.8764,
+                    "score": 0.8764,
                 },
                 {
                     "variant": VariantData(
                         chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1"
                     ),
-                    "combinedScore": 0.3765,
+                    "score": 0.3765,
                 },
                 {
                     "variant": VariantData(
                         chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B"
                     ),
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                 },
                 {
                     "variant": VariantData(
                         chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2"
                     ),
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                 },
             ],
             ranking_method="combinedScore",
         )
         self.simplified_gene_result_pvalue = RankExomiserResult(
             simplified_exomiser_result=[
-                {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554", "pValue": 0.8764},
-                {"gene_symbol": "SPNS1", "gene_identifier": "ENSG00000169682", "pValue": 0.3765},
-                {"gene_symbol": "ZNF804B", "gene_identifier": "ENSG00000182348", "pValue": 0.5777},
-                {"gene_symbol": "SMCO2", "gene_identifier": "ENSG00000165935", "pValue": 0.5777},
+                {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554", "score": 0.8764},
+                {"gene_symbol": "SPNS1", "gene_identifier": "ENSG00000169682", "score": 0.3765},
+                {"gene_symbol": "ZNF804B", "gene_identifier": "ENSG00000182348", "score": 0.5777},
+                {"gene_symbol": "SMCO2", "gene_identifier": "ENSG00000165935", "score": 0.5777},
             ],
             ranking_method="pValue",
         )
@@ -1807,22 +1807,22 @@ class TestRankExomiserResult(unittest.TestCase):
                 {
                     "gene_symbol": "PLXNA1",
                     "gene_identifier": "ENSG00000114554",
-                    "combinedScore": 0.8764,
+                    "score": 0.8764,
                 },
                 {
                     "gene_symbol": "ZNF804B",
                     "gene_identifier": "ENSG00000182348",
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                 },
                 {
                     "gene_symbol": "SMCO2",
                     "gene_identifier": "ENSG00000165935",
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                 },
                 {
                     "gene_symbol": "SPNS1",
                     "gene_identifier": "ENSG00000169682",
-                    "combinedScore": 0.3765,
+                    "score": 0.3765,
                 },
             ],
         )
@@ -1835,25 +1835,25 @@ class TestRankExomiserResult(unittest.TestCase):
                     "variant": VariantData(
                         chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
                     ),
-                    "combinedScore": 0.8764,
+                    "score": 0.8764,
                 },
                 {
                     "variant": VariantData(
                         chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B"
                     ),
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                 },
                 {
                     "variant": VariantData(
                         chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2"
                     ),
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                 },
                 {
                     "variant": VariantData(
                         chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1"
                     ),
-                    "combinedScore": 0.3765,
+                    "score": 0.3765,
                 },
             ],
         )
@@ -1862,10 +1862,10 @@ class TestRankExomiserResult(unittest.TestCase):
         self.assertEqual(
             self.simplified_gene_result_pvalue.sort_exomiser_result_pvalue(),
             [
-                {"gene_symbol": "SPNS1", "gene_identifier": "ENSG00000169682", "pValue": 0.3765},
-                {"gene_symbol": "ZNF804B", "gene_identifier": "ENSG00000182348", "pValue": 0.5777},
-                {"gene_symbol": "SMCO2", "gene_identifier": "ENSG00000165935", "pValue": 0.5777},
-                {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554", "pValue": 0.8764},
+                {"gene_symbol": "SPNS1", "gene_identifier": "ENSG00000169682", "score": 0.3765},
+                {"gene_symbol": "ZNF804B", "gene_identifier": "ENSG00000182348", "score": 0.5777},
+                {"gene_symbol": "SMCO2", "gene_identifier": "ENSG00000165935", "score": 0.5777},
+                {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554", "score": 0.8764},
             ],
         )
 
@@ -1876,25 +1876,25 @@ class TestRankExomiserResult(unittest.TestCase):
                 {
                     "gene_symbol": "PLXNA1",
                     "gene_identifier": "ENSG00000114554",
-                    "combinedScore": 0.8764,
+                    "score": 0.8764,
                     "rank": 1,
                 },
                 {
                     "gene_symbol": "ZNF804B",
                     "gene_identifier": "ENSG00000182348",
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                     "rank": 2,
                 },
                 {
                     "gene_symbol": "SMCO2",
                     "gene_identifier": "ENSG00000165935",
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                     "rank": 2,
                 },
                 {
                     "gene_symbol": "SPNS1",
                     "gene_identifier": "ENSG00000169682",
-                    "combinedScore": 0.3765,
+                    "score": 0.3765,
                     "rank": 4,
                 },
             ],
@@ -1909,28 +1909,28 @@ class TestRankExomiserResult(unittest.TestCase):
                         chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
                     ),
                     "rank": 1,
-                    "combinedScore": 0.8764,
+                    "score": 0.8764,
                 },
                 {
                     "variant": VariantData(
                         chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B"
                     ),
                     "rank": 2,
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                 },
                 {
                     "variant": VariantData(
                         chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2"
                     ),
                     "rank": 2,
-                    "combinedScore": 0.5777,
+                    "score": 0.5777,
                 },
                 {
                     "variant": VariantData(
                         chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1"
                     ),
                     "rank": 4,
-                    "combinedScore": 0.3765,
+                    "score": 0.3765,
                 },
             ],
         )
@@ -1942,25 +1942,25 @@ class TestRankExomiserResult(unittest.TestCase):
                 {
                     "gene_symbol": "SPNS1",
                     "gene_identifier": "ENSG00000169682",
-                    "pValue": 0.3765,
+                    "score": 0.3765,
                     "rank": 1,
                 },
                 {
                     "gene_symbol": "ZNF804B",
                     "gene_identifier": "ENSG00000182348",
-                    "pValue": 0.5777,
+                    "score": 0.5777,
                     "rank": 2,
                 },
                 {
                     "gene_symbol": "SMCO2",
                     "gene_identifier": "ENSG00000165935",
-                    "pValue": 0.5777,
+                    "score": 0.5777,
                     "rank": 2,
                 },
                 {
                     "gene_symbol": "PLXNA1",
                     "gene_identifier": "ENSG00000114554",
-                    "pValue": 0.8764,
+                    "score": 0.8764,
                     "rank": 4,
                 },
             ],
@@ -1980,7 +1980,7 @@ class TestStandardiseExomiserResults(unittest.TestCase):
                 {
                     "gene_symbol": "PLXNA1",
                     "gene_identifier": "ENSG00000114554",
-                    "combinedScore": 0.0484,
+                    "score": 0.0484,
                 }
             ],
         )
@@ -1993,19 +1993,19 @@ class TestStandardiseExomiserResults(unittest.TestCase):
                     "variant": dataclasses.asdict(
                         VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
                     ),
-                    "combinedScore": 0.0484,
+                    "score": 0.0484,
                 },
                 {
                     "variant": dataclasses.asdict(
                         VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
                     ),
-                    "combinedScore": 0.0484,
+                    "score": 0.0484,
                 },
                 {
                     "variant": dataclasses.asdict(
                         VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1")
                     ),
-                    "combinedScore": 0.0484,
+                    "score": 0.0484,
                 },
             ],
         )
@@ -2017,7 +2017,7 @@ class TestStandardiseExomiserResults(unittest.TestCase):
                 {
                     "gene_symbol": "PLXNA1",
                     "gene_identifier": "ENSG00000114554",
-                    "combinedScore": 0.0484,
+                    "score": 0.0484,
                     "rank": 1,
                 }
             ],
@@ -2031,21 +2031,21 @@ class TestStandardiseExomiserResults(unittest.TestCase):
                     "variant": dataclasses.asdict(
                         VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
                     ),
-                    "combinedScore": 0.0484,
+                    "score": 0.0484,
                     "rank": 1,
                 },
                 {
                     "variant": dataclasses.asdict(
                         VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
                     ),
-                    "combinedScore": 0.0484,
+                    "score": 0.0484,
                     "rank": 1,
                 },
                 {
                     "variant": dataclasses.asdict(
                         VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1")
                     ),
-                    "combinedScore": 0.0484,
+                    "score": 0.0484,
                     "rank": 1,
                 },
             ],
