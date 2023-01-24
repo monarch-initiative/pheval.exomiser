@@ -35,9 +35,7 @@ class SimplifiedExomiserGeneResult:
 
     def add_ranking_score(self, simplified_result_entry: dict) -> dict:
         """Add the ranking score to simplified result format."""
-        simplified_result_entry['score'] = round(
-            self.exomiser_result[self.ranking_method], 4
-        )
+        simplified_result_entry["score"] = round(self.exomiser_result[self.ranking_method], 4)
         return simplified_result_entry
 
     def create_simplified_gene_result(self) -> [dict]:
@@ -69,7 +67,7 @@ class SimplifiedExomiserVariantResult:
                             self.exomiser_result["geneIdentifier"]["geneSymbol"],
                         )
                     ),
-                    'score': self.ranking_score,
+                    "score": self.ranking_score,
                 }
             )
         return self.simplified_exomiser_variant_result
@@ -86,7 +84,7 @@ class RankExomiserResult:
         """Sorts simplified Exomiser result by ranking method in decreasing order."""
         return sorted(
             self.simplified_exomiser_result,
-            key=lambda d: d['score'],
+            key=lambda d: d["score"],
             reverse=True,
         )
 
@@ -94,7 +92,7 @@ class RankExomiserResult:
         """Sort simplified Exomiser result by pvalue, most significant value first."""
         return sorted(
             self.simplified_exomiser_result,
-            key=lambda d: d['score'],
+            key=lambda d: d["score"],
             reverse=False,
         )
 
@@ -108,9 +106,9 @@ class RankExomiserResult:
         rank, count, previous = 0, 0, None
         for exomiser_result in sorted_exomiser_result:
             count += 1
-            if exomiser_result['score'] != previous:
+            if exomiser_result["score"] != previous:
                 rank += count
-                previous = exomiser_result['score']
+                previous = exomiser_result["score"]
                 count = 0
             exomiser_result["rank"] = rank
         return sorted_exomiser_result
@@ -183,15 +181,22 @@ def create_standardised_results(results_dir: Path, output_dir: Path, ranking_met
             exomiser_result, ranking_method
         ).standardise_variant_result()
         gene_df = pd.DataFrame(standardised_gene_result)
-        gene_df = gene_df.loc[:, ['rank', 'score', 'gene_symbol', 'gene_identifier']]
-        gene_df.to_csv(output_dir.joinpath("pheval_gene_results/" + result.stem + "-pheval_gene_result.tsv"), sep="\t",
-                       index=False)
+        gene_df = gene_df.loc[:, ["rank", "score", "gene_symbol", "gene_identifier"]]
+        gene_df.to_csv(
+            output_dir.joinpath("pheval_gene_results/" + result.stem + "-pheval_gene_result.tsv"),
+            sep="\t",
+            index=False,
+        )
         variant_df = pd.DataFrame(standardised_variant_result)
-        variant_df = variant_df.drop('variant', axis=1).join(variant_df.variant.apply(pd.Series))
-        variant_df = variant_df.loc[:, ['rank', 'score', 'chrom', 'pos', 'ref', 'alt', 'gene']]
+        variant_df = variant_df.drop("variant", axis=1).join(variant_df.variant.apply(pd.Series))
+        variant_df = variant_df.loc[:, ["rank", "score", "chrom", "pos", "ref", "alt", "gene"]]
         variant_df.to_csv(
-            output_dir.joinpath("pheval_variant_results/" + result.stem + "-pheval_variant_result.tsv"), sep="\t",
-            index=False)
+            output_dir.joinpath(
+                "pheval_variant_results/" + result.stem + "-pheval_variant_result.tsv"
+            ),
+            sep="\t",
+            index=False,
+        )
 
 
 @click.command()
