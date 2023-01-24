@@ -90,7 +90,6 @@ exomiser_application_properties = [
 basic_pheval_config = ExomiserConfig(
     run=ExomiserConfigRun(
         environment="local",
-        run_identifier="run_001",
         path_to_exomiser_software_directory=Path(
             "/Users/yaseminbridges/exomiser/exomiser-cli-13.1.0"
         ),
