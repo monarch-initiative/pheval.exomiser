@@ -43,9 +43,9 @@ class ExomiserPhEvalRunner(PhEvalRunner):
         """run"""
         print("running with exomiser")
         config = parse_exomiser_config(self.config_file)
-        prepare_batch_files(
-            output_dir=Path(self.output_dir), config=config, testdata_dir=self.testdata_dir
-        )
+        prepare_batch_files(input_dir=self.input_dir,
+                            output_dir=Path(self.output_dir), config=config, testdata_dir=self.testdata_dir
+                            )
         run_exomiser(
             input_dir=self.input_dir,
             testdata_dir=self.testdata_dir,
@@ -58,6 +58,8 @@ class ExomiserPhEvalRunner(PhEvalRunner):
         print("post processing")
         config = parse_exomiser_config(self.config_file)
         post_process_result_format(
-            output_dir=Path(self.output_dir).joinpath(f"{config.run.run_identifier}_results"),
+            testdata_dir=Path(self.testdata_dir),
+            input_dir=Path(self.input_dir),
+            output_dir=Path(self.output_dir),
             config=config,
         )
