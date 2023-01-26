@@ -1,79 +1,19 @@
-prepare:
-  scramble:
-    scramble_semsim: 0
-    scramble_phenopacket: 0.5
-  update_phenopacket_gene_identifier:
-    update: Yes
-    gene_identifer_to_update: ensembl_id
-  create_spiked_vcf:
-      spike: Yes
-      path_to_template_vcf: /Users/yaseminbridges/Documents/GitHub/pheval/testdata/template_vcf/template_exome_hg19.vcf.gz
-      path_to_template_vcf_directory:
-  convert_exomiser_analysis_yaml:
-    convert: False
-    path_to_diagnoses_file:
-
 run:
   environment: local
-  runs:
-    - prepare_batch:
-        max_jobs: 1
-      run_identifier: exomiser_13_1_0
-      exomiser_configurations:
-        exomiser_version: 13.1.0
-        path_to_application_properties_config: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0/application.properties
-        exomiser_data_directory: /Users/yaseminbridges/exomiser/data
-        application_properties_arguments:
-          exomiser_phenotype_version:
-          exomiser_hg19_version:
-          exomiser_hg38_version:
-      path_to_exomiser_software_directory: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0
-      path_to_analysis_yaml: /Users/yaseminbridges/preset-exome-analysis.yml
-      path_to_input_phenopacket_data: /Users/yaseminbridges/test_exomiser_pheval_run/input_directory/phenopackets
-      path_to_input_vcf: /Users/yaseminbridges/test_exomiser_pheval_run/input_directory/vcfs
-      path_to_output_option_file:
-      path_to_output_option_directory:
-    - prepare_batch:
-        max_jobs: 0
-      run_identifier: exomiser_13_1_0_scrambled_0.5
-      exomiser_configurations:
-        exomiser_version: 13.1.0
-        path_to_application_properties_config: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0/application.properties
-        exomiser_data_directory: /Users/yaseminbridges/exomiser/data
-        application_properties_arguments:
-          exomiser_phenotype_version:
-          exomiser_hg19_version:
-          exomiser_hg38_version:
-      path_to_exomiser_software_directory: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0
-      path_to_analysis_yaml: /Users/yaseminbridges/preset-exome-analysis.yml
-      path_to_input_phenopacket_data: /Users/yaseminbridges/test_exomiser_pheval_run/input_directory/scrambled_phenopackets_0.5/
-      path_to_input_vcf: /Users/yaseminbridges/exomiser_testdata_run/vcfs
-      path_to_output_option_file:
-      path_to_output_option_directory:
-    - prepare_batch:
-        max_jobs: 0
-      run_identifier: exomiser_13_1_0_scrambled_0.75
-      exomiser_configurations:
-        exomiser_version: 13.1.0
-        path_to_application_properties_config: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0/application.properties
-        exomiser_data_directory: /Users/yaseminbridges/exomiser/data
-        application_properties_arguments:
-          exomiser_phenotype_version:
-          exomiser_hg19_version:
-          exomiser_hg38_version:
-      path_to_exomiser_software_directory: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0
-      path_to_analysis_yaml: /Users/yaseminbridges/preset-exome-analysis.yml
-      path_to_input_phenopacket_data: /Users/yaseminbridges/test_exomiser_pheval_run/input_directory/scrambled_phenopackets_0.75/
-      path_to_input_vcf: /Users/yaseminbridges/exomiser_testdata_run/vcfs
-      path_to_output_option_file:
-      path_to_output_option_directory:
+  path_to_exomiser_software_directory: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0
+  path_to_analysis_yaml: /Users/yaseminbridges/preset-exome-analysis.yml
+  exomiser_configurations:
+    exomiser_version: 13.1.0
+    path_to_application_properties_config: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0/application.properties
+    application_properties_arguments:
+      exomiser_phenotype_version:
+      exomiser_hg19_version:
+      exomiser_hg38_version:
+  max_jobs: 0
 
-post_processing:
-  benchmark_gene_prioritisation: False
-  benchmark_variant_prioritisation: True
+post_process:
+  # For Exomiser, valid ranking methods include combinedScore, priorityScore, variantScore or pValue
   ranking_method: combinedScore
-  threshold: 0.0
-  output_prefix: compare-noisy-profiles
 
 
 
