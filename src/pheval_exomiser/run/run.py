@@ -30,12 +30,7 @@ def prepare_batch_files(
         f"{os.path.basename(input_dir)}"
     )
     try:
-        Path(output_dir).mkdir()
-        print("...created output directory...")
-    except FileExistsError:
-        pass
-    try:
-        results_sub_output_dir.mkdir()
+        results_sub_output_dir.mkdir(parents=True, exist_ok=True)
         print("...created sub results output directory...")
     except FileExistsError:
         pass
