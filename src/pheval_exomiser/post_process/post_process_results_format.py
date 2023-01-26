@@ -11,14 +11,6 @@ from pheval.utils.phenopacket_utils import VariantData
 
 
 @dataclass
-class CorrespondingExomiserInput:
-    """Track the input data for Exomiser and its corresponding result directory."""
-
-    phenopacket_dir: Path
-    results_dir: Path
-
-
-@dataclass
 class SimplifiedExomiserGeneResult:
     """A simplified gene result format from Exomiser json."""
 
