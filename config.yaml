@@ -1,0 +1,19 @@
+run:
+  environment: local
+  path_to_exomiser_software_directory: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0
+  path_to_analysis_yaml: /Users/yaseminbridges/preset-exome-analysis.yml
+  exomiser_configurations:
+    exomiser_version: 13.1.0
+    path_to_application_properties_config: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0/application.properties
+    application_properties_arguments:
+      exomiser_phenotype_version:
+      exomiser_hg19_version:
+      exomiser_hg38_version:
+  max_jobs: 0
+
+post_process:
+  # For Exomiser, valid ranking methods include combinedScore, priorityScore, variantScore or pValue
+  ranking_method: combinedScore
+
+
+
