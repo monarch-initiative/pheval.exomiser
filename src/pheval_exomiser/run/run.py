@@ -29,11 +29,9 @@ def prepare_batch_files(
         f"exomiser_{config.run.exomiser_configurations.exomiser_version.replace('.', '_')}_"
         f"{os.path.basename(input_dir)}"
     )
-    try:
-        results_sub_output_dir.mkdir(parents=True, exist_ok=True)
-        print("...created sub results output directory...")
-    except FileExistsError:
-        pass
+
+    results_sub_output_dir.mkdir(parents=True, exist_ok=True)
+    print("...created sub results output directory...")
     print("...preparing batch files...")
     create_batch_file(
         environment=config.run.environment,
@@ -220,10 +218,9 @@ def run_exomiser_local(
         f"exomiser_{config.run.exomiser_configurations.exomiser_version.replace('.', '_')}"
         f"_{os.path.basename(input_dir)}"
     )
-    try:
-        results_sub_output_dir.joinpath(f"{os.path.basename(testdata_dir)}_results").mkdir()
-    except FileExistsError:
-        pass
+    results_sub_output_dir.joinpath(f"{os.path.basename(testdata_dir)}_results").mkdir(
+        exist_ok=True, parents=True
+    )
     write_edited_application_properties(config, input_dir, read_application_properties(config))
     os.chdir(results_sub_output_dir.joinpath(f"{os.path.basename(testdata_dir)}_results"))
     batch_files = [
@@ -292,10 +289,9 @@ def run_exomiser_docker(
         f"exomiser_{config.run.exomiser_configurations.exomiser_version.replace('.', '_')}"
         f"_{os.path.basename(input_dir)}"
     )
-    try:
-        results_sub_output_dir.joinpath(f"{os.path.basename(testdata_dir)}_results").mkdir()
-    except FileExistsError:
-        pass
+    results_sub_output_dir.joinpath(f"{os.path.basename(testdata_dir)}_results").mkdir(
+        exist_ok=True, parents=True
+    )
     write_edited_application_properties(config, input_dir, read_application_properties(config))
     os.chdir(results_sub_output_dir.joinpath(f"{os.path.basename(testdata_dir)}_results"))
     batch_files = [
