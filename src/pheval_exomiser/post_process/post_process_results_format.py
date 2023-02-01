@@ -159,11 +159,8 @@ class StandardiseExomiserResult:
 
 def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
-    try:
-        output_dir.joinpath("pheval_gene_results/").mkdir()
-        output_dir.joinpath("pheval_variant_results/").mkdir()
-    except FileExistsError:
-        pass
+    output_dir.joinpath("pheval_gene_results/").mkdir(exist_ok=True, parents=True)
+    output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True, parents=True)
     for result in files_with_suffix(results_dir, ".json"):
         exomiser_result = read_exomiser_json_result(result)
         standardised_gene_result = StandardiseExomiserResult(
