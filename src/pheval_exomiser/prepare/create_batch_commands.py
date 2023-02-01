@@ -115,7 +115,7 @@ class CommandsWriter:
     """Write a command to file."""
 
     def __init__(self, file: Path):
-        self.file = open(file, "a")
+        self.file = open(file, "w")
 
     def write_command(
         self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments
