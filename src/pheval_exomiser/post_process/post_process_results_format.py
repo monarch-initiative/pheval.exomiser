@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 import pandas as pd
 from pheval.utils.file_utils import files_with_suffix
-from pheval.utils.phenopacket_utils import VariantData
+from pheval.utils.phenopacket_utils import GenomicVariant
 
 
 @dataclass
@@ -51,12 +51,11 @@ class SimplifiedExomiserVariantResult:
             self.simplified_exomiser_variant_result.append(
                 {
                     "variant": dataclasses.asdict(
-                        VariantData(
+                        GenomicVariant(
                             cv["contigName"],
                             cv["start"],
                             cv["ref"],
                             cv["alt"],
-                            self.exomiser_result["geneIdentifier"]["geneSymbol"],
                         )
                     ),
                     "score": self.ranking_score,
