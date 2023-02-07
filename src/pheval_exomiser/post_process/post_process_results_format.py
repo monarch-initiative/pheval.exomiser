@@ -64,47 +64,6 @@ class SimplifiedExomiserVariantResult:
         return self.simplified_exomiser_variant_result
 
 
-class RankExomiserResult:
-    """Add ranks to simplified Exomiser gene/variant results - taking care of ex-aequo scores."""
-
-    def __init__(self, simplified_exomiser_result: [dict], ranking_method: str):
-        self.simplified_exomiser_result = simplified_exomiser_result
-        self.ranking_method = ranking_method
-
-    def sort_exomiser_result(self) -> [dict]:
-        """Sorts simplified Exomiser result by ranking method in decreasing order."""
-        return sorted(
-            self.simplified_exomiser_result,
-            key=lambda d: d["score"],
-            reverse=True,
-        )
-
-    def sort_exomiser_result_pvalue(self) -> [dict]:
-        """Sort simplified Exomiser result by pvalue, most significant value first."""
-        return sorted(
-            self.simplified_exomiser_result,
-            key=lambda d: d["score"],
-            reverse=False,
-        )
-
-    def rank_results(self) -> [dict]:
-        """Add ranks to the Exomiser results, equal scores are given the same rank e.g., 1,1,3."""
-        sorted_exomiser_result = (
-            self.sort_exomiser_result_pvalue()
-            if self.ranking_method == "pValue"
-            else self.sort_exomiser_result()
-        )
-        rank, count, previous = 0, 0, None
-        for exomiser_result in sorted_exomiser_result:
-            count += 1
-            if exomiser_result["score"] != previous:
-                rank += count
-                previous = exomiser_result["score"]
-                count = 0
-            exomiser_result["rank"] = rank
-        return sorted_exomiser_result
-
-
 def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
     """Load Exomiser json result."""
     with open(exomiser_result_path) as exomiser_json_result:
