@@ -1,13 +1,14 @@
-import dataclasses
 import unittest
 
-from pheval.utils.phenopacket_utils import VariantData
+from pheval.post_processing.post_processing import (
+    PhEvalGeneResult, PhEvalVariantResult, RankedPhEvalGeneResult,
+    RankedPhEvalVariantResult
+)
 
 from pheval_exomiser.post_process.post_process_results_format import (
-    RankExomiserResult,
-    SimplifiedExomiserGeneResult,
-    SimplifiedExomiserVariantResult,
-    StandardiseExomiserResult,
+    PhEvalGeneResultFromExomiserJsonCreator,
+    PhEvalVariantResultFromExomiserJsonCreator, create_pheval_gene_result_from_exomiser,
+    create_variant_gene_result_from_exomiser
 )
 
 example_exomiser_result = [
@@ -1672,381 +1673,115 @@ example_exomiser_result = [
 ]
 
 
-class TestSimplifiedExomiserGeneResult(unittest.TestCase):
-    def setUp(self) -> None:
-        self.simplified_exomiser_gene_result = SimplifiedExomiserGeneResult(
-            exomiser_result=example_exomiser_result[0],
-            simplified_exomiser_gene_result=[],
-            ranking_method="combinedScore",
-        )
+class TestPhEvalGeneResultFromExomiserJsonCreator(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.json_result = PhEvalGeneResultFromExomiserJsonCreator(example_exomiser_result, "combinedScore")
 
-    def test_add_gene_record(self):
-        self.assertEqual(
-            self.simplified_exomiser_gene_result.add_gene_record(),
-            {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554"},
-        )
+    def test_find_gene_symbol(self):
+        self.assertEqual(self.json_result.find_gene_symbol(result_entry=example_exomiser_result[0]), "PLXNA1")
 
-    def test_add_ranking_score(self):
-        self.assertEqual(
-            self.simplified_exomiser_gene_result.add_ranking_score(
-                {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554"}
-            ),
-            {
-                "gene_symbol": "PLXNA1",
-                "gene_identifier": "ENSG00000114554",
-                "score": 0.0484,
-            },
-        )
+    def test_find_gene_identifier(self):
+        self.assertEqual(self.json_result.find_gene_identifier(result_entry=example_exomiser_result[0]),
+                         "ENSG00000114554")
 
-    def test_create_simplified_gene_result(self):
-        self.assertEqual(
-            self.simplified_exomiser_gene_result.create_simplified_gene_result(),
-            [
-                {
-                    "gene_symbol": "PLXNA1",
-                    "gene_identifier": "ENSG00000114554",
-                    "score": 0.0484,
-                }
-            ],
-        )
+    def test_find_relevant_score(self):
+        self.assertEqual(self.json_result.find_relevant_score(result_entry=example_exomiser_result[0]), 0.0484)
+
+    def test_extract_pheval_gene_requirements(self):
+        self.assertEqual(self.json_result.extract_pheval_gene_requirements(),
+                         [PhEvalGeneResult(gene_symbol='PLXNA1', gene_identifier='ENSG00000114554', score=0.0484)]
+                         )
 
 
-class TestSimplifiedExomiserVariantResult(unittest.TestCase):
-    def setUp(self) -> None:
-        self.simplified_exomiser_variant_result = SimplifiedExomiserVariantResult(
-            exomiser_result=example_exomiser_result[0]["geneScores"][0],
-            simplified_exomiser_variant_result=[],
-            ranking_method="combinedScore",
-            ranking_score=0.6589364,
-        )
+class TestPhEvalVariantFromExomiserJsonCreator(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.json_result = PhEvalVariantResultFromExomiserJsonCreator(exomiser_json_result=example_exomiser_result,
+                                                                     ranking_method="combinedScore")
+        cls.result_entry = example_exomiser_result[0]["geneScores"][0]["contributingVariants"][0]
 
-    def test_create_simplified_variant_result(self):
-        self.assertEqual(
-            self.simplified_exomiser_variant_result.create_simplified_variant_result(),
-            [
-                {
-                    "variant": dataclasses.asdict(
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ),
-                    "score": 0.6589364,
-                }
-            ],
-        )
+    def test_find_chromosome(self):
+        self.assertEqual(self.json_result.find_chromosome(result_entry=self.result_entry), "3")
 
+    def test_find_start_pos(self):
+        self.assertEqual(self.json_result.find_start_pos(result_entry=self.result_entry), 126730873)
 
-class TestRankExomiserResult(unittest.TestCase):
-    def setUp(self) -> None:
-        self.simplified_gene_result = RankExomiserResult(
-            simplified_exomiser_result=[
-                {
-                    "gene_symbol": "PLXNA1",
-                    "gene_identifier": "ENSG00000114554",
-                    "score": 0.8764,
-                },
-                {
-                    "gene_symbol": "SPNS1",
-                    "gene_identifier": "ENSG00000169682",
-                    "score": 0.3765,
-                },
-                {
-                    "gene_symbol": "ZNF804B",
-                    "gene_identifier": "ENSG00000182348",
-                    "score": 0.5777,
-                },
-                {
-                    "gene_symbol": "SMCO2",
-                    "gene_identifier": "ENSG00000165935",
-                    "score": 0.5777,
-                },
-            ],
-            ranking_method="combinedScore",
-        )
-        self.simplified_variant_result = RankExomiserResult(
-            simplified_exomiser_result=[
-                {
-                    "variant": VariantData(
-                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
-                    ),
-                    "score": 0.8764,
-                },
-                {
-                    "variant": VariantData(
-                        chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1"
-                    ),
-                    "score": 0.3765,
-                },
-                {
-                    "variant": VariantData(
-                        chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B"
-                    ),
-                    "score": 0.5777,
-                },
-                {
-                    "variant": VariantData(
-                        chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2"
-                    ),
-                    "score": 0.5777,
-                },
-            ],
-            ranking_method="combinedScore",
-        )
-        self.simplified_gene_result_pvalue = RankExomiserResult(
-            simplified_exomiser_result=[
-                {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554", "score": 0.8764},
-                {"gene_symbol": "SPNS1", "gene_identifier": "ENSG00000169682", "score": 0.3765},
-                {"gene_symbol": "ZNF804B", "gene_identifier": "ENSG00000182348", "score": 0.5777},
-                {"gene_symbol": "SMCO2", "gene_identifier": "ENSG00000165935", "score": 0.5777},
-            ],
-            ranking_method="pValue",
-        )
+    def test_find_end_pos(self):
+        self.assertEqual(self.json_result.find_end_pos(result_entry=self.result_entry), 126730873)
 
-    def test_sort_exomiser_result_gene(self):
-        self.assertEqual(
-            self.simplified_gene_result.sort_exomiser_result(),
-            [
-                {
-                    "gene_symbol": "PLXNA1",
-                    "gene_identifier": "ENSG00000114554",
-                    "score": 0.8764,
-                },
-                {
-                    "gene_symbol": "ZNF804B",
-                    "gene_identifier": "ENSG00000182348",
-                    "score": 0.5777,
-                },
-                {
-                    "gene_symbol": "SMCO2",
-                    "gene_identifier": "ENSG00000165935",
-                    "score": 0.5777,
-                },
-                {
-                    "gene_symbol": "SPNS1",
-                    "gene_identifier": "ENSG00000169682",
-                    "score": 0.3765,
-                },
-            ],
-        )
+    def test_find_ref(self):
+        self.assertEqual(self.json_result.find_ref(result_entry=self.result_entry), "G")
 
-    def test_sort_exomiser_result_variant(self):
-        self.assertEqual(
-            self.simplified_variant_result.sort_exomiser_result(),
-            [
-                {
-                    "variant": VariantData(
-                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
-                    ),
-                    "score": 0.8764,
-                },
-                {
-                    "variant": VariantData(
-                        chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B"
-                    ),
-                    "score": 0.5777,
-                },
-                {
-                    "variant": VariantData(
-                        chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2"
-                    ),
-                    "score": 0.5777,
-                },
-                {
-                    "variant": VariantData(
-                        chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1"
-                    ),
-                    "score": 0.3765,
-                },
-            ],
-        )
+    def test_find_alt(self):
+        self.assertEqual(self.json_result.find_alt(result_entry=self.result_entry), "A")
 
-    def test_sort_exomiser_result_pvalue(self):
-        self.assertEqual(
-            self.simplified_gene_result_pvalue.sort_exomiser_result_pvalue(),
-            [
-                {"gene_symbol": "SPNS1", "gene_identifier": "ENSG00000169682", "score": 0.3765},
-                {"gene_symbol": "ZNF804B", "gene_identifier": "ENSG00000182348", "score": 0.5777},
-                {"gene_symbol": "SMCO2", "gene_identifier": "ENSG00000165935", "score": 0.5777},
-                {"gene_symbol": "PLXNA1", "gene_identifier": "ENSG00000114554", "score": 0.8764},
-            ],
-        )
+    def test_find_relevant_score(self):
+        self.assertEqual(self.json_result.find_relevant_score(result_entry=example_exomiser_result[0]["geneScores"][0]),
+                         0.0484)
 
-    def test_rank_results_gene(self):
-        self.assertEqual(
-            self.simplified_gene_result.rank_results(),
-            [
-                {
-                    "gene_symbol": "PLXNA1",
-                    "gene_identifier": "ENSG00000114554",
-                    "score": 0.8764,
-                    "rank": 1,
-                },
-                {
-                    "gene_symbol": "ZNF804B",
-                    "gene_identifier": "ENSG00000182348",
-                    "score": 0.5777,
-                    "rank": 2,
-                },
-                {
-                    "gene_symbol": "SMCO2",
-                    "gene_identifier": "ENSG00000165935",
-                    "score": 0.5777,
-                    "rank": 2,
-                },
-                {
-                    "gene_symbol": "SPNS1",
-                    "gene_identifier": "ENSG00000169682",
-                    "score": 0.3765,
-                    "rank": 4,
-                },
-            ],
-        )
-
-    def test_rank_results_variant(self):
-        self.assertEqual(
-            self.simplified_variant_result.rank_results(),
-            [
-                {
-                    "variant": VariantData(
-                        chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1"
-                    ),
-                    "rank": 1,
-                    "score": 0.8764,
-                },
-                {
-                    "variant": VariantData(
-                        chrom="7", pos=88965159, ref="T", alt="G", gene="ZNF804B"
-                    ),
-                    "rank": 2,
-                    "score": 0.5777,
-                },
-                {
-                    "variant": VariantData(
-                        chrom="12", pos=27623658, ref="T", alt="A", gene="SMCO2"
-                    ),
-                    "rank": 2,
-                    "score": 0.5777,
-                },
-                {
-                    "variant": VariantData(
-                        chrom="16", pos=28995541, ref="C", alt="A", gene="SPNS1"
-                    ),
-                    "rank": 4,
-                    "score": 0.3765,
-                },
-            ],
-        )
-
-    def test_rank_results_pvalue(self):
-        self.assertEqual(
-            self.simplified_gene_result_pvalue.rank_results(),
-            [
-                {
-                    "gene_symbol": "SPNS1",
-                    "gene_identifier": "ENSG00000169682",
-                    "score": 0.3765,
-                    "rank": 1,
-                },
-                {
-                    "gene_symbol": "ZNF804B",
-                    "gene_identifier": "ENSG00000182348",
-                    "score": 0.5777,
-                    "rank": 2,
-                },
-                {
-                    "gene_symbol": "SMCO2",
-                    "gene_identifier": "ENSG00000165935",
-                    "score": 0.5777,
-                    "rank": 2,
-                },
-                {
-                    "gene_symbol": "PLXNA1",
-                    "gene_identifier": "ENSG00000114554",
-                    "score": 0.8764,
-                    "rank": 4,
-                },
-            ],
-        )
+    def test_extract_pheval_variant_requirements(self):
+        self.assertEqual(self.json_result.extract_pheval_variant_requirements(),
+                         [PhEvalVariantResult(chromosome='3', start=126730873, end=126730873, ref='G', alt='A',
+                                              score=0.0484),
+                          PhEvalVariantResult(chromosome='3', start=126730873, end=126730873, ref='G', alt='A',
+                                              score=0.0484),
+                          PhEvalVariantResult(chromosome='3', start=126741108, end=126741108, ref='G', alt='A',
+                                              score=0.0484)]
+                         )
 
 
-class TestStandardiseExomiserResults(unittest.TestCase):
-    def setUp(self) -> None:
-        self.standardised_result = StandardiseExomiserResult(
-            exomiser_json_result=example_exomiser_result, ranking_method="combinedScore"
-        )
+class TestCreatePhEvalGeneResultFromExomiser(unittest.TestCase):
+    def test_create_pheval_gene_result_from_exomiser(self):
+        self.assertEqual(create_pheval_gene_result_from_exomiser(exomiser_json_result=example_exomiser_result,
+                                                                 ranking_method="combinedScore"),
+                         [RankedPhEvalGeneResult(
+                             pheval_gene_result=PhEvalGeneResult(gene_symbol='PLXNA1',
+                                                                 gene_identifier='ENSG00000114554',
+                                                                 score=0.0484), rank=1)]
+                         )
 
-    def test_simplify_gene_result(self):
-        self.assertEqual(
-            self.standardised_result.simplify_gene_result(),
-            [
-                {
-                    "gene_symbol": "PLXNA1",
-                    "gene_identifier": "ENSG00000114554",
-                    "score": 0.0484,
-                }
-            ],
-        )
+    def test_create_pheval_gene_result_from_exomiser_pvalue(self):
+        self.assertEqual(create_pheval_gene_result_from_exomiser(exomiser_json_result=example_exomiser_result,
+                                                                 ranking_method="pValue"),
+                         [RankedPhEvalGeneResult(
+                             pheval_gene_result=PhEvalGeneResult(gene_symbol='PLXNA1',
+                                                                 gene_identifier='ENSG00000114554',
+                                                                 score=0.1876), rank=1)]
+                         )
 
-    def test_simplify_variant_result(self):
-        self.assertEqual(
-            self.standardised_result.simplify_variant_result(),
-            [
-                {
-                    "variant": dataclasses.asdict(
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ),
-                    "score": 0.0484,
-                },
-                {
-                    "variant": dataclasses.asdict(
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ),
-                    "score": 0.0484,
-                },
-                {
-                    "variant": dataclasses.asdict(
-                        VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1")
-                    ),
-                    "score": 0.0484,
-                },
-            ],
-        )
 
-    def test_standardise_gene_result(self):
-        self.assertEqual(
-            self.standardised_result.standardise_gene_result(),
-            [
-                {
-                    "gene_symbol": "PLXNA1",
-                    "gene_identifier": "ENSG00000114554",
-                    "score": 0.0484,
-                    "rank": 1,
-                }
-            ],
-        )
+class TestCreateVariantGeneResultFromExomiser(unittest.TestCase):
+    def test_create_variant_gene_result_from_exomiser(self):
+        self.assertEqual(create_variant_gene_result_from_exomiser(exomiser_json_result=example_exomiser_result,
+                                                                  ranking_method="variantScore"),
+                         [RankedPhEvalVariantResult(
+                             pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126730873, end=126730873,
+                                                                       ref='G',
+                                                                       alt='A', score=0.5566), rank=1),
+                             RankedPhEvalVariantResult(
+                                 pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126730873,
+                                                                           end=126730873, ref='G',
+                                                                           alt='A', score=0.5566), rank=1),
+                             RankedPhEvalVariantResult(
+                                 pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126741108,
+                                                                           end=126741108, ref='G',
+                                                                           alt='A', score=0.5566), rank=1)]
+                         )
 
-    def test_standardise_variant_result(self):
-        self.assertEqual(
-            self.standardised_result.standardise_variant_result(),
-            [
-                {
-                    "variant": dataclasses.asdict(
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ),
-                    "score": 0.0484,
-                    "rank": 1,
-                },
-                {
-                    "variant": dataclasses.asdict(
-                        VariantData(chrom="3", pos=126730873, ref="G", alt="A", gene="PLXNA1")
-                    ),
-                    "score": 0.0484,
-                    "rank": 1,
-                },
-                {
-                    "variant": dataclasses.asdict(
-                        VariantData(chrom="3", pos=126741108, ref="G", alt="A", gene="PLXNA1")
-                    ),
-                    "score": 0.0484,
-                    "rank": 1,
-                },
-            ],
-        )
+    def test_create_variant_gene_result_from_exomiser_pvalue(self):
+        self.assertEqual(create_variant_gene_result_from_exomiser(exomiser_json_result=example_exomiser_result,
+                                                                  ranking_method="pValue"),
+                         [RankedPhEvalVariantResult(
+                             pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126730873, end=126730873,
+                                                                       ref='G',
+                                                                       alt='A', score=0.1876), rank=1),
+                             RankedPhEvalVariantResult(
+                                 pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126730873,
+                                                                           end=126730873, ref='G',
+                                                                           alt='A', score=0.1876), rank=1),
+                             RankedPhEvalVariantResult(
+                                 pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126741108,
+                                                                           end=126741108, ref='G',
+                                                                           alt='A', score=0.1876), rank=1)]
+                         )
