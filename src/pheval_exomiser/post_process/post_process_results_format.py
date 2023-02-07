@@ -6,7 +6,10 @@ from pathlib import Path
 
 import click
 import pandas as pd
-from pheval.post_processing.post_processing import PhEvalGeneResult, PhEvalVariantResult, create_pheval_result
+from pheval.post_processing.post_processing import (
+    PhEvalGeneResult, PhEvalVariantResult, create_pheval_result,
+    RankedPhEvalVariantResult, RankedPhEvalGeneResult
+)
 from pheval.utils.file_utils import files_with_suffix
 from pheval.utils.phenopacket_utils import GenomicVariant
 
@@ -105,6 +108,31 @@ def create_variant_gene_result_from_exomiser(exomiser_json_result, ranking_metho
         exomiser_json_result, ranking_method
     ).extract_pheval_variant_requirements()
     return create_pheval_result(pheval_variant_result, ranking_method)
+
+
+def write_pheval_gene_result(ranked_pheval_result: [RankedPhEvalGeneResult], output_dir: Path,
+                             tool_result_path: Path) -> None:
+    """Write ranked PhEval gene result to tsv."""
+    ranked_result = pd.DataFrame([x.as_dict() for x in ranked_pheval_result])
+    pheval_gene_output = ranked_result.loc[:, ["rank", "score", "gene_symbol", "gene_identifier"]]
+    pheval_gene_output.to_csv(
+        output_dir.joinpath("pheval_gene_results/" + tool_result_path.stem + "-pheval_gene_result.tsv"),
+        sep="\t",
+        index=False,
+    )
+
+
+def write_pheval_variant_result(ranked_pheval_result: [RankedPhEvalVariantResult],
+                                output_dir: Path, tool_result_path: Path) -> None:
+    """Write ranked PhEval variant result to tsv."""
+    ranked_result = pd.DataFrame([x.as_dict() for x in ranked_pheval_result])
+    pheval_variant_output = ranked_result.loc[:, ["rank", "score", "chromosome", "start", "end", "ref", "alt"]]
+    pheval_variant_output.to_csv(
+        output_dir.joinpath("pheval_variant_results/" + tool_result_path.stem + "-pheval_variant_result.tsv"),
+        sep="\t",
+        index=False,
+    )
+
 
 def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
