@@ -174,8 +174,5 @@ def create_standardised_results(results_dir: Path, output_dir: Path, ranking_met
 )
 def post_process_exomiser_results(output_dir: Path, results_dir: Path, ranking_method):
     """Post-process Exomiser json results into standardised gene and variant outputs."""
-    try:
-        output_dir.mkdir()
-    except FileExistsError:
-        pass
+    output_dir.mkdir(exist_ok=True, parents=True)
     create_standardised_results(results_dir, output_dir, ranking_method)
