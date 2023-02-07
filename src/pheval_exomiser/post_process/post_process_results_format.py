@@ -11,6 +11,14 @@ from pheval.utils.file_utils import files_with_suffix
 from pheval.utils.phenopacket_utils import GenomicVariant
 
 
+def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
+    """Load Exomiser json result."""
+    with open(exomiser_result_path) as exomiser_json_result:
+        exomiser_result = json.load(exomiser_json_result)
+    exomiser_json_result.close()
+    return exomiser_result
+
+
 class PhEvalGeneResultFromExomiserJsonCreator:
 
     def __init__(self, exomiser_json_result: [dict], ranking_method: str):
@@ -38,6 +46,7 @@ class PhEvalGeneResultFromExomiserJsonCreator:
                                                                    score=self.find_relevant_score(result_entry)))
 
         return simplified_exomiser_result
+
 
 class PhEvalVariantResultFromExomiserJsonCreator:
     def __init__(self, exomiser_json_result: [dict], ranking_method: str):
@@ -82,14 +91,6 @@ class PhEvalVariantResultFromExomiserJsonCreator:
                                                                                   alt=self.find_alt(cv),
                                                                                   score=score))
         return simplified_exomiser_result
-
-
-def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
-    """Load Exomiser json result."""
-    with open(exomiser_result_path) as exomiser_json_result:
-        exomiser_result = json.load(exomiser_json_result)
-    exomiser_json_result.close()
-    return exomiser_result
 
 
 class StandardiseExomiserResult:
