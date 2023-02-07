@@ -6,35 +6,38 @@ from pathlib import Path
 
 import click
 import pandas as pd
+from pheval.post_processing.post_processing import PhEvalGeneResult
 from pheval.utils.file_utils import files_with_suffix
 from pheval.utils.phenopacket_utils import GenomicVariant
 
 
-@dataclass
-class SimplifiedExomiserGeneResult:
-    """A simplified gene result format from Exomiser json."""
+class PhEvalGeneResultFromExomiserJsonCreator:
 
-    exomiser_result: dict
-    simplified_exomiser_gene_result: list
-    ranking_method: str
+    def __init__(self, exomiser_json_result: [dict], ranking_method: str):
+        self.exomiser_json_result = exomiser_json_result
+        self.ranking_method = ranking_method
 
-    def add_gene_record(self) -> dict:
-        """Add the gene and gene identifier record to simplified result format."""
-        return {
-            "gene_symbol": self.exomiser_result["geneSymbol"],
-            "gene_identifier": self.exomiser_result["geneIdentifier"]["geneId"],
-        }
+    @staticmethod
+    def find_gene_symbol(result_entry: dict) -> str:
+        return result_entry["geneSymbol"]
 
-    def add_ranking_score(self, simplified_result_entry: dict) -> dict:
-        """Add the ranking score to simplified result format."""
-        simplified_result_entry["score"] = round(self.exomiser_result[self.ranking_method], 4)
-        return simplified_result_entry
+    @staticmethod
+    def find_gene_identifier(result_entry: dict) -> str:
+        return result_entry["geneIdentifier"]["geneId"]
 
-    def create_simplified_gene_result(self) -> [dict]:
-        """Create a simplified Exomiser Gene result."""
-        self.simplified_exomiser_gene_result.append(self.add_ranking_score(self.add_gene_record()))
-        return self.simplified_exomiser_gene_result
+    def find_relevant_score(self, result_entry: dict):
+        return round(result_entry[self.ranking_method], 4)
 
+    def extract_pheval_gene_requirements(self):
+        simplified_exomiser_result = []
+        for result_entry in self.exomiser_json_result:
+            if self.ranking_method in result_entry:
+                simplified_exomiser_result.append(PhEvalGeneResult(gene_symbol=self.find_gene_symbol(result_entry),
+                                                                   gene_identifier=self.find_gene_identifier(
+                                                                       result_entry),
+                                                                   score=self.find_relevant_score(result_entry)))
+
+        return simplified_exomiser_result
 
 @dataclass
 class SimplifiedExomiserVariantResult:
