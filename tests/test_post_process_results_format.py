@@ -1,14 +1,17 @@
 import unittest
 
 from pheval.post_processing.post_processing import (
-    PhEvalGeneResult, PhEvalVariantResult, RankedPhEvalGeneResult,
-    RankedPhEvalVariantResult
+    PhEvalGeneResult,
+    PhEvalVariantResult,
+    RankedPhEvalGeneResult,
+    RankedPhEvalVariantResult,
 )
 
 from pheval_exomiser.post_process.post_process_results_format import (
     PhEvalGeneResultFromExomiserJsonCreator,
-    PhEvalVariantResultFromExomiserJsonCreator, create_pheval_gene_result_from_exomiser,
-    create_variant_gene_result_from_exomiser
+    PhEvalVariantResultFromExomiserJsonCreator,
+    create_pheval_gene_result_from_exomiser,
+    create_variant_gene_result_from_exomiser,
 )
 
 example_exomiser_result = [
@@ -1676,29 +1679,43 @@ example_exomiser_result = [
 class TestPhEvalGeneResultFromExomiserJsonCreator(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.json_result = PhEvalGeneResultFromExomiserJsonCreator(example_exomiser_result, "combinedScore")
+        cls.json_result = PhEvalGeneResultFromExomiserJsonCreator(
+            example_exomiser_result, "combinedScore"
+        )
 
     def test_find_gene_symbol(self):
-        self.assertEqual(self.json_result.find_gene_symbol(result_entry=example_exomiser_result[0]), "PLXNA1")
+        self.assertEqual(
+            self.json_result.find_gene_symbol(result_entry=example_exomiser_result[0]), "PLXNA1"
+        )
 
     def test_find_gene_identifier(self):
-        self.assertEqual(self.json_result.find_gene_identifier(result_entry=example_exomiser_result[0]),
-                         "ENSG00000114554")
+        self.assertEqual(
+            self.json_result.find_gene_identifier(result_entry=example_exomiser_result[0]),
+            "ENSG00000114554",
+        )
 
     def test_find_relevant_score(self):
-        self.assertEqual(self.json_result.find_relevant_score(result_entry=example_exomiser_result[0]), 0.0484)
+        self.assertEqual(
+            self.json_result.find_relevant_score(result_entry=example_exomiser_result[0]), 0.0484
+        )
 
     def test_extract_pheval_gene_requirements(self):
-        self.assertEqual(self.json_result.extract_pheval_gene_requirements(),
-                         [PhEvalGeneResult(gene_symbol='PLXNA1', gene_identifier='ENSG00000114554', score=0.0484)]
-                         )
+        self.assertEqual(
+            self.json_result.extract_pheval_gene_requirements(),
+            [
+                PhEvalGeneResult(
+                    gene_symbol="PLXNA1", gene_identifier="ENSG00000114554", score=0.0484
+                )
+            ],
+        )
 
 
 class TestPhEvalVariantFromExomiserJsonCreator(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.json_result = PhEvalVariantResultFromExomiserJsonCreator(exomiser_json_result=example_exomiser_result,
-                                                                     ranking_method="combinedScore")
+        cls.json_result = PhEvalVariantResultFromExomiserJsonCreator(
+            exomiser_json_result=example_exomiser_result, ranking_method="combinedScore"
+        )
         cls.result_entry = example_exomiser_result[0]["geneScores"][0]["contributingVariants"][0]
 
     def test_find_chromosome(self):
@@ -1717,71 +1734,143 @@ class TestPhEvalVariantFromExomiserJsonCreator(unittest.TestCase):
         self.assertEqual(self.json_result.find_alt(result_entry=self.result_entry), "A")
 
     def test_find_relevant_score(self):
-        self.assertEqual(self.json_result.find_relevant_score(result_entry=example_exomiser_result[0]["geneScores"][0]),
-                         0.0484)
+        self.assertEqual(
+            self.json_result.find_relevant_score(
+                result_entry=example_exomiser_result[0]["geneScores"][0]
+            ),
+            0.0484,
+        )
 
     def test_extract_pheval_variant_requirements(self):
-        self.assertEqual(self.json_result.extract_pheval_variant_requirements(),
-                         [PhEvalVariantResult(chromosome='3', start=126730873, end=126730873, ref='G', alt='A',
-                                              score=0.0484),
-                          PhEvalVariantResult(chromosome='3', start=126730873, end=126730873, ref='G', alt='A',
-                                              score=0.0484),
-                          PhEvalVariantResult(chromosome='3', start=126741108, end=126741108, ref='G', alt='A',
-                                              score=0.0484)]
-                         )
+        self.assertEqual(
+            self.json_result.extract_pheval_variant_requirements(),
+            [
+                PhEvalVariantResult(
+                    chromosome="3", start=126730873, end=126730873, ref="G", alt="A", score=0.0484
+                ),
+                PhEvalVariantResult(
+                    chromosome="3", start=126730873, end=126730873, ref="G", alt="A", score=0.0484
+                ),
+                PhEvalVariantResult(
+                    chromosome="3", start=126741108, end=126741108, ref="G", alt="A", score=0.0484
+                ),
+            ],
+        )
 
 
 class TestCreatePhEvalGeneResultFromExomiser(unittest.TestCase):
     def test_create_pheval_gene_result_from_exomiser(self):
-        self.assertEqual(create_pheval_gene_result_from_exomiser(exomiser_json_result=example_exomiser_result,
-                                                                 ranking_method="combinedScore"),
-                         [RankedPhEvalGeneResult(
-                             pheval_gene_result=PhEvalGeneResult(gene_symbol='PLXNA1',
-                                                                 gene_identifier='ENSG00000114554',
-                                                                 score=0.0484), rank=1)]
-                         )
+        self.assertEqual(
+            create_pheval_gene_result_from_exomiser(
+                exomiser_json_result=example_exomiser_result, ranking_method="combinedScore"
+            ),
+            [
+                RankedPhEvalGeneResult(
+                    pheval_gene_result=PhEvalGeneResult(
+                        gene_symbol="PLXNA1", gene_identifier="ENSG00000114554", score=0.0484
+                    ),
+                    rank=1,
+                )
+            ],
+        )
 
     def test_create_pheval_gene_result_from_exomiser_pvalue(self):
-        self.assertEqual(create_pheval_gene_result_from_exomiser(exomiser_json_result=example_exomiser_result,
-                                                                 ranking_method="pValue"),
-                         [RankedPhEvalGeneResult(
-                             pheval_gene_result=PhEvalGeneResult(gene_symbol='PLXNA1',
-                                                                 gene_identifier='ENSG00000114554',
-                                                                 score=0.1876), rank=1)]
-                         )
+        self.assertEqual(
+            create_pheval_gene_result_from_exomiser(
+                exomiser_json_result=example_exomiser_result, ranking_method="pValue"
+            ),
+            [
+                RankedPhEvalGeneResult(
+                    pheval_gene_result=PhEvalGeneResult(
+                        gene_symbol="PLXNA1", gene_identifier="ENSG00000114554", score=0.1876
+                    ),
+                    rank=1,
+                )
+            ],
+        )
 
 
 class TestCreateVariantGeneResultFromExomiser(unittest.TestCase):
     def test_create_variant_gene_result_from_exomiser(self):
-        self.assertEqual(create_variant_gene_result_from_exomiser(exomiser_json_result=example_exomiser_result,
-                                                                  ranking_method="variantScore"),
-                         [RankedPhEvalVariantResult(
-                             pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126730873, end=126730873,
-                                                                       ref='G',
-                                                                       alt='A', score=0.5566), rank=1),
-                             RankedPhEvalVariantResult(
-                                 pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126730873,
-                                                                           end=126730873, ref='G',
-                                                                           alt='A', score=0.5566), rank=1),
-                             RankedPhEvalVariantResult(
-                                 pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126741108,
-                                                                           end=126741108, ref='G',
-                                                                           alt='A', score=0.5566), rank=1)]
-                         )
+        self.assertEqual(
+            create_variant_gene_result_from_exomiser(
+                exomiser_json_result=example_exomiser_result, ranking_method="variantScore"
+            ),
+            [
+                RankedPhEvalVariantResult(
+                    pheval_variant_result=PhEvalVariantResult(
+                        chromosome="3",
+                        start=126730873,
+                        end=126730873,
+                        ref="G",
+                        alt="A",
+                        score=0.5566,
+                    ),
+                    rank=1,
+                ),
+                RankedPhEvalVariantResult(
+                    pheval_variant_result=PhEvalVariantResult(
+                        chromosome="3",
+                        start=126730873,
+                        end=126730873,
+                        ref="G",
+                        alt="A",
+                        score=0.5566,
+                    ),
+                    rank=1,
+                ),
+                RankedPhEvalVariantResult(
+                    pheval_variant_result=PhEvalVariantResult(
+                        chromosome="3",
+                        start=126741108,
+                        end=126741108,
+                        ref="G",
+                        alt="A",
+                        score=0.5566,
+                    ),
+                    rank=1,
+                ),
+            ],
+        )
 
     def test_create_variant_gene_result_from_exomiser_pvalue(self):
-        self.assertEqual(create_variant_gene_result_from_exomiser(exomiser_json_result=example_exomiser_result,
-                                                                  ranking_method="pValue"),
-                         [RankedPhEvalVariantResult(
-                             pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126730873, end=126730873,
-                                                                       ref='G',
-                                                                       alt='A', score=0.1876), rank=1),
-                             RankedPhEvalVariantResult(
-                                 pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126730873,
-                                                                           end=126730873, ref='G',
-                                                                           alt='A', score=0.1876), rank=1),
-                             RankedPhEvalVariantResult(
-                                 pheval_variant_result=PhEvalVariantResult(chromosome='3', start=126741108,
-                                                                           end=126741108, ref='G',
-                                                                           alt='A', score=0.1876), rank=1)]
-                         )
+        self.assertEqual(
+            create_variant_gene_result_from_exomiser(
+                exomiser_json_result=example_exomiser_result, ranking_method="pValue"
+            ),
+            [
+                RankedPhEvalVariantResult(
+                    pheval_variant_result=PhEvalVariantResult(
+                        chromosome="3",
+                        start=126730873,
+                        end=126730873,
+                        ref="G",
+                        alt="A",
+                        score=0.1876,
+                    ),
+                    rank=1,
+                ),
+                RankedPhEvalVariantResult(
+                    pheval_variant_result=PhEvalVariantResult(
+                        chromosome="3",
+                        start=126730873,
+                        end=126730873,
+                        ref="G",
+                        alt="A",
+                        score=0.1876,
+                    ),
+                    rank=1,
+                ),
+                RankedPhEvalVariantResult(
+                    pheval_variant_result=PhEvalVariantResult(
+                        chromosome="3",
+                        start=126741108,
+                        end=126741108,
+                        ref="G",
+                        alt="A",
+                        score=0.1876,
+                    ),
+                    rank=1,
+                ),
+            ],
+        )
