@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 import pandas as pd
-from pheval.post_processing.post_processing import PhEvalGeneResult
+from pheval.post_processing.post_processing import PhEvalGeneResult, PhEvalVariantResult
 from pheval.utils.file_utils import files_with_suffix
 from pheval.utils.phenopacket_utils import GenomicVariant
 
@@ -39,32 +39,49 @@ class PhEvalGeneResultFromExomiserJsonCreator:
 
         return simplified_exomiser_result
 
-@dataclass
-class SimplifiedExomiserVariantResult:
-    """A simplified variant result format from Exomiser json."""
+class PhEvalVariantResultFromExomiserJsonCreator:
+    def __init__(self, exomiser_json_result: [dict], ranking_method: str):
+        self.exomiser_json_result = exomiser_json_result
+        self.ranking_method = ranking_method
 
-    exomiser_result: dict
-    simplified_exomiser_variant_result: list
-    ranking_method: str
-    ranking_score: float
+    @staticmethod
+    def find_chromosome(result_entry):
+        return result_entry["contigName"]
 
-    def create_simplified_variant_result(self) -> [dict]:
-        """Add data for contributing variants to simplified result format."""
-        for cv in self.exomiser_result["contributingVariants"]:
-            self.simplified_exomiser_variant_result.append(
-                {
-                    "variant": dataclasses.asdict(
-                        GenomicVariant(
-                            cv["contigName"],
-                            cv["start"],
-                            cv["ref"],
-                            cv["alt"],
-                        )
-                    ),
-                    "score": self.ranking_score,
-                }
-            )
-        return self.simplified_exomiser_variant_result
+    @staticmethod
+    def find_start_pos(result_entry):
+        return result_entry["start"]
+
+    @staticmethod
+    def find_end_pos(result_entry):
+        return result_entry["end"]
+
+    @staticmethod
+    def find_ref(result_entry):
+        return result_entry["ref"]
+
+    @staticmethod
+    def find_alt(result_entry):
+        return result_entry["alt"]
+
+    def find_relevant_score(self, result_entry):
+        return round(result_entry[self.ranking_method], 4)
+
+    def extract_pheval_variant_requirements(self):
+        simplified_exomiser_result = []
+        for result_entry in self.exomiser_json_result:
+            for gene_hit in result_entry["geneScores"]:
+                if self.ranking_method in result_entry:
+                    if "contributingVariants" in gene_hit:
+                        score = self.find_relevant_score(result_entry)
+                        for cv in gene_hit["contributingVariants"]:
+                            simplified_exomiser_result.append(PhEvalVariantResult(chromosome=self.find_chromosome(cv),
+                                                                                  start=self.find_start_pos(cv),
+                                                                                  end=self.find_end_pos(cv),
+                                                                                  ref=self.find_ref(cv),
+                                                                                  alt=self.find_alt(cv),
+                                                                                  score=score))
+        return simplified_exomiser_result
 
 
 def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
