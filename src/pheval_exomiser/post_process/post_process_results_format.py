@@ -93,48 +93,6 @@ class PhEvalVariantResultFromExomiserJsonCreator:
         return simplified_exomiser_result
 
 
-class StandardiseExomiserResult:
-    """Standardise Exomiser output into simplified gene and variant results for analysis."""
-
-    def __init__(self, exomiser_json_result: [dict], ranking_method: str):
-        self.exomiser_json_result = exomiser_json_result
-        self.ranking_method = ranking_method
-
-    def simplify_gene_result(self) -> [dict]:
-        """Simplify Exomiser json output into gene results."""
-        simplified_exomiser_result = []
-        for result in self.exomiser_json_result:
-            if self.ranking_method in result:
-                simplified_exomiser_result = SimplifiedExomiserGeneResult(
-                    result, simplified_exomiser_result, self.ranking_method
-                ).create_simplified_gene_result()
-        return simplified_exomiser_result
-
-    def simplify_variant_result(self) -> [dict]:
-        """Simplify Exomiser json output into variant results."""
-        simplified_exomiser_result = []
-        for result in self.exomiser_json_result:
-            for gene_hit in result["geneScores"]:
-                if self.ranking_method in gene_hit:
-                    if "contributingVariants" in gene_hit:
-                        simplified_exomiser_result = SimplifiedExomiserVariantResult(
-                            gene_hit,
-                            simplified_exomiser_result,
-                            self.ranking_method,
-                            round(result[self.ranking_method], 4),
-                        ).create_simplified_variant_result()
-        return simplified_exomiser_result
-
-    def standardise_gene_result(self) -> [dict]:
-        """Standardise Exomiser json to gene results for analysis."""
-        simplified_exomiser_result = self.simplify_gene_result()
-        return RankExomiserResult(simplified_exomiser_result, self.ranking_method).rank_results()
-
-    def standardise_variant_result(self) -> [dict]:
-        """Standardise Exomiser json to gene results for analysis."""
-        simplified_exomiser_result = self.simplify_variant_result()
-        return RankExomiserResult(simplified_exomiser_result, self.ranking_method).rank_results()
-
 
 def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
