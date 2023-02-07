@@ -134,38 +134,16 @@ def write_pheval_variant_result(ranked_pheval_result: [RankedPhEvalVariantResult
     )
 
 
-def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method) -> None:
+def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method: str) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
-    try:
-        output_dir.joinpath("pheval_gene_results/").mkdir()
-        output_dir.joinpath("pheval_variant_results/").mkdir()
-    except FileExistsError:
-        pass
+    output_dir.joinpath("pheval_gene_results/").mkdir(exist_ok=True)
+    output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True)
     for result in files_with_suffix(results_dir, ".json"):
         exomiser_result = read_exomiser_json_result(result)
-        standardised_gene_result = StandardiseExomiserResult(
-            exomiser_result, ranking_method
-        ).standardise_gene_result()
-        standardised_variant_result = StandardiseExomiserResult(
-            exomiser_result, ranking_method
-        ).standardise_variant_result()
-        gene_df = pd.DataFrame(standardised_gene_result)
-        gene_df = gene_df.loc[:, ["rank", "score", "gene_symbol", "gene_identifier"]]
-        gene_df.to_csv(
-            output_dir.joinpath("pheval_gene_results/" + result.stem + "-pheval_gene_result.tsv"),
-            sep="\t",
-            index=False,
-        )
-        variant_df = pd.DataFrame(standardised_variant_result)
-        variant_df = variant_df.drop("variant", axis=1).join(variant_df.variant.apply(pd.Series))
-        variant_df = variant_df.loc[:, ["rank", "score", "chrom", "pos", "ref", "alt", "gene"]]
-        variant_df.to_csv(
-            output_dir.joinpath(
-                "pheval_variant_results/" + result.stem + "-pheval_variant_result.tsv"
-            ),
-            sep="\t",
-            index=False,
-        )
+        pheval_gene_result = create_pheval_gene_result_from_exomiser(exomiser_result, ranking_method)
+        write_pheval_gene_result(pheval_gene_result, output_dir, result)
+        pheval_variant_result = create_variant_gene_result_from_exomiser(exomiser_result, ranking_method)
+        write_pheval_variant_result(pheval_variant_result, output_dir, result)
 
 
 @click.command()
