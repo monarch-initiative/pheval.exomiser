@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 import pandas as pd
-from pheval.post_processing.post_processing import PhEvalGeneResult, PhEvalVariantResult
+from pheval.post_processing.post_processing import PhEvalGeneResult, PhEvalVariantResult, create_pheval_result
 from pheval.utils.file_utils import files_with_suffix
 from pheval.utils.phenopacket_utils import GenomicVariant
 
@@ -93,6 +93,18 @@ class PhEvalVariantResultFromExomiserJsonCreator:
         return simplified_exomiser_result
 
 
+def create_pheval_gene_result_from_exomiser(exomiser_json_result, ranking_method: str):
+    pheval_gene_result = PhEvalGeneResultFromExomiserJsonCreator(
+        exomiser_json_result, ranking_method
+    ).extract_pheval_gene_requirements()
+    return create_pheval_result(pheval_gene_result, ranking_method)
+
+
+def create_variant_gene_result_from_exomiser(exomiser_json_result, ranking_method: str):
+    pheval_variant_result = PhEvalVariantResultFromExomiserJsonCreator(
+        exomiser_json_result, ranking_method
+    ).extract_pheval_variant_requirements()
+    return create_pheval_result(pheval_variant_result, ranking_method)
 
 def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
