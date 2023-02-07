@@ -38,7 +38,7 @@ class PhEvalGeneResultFromExomiserJsonCreator:
     def find_relevant_score(self, result_entry: dict):
         return round(result_entry[self.ranking_method], 4)
 
-    def extract_pheval_gene_requirements(self):
+    def extract_pheval_gene_requirements(self) -> [PhEvalGeneResult]:
         simplified_exomiser_result = []
         for result_entry in self.exomiser_json_result:
             if self.ranking_method in result_entry:
@@ -59,29 +59,29 @@ class PhEvalVariantResultFromExomiserJsonCreator:
         self.ranking_method = ranking_method
 
     @staticmethod
-    def find_chromosome(result_entry):
+    def find_chromosome(result_entry: dict) -> str:
         return result_entry["contigName"]
 
     @staticmethod
-    def find_start_pos(result_entry):
+    def find_start_pos(result_entry: dict) -> int:
         return result_entry["start"]
 
     @staticmethod
-    def find_end_pos(result_entry):
+    def find_end_pos(result_entry: dict) -> int:
         return result_entry["end"]
 
     @staticmethod
-    def find_ref(result_entry):
+    def find_ref(result_entry: dict) -> str:
         return result_entry["ref"]
 
     @staticmethod
-    def find_alt(result_entry):
+    def find_alt(result_entry: dict) -> str:
         return result_entry["alt"]
 
-    def find_relevant_score(self, result_entry):
+    def find_relevant_score(self, result_entry) -> float:
         return round(result_entry[self.ranking_method], 4)
 
-    def extract_pheval_variant_requirements(self):
+    def extract_pheval_variant_requirements(self) -> [PhEvalVariantResult]:
         simplified_exomiser_result = []
         for result_entry in self.exomiser_json_result:
             for gene_hit in result_entry["geneScores"]:
@@ -102,14 +102,18 @@ class PhEvalVariantResultFromExomiserJsonCreator:
         return simplified_exomiser_result
 
 
-def create_pheval_gene_result_from_exomiser(exomiser_json_result, ranking_method: str):
+def create_pheval_gene_result_from_exomiser(
+    exomiser_json_result: [dict], ranking_method: str
+) -> [RankedPhEvalGeneResult]:
     pheval_gene_result = PhEvalGeneResultFromExomiserJsonCreator(
         exomiser_json_result, ranking_method
     ).extract_pheval_gene_requirements()
     return create_pheval_result(pheval_gene_result, ranking_method)
 
 
-def create_variant_gene_result_from_exomiser(exomiser_json_result, ranking_method: str):
+def create_variant_gene_result_from_exomiser(
+    exomiser_json_result: [dict], ranking_method: str
+) -> [RankedPhEvalVariantResult]:
     pheval_variant_result = PhEvalVariantResultFromExomiserJsonCreator(
         exomiser_json_result, ranking_method
     ).extract_pheval_variant_requirements()
@@ -190,7 +194,7 @@ def create_standardised_results(results_dir: Path, output_dir: Path, ranking_met
     default="combinedScore",
     show_default=True,
 )
-def post_process_exomiser_results(output_dir: Path, results_dir: Path, ranking_method):
+def post_process_exomiser_results(output_dir: Path, results_dir: Path, ranking_method: str):
     """Post-process Exomiser json results into standardised gene and variant outputs."""
     output_dir.mkdir(exist_ok=True, parents=True)
     create_standardised_results(results_dir, output_dir, ranking_method)
