@@ -1,7 +1,5 @@
 #!/usr/bin/python
-import dataclasses
 import json
-from dataclasses import dataclass
 from pathlib import Path
 
 import click
@@ -11,7 +9,6 @@ from pheval.post_processing.post_processing import (
     RankedPhEvalVariantResult, RankedPhEvalGeneResult
 )
 from pheval.utils.file_utils import files_with_suffix
-from pheval.utils.phenopacket_utils import GenomicVariant
 
 
 def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
