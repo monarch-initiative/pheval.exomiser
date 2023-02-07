@@ -5,8 +5,11 @@ from pathlib import Path
 import click
 import pandas as pd
 from pheval.post_processing.post_processing import (
-    PhEvalGeneResult, PhEvalVariantResult, create_pheval_result,
-    RankedPhEvalVariantResult, RankedPhEvalGeneResult
+    PhEvalGeneResult,
+    PhEvalVariantResult,
+    RankedPhEvalGeneResult,
+    RankedPhEvalVariantResult,
+    create_pheval_result,
 )
 from pheval.utils.file_utils import files_with_suffix
 
@@ -20,7 +23,6 @@ def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
 
 
 class PhEvalGeneResultFromExomiserJsonCreator:
-
     def __init__(self, exomiser_json_result: [dict], ranking_method: str):
         self.exomiser_json_result = exomiser_json_result
         self.ranking_method = ranking_method
@@ -40,10 +42,13 @@ class PhEvalGeneResultFromExomiserJsonCreator:
         simplified_exomiser_result = []
         for result_entry in self.exomiser_json_result:
             if self.ranking_method in result_entry:
-                simplified_exomiser_result.append(PhEvalGeneResult(gene_symbol=self.find_gene_symbol(result_entry),
-                                                                   gene_identifier=self.find_gene_identifier(
-                                                                       result_entry),
-                                                                   score=self.find_relevant_score(result_entry)))
+                simplified_exomiser_result.append(
+                    PhEvalGeneResult(
+                        gene_symbol=self.find_gene_symbol(result_entry),
+                        gene_identifier=self.find_gene_identifier(result_entry),
+                        score=self.find_relevant_score(result_entry),
+                    )
+                )
 
         return simplified_exomiser_result
 
@@ -84,12 +89,16 @@ class PhEvalVariantResultFromExomiserJsonCreator:
                     if "contributingVariants" in gene_hit:
                         score = self.find_relevant_score(result_entry)
                         for cv in gene_hit["contributingVariants"]:
-                            simplified_exomiser_result.append(PhEvalVariantResult(chromosome=self.find_chromosome(cv),
-                                                                                  start=self.find_start_pos(cv),
-                                                                                  end=self.find_end_pos(cv),
-                                                                                  ref=self.find_ref(cv),
-                                                                                  alt=self.find_alt(cv),
-                                                                                  score=score))
+                            simplified_exomiser_result.append(
+                                PhEvalVariantResult(
+                                    chromosome=self.find_chromosome(cv),
+                                    start=self.find_start_pos(cv),
+                                    end=self.find_end_pos(cv),
+                                    ref=self.find_ref(cv),
+                                    alt=self.find_alt(cv),
+                                    score=score,
+                                )
+                            )
         return simplified_exomiser_result
 
 
@@ -107,25 +116,33 @@ def create_variant_gene_result_from_exomiser(exomiser_json_result, ranking_metho
     return create_pheval_result(pheval_variant_result, ranking_method)
 
 
-def write_pheval_gene_result(ranked_pheval_result: [RankedPhEvalGeneResult], output_dir: Path,
-                             tool_result_path: Path) -> None:
+def write_pheval_gene_result(
+    ranked_pheval_result: [RankedPhEvalGeneResult], output_dir: Path, tool_result_path: Path
+) -> None:
     """Write ranked PhEval gene result to tsv."""
     ranked_result = pd.DataFrame([x.as_dict() for x in ranked_pheval_result])
     pheval_gene_output = ranked_result.loc[:, ["rank", "score", "gene_symbol", "gene_identifier"]]
     pheval_gene_output.to_csv(
-        output_dir.joinpath("pheval_gene_results/" + tool_result_path.stem + "-pheval_gene_result.tsv"),
+        output_dir.joinpath(
+            "pheval_gene_results/" + tool_result_path.stem + "-pheval_gene_result.tsv"
+        ),
         sep="\t",
         index=False,
     )
 
 
-def write_pheval_variant_result(ranked_pheval_result: [RankedPhEvalVariantResult],
-                                output_dir: Path, tool_result_path: Path) -> None:
+def write_pheval_variant_result(
+    ranked_pheval_result: [RankedPhEvalVariantResult], output_dir: Path, tool_result_path: Path
+) -> None:
     """Write ranked PhEval variant result to tsv."""
     ranked_result = pd.DataFrame([x.as_dict() for x in ranked_pheval_result])
-    pheval_variant_output = ranked_result.loc[:, ["rank", "score", "chromosome", "start", "end", "ref", "alt"]]
+    pheval_variant_output = ranked_result.loc[
+        :, ["rank", "score", "chromosome", "start", "end", "ref", "alt"]
+    ]
     pheval_variant_output.to_csv(
-        output_dir.joinpath("pheval_variant_results/" + tool_result_path.stem + "-pheval_variant_result.tsv"),
+        output_dir.joinpath(
+            "pheval_variant_results/" + tool_result_path.stem + "-pheval_variant_result.tsv"
+        ),
         sep="\t",
         index=False,
     )
@@ -137,9 +154,13 @@ def create_standardised_results(results_dir: Path, output_dir: Path, ranking_met
     output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True)
     for result in files_with_suffix(results_dir, ".json"):
         exomiser_result = read_exomiser_json_result(result)
-        pheval_gene_result = create_pheval_gene_result_from_exomiser(exomiser_result, ranking_method)
+        pheval_gene_result = create_pheval_gene_result_from_exomiser(
+            exomiser_result, ranking_method
+        )
         write_pheval_gene_result(pheval_gene_result, output_dir, result)
-        pheval_variant_result = create_variant_gene_result_from_exomiser(exomiser_result, ranking_method)
+        pheval_variant_result = create_variant_gene_result_from_exomiser(
+            exomiser_result, ranking_method
+        )
         write_pheval_variant_result(pheval_variant_result, output_dir, result)
 
 
