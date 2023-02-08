@@ -3,13 +3,14 @@ import json
 from pathlib import Path
 
 import click
-import pandas as pd
 from pheval.post_processing.post_processing import (
     PhEvalGeneResult,
     PhEvalVariantResult,
     RankedPhEvalGeneResult,
     RankedPhEvalVariantResult,
-    create_pheval_result, write_pheval_gene_result, write_pheval_variant_result,
+    create_pheval_result,
+    write_pheval_gene_result,
+    write_pheval_variant_result,
 )
 from pheval.utils.file_utils import files_with_suffix
 
