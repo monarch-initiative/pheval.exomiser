@@ -9,7 +9,7 @@ from pheval.post_processing.post_processing import (
     PhEvalVariantResult,
     RankedPhEvalGeneResult,
     RankedPhEvalVariantResult,
-    create_pheval_result,
+    create_pheval_result, write_pheval_gene_result, write_pheval_variant_result,
 )
 from pheval.utils.file_utils import files_with_suffix
 
@@ -29,16 +29,20 @@ class PhEvalGeneResultFromExomiserJsonCreator:
 
     @staticmethod
     def find_gene_symbol(result_entry: dict) -> str:
+        """Return gene symbol from Exomiser result entry."""
         return result_entry["geneSymbol"]
 
     @staticmethod
     def find_gene_identifier(result_entry: dict) -> str:
+        """Return ensembl gene identifier from Exomiser result entry."""
         return result_entry["geneIdentifier"]["geneId"]
 
     def find_relevant_score(self, result_entry: dict):
+        """Return score from Exomiser result entry."""
         return round(result_entry[self.ranking_method], 4)
 
     def extract_pheval_gene_requirements(self) -> [PhEvalGeneResult]:
+        """Extract data required to produce PhEval gene output."""
         simplified_exomiser_result = []
         for result_entry in self.exomiser_json_result:
             if self.ranking_method in result_entry:
@@ -60,28 +64,35 @@ class PhEvalVariantResultFromExomiserJsonCreator:
 
     @staticmethod
     def find_chromosome(result_entry: dict) -> str:
+        """Return chromosome from Exomiser result entry."""
         return result_entry["contigName"]
 
     @staticmethod
     def find_start_pos(result_entry: dict) -> int:
+        """Return start position from Exomiser result entry."""
         return result_entry["start"]
 
     @staticmethod
     def find_end_pos(result_entry: dict) -> int:
+        """Return end position from Exomiser result entry."""
         return result_entry["end"]
 
     @staticmethod
     def find_ref(result_entry: dict) -> str:
+        """Return reference allele from Exomiser result entry."""
         return result_entry["ref"]
 
     @staticmethod
     def find_alt(result_entry: dict) -> str:
+        """Return alternate allele from Exomiser result entry."""
         return result_entry["alt"]
 
     def find_relevant_score(self, result_entry) -> float:
+        """Return score from Exomiser result entry."""
         return round(result_entry[self.ranking_method], 4)
 
     def extract_pheval_variant_requirements(self) -> [PhEvalVariantResult]:
+        """Extract data required to produce PhEval variant output."""
         simplified_exomiser_result = []
         for result_entry in self.exomiser_json_result:
             for gene_hit in result_entry["geneScores"]:
@@ -105,6 +116,7 @@ class PhEvalVariantResultFromExomiserJsonCreator:
 def create_pheval_gene_result_from_exomiser(
     exomiser_json_result: [dict], ranking_method: str
 ) -> [RankedPhEvalGeneResult]:
+    """Create ranked PhEval gene result from Exomiser json."""
     pheval_gene_result = PhEvalGeneResultFromExomiserJsonCreator(
         exomiser_json_result, ranking_method
     ).extract_pheval_gene_requirements()
@@ -114,42 +126,11 @@ def create_pheval_gene_result_from_exomiser(
 def create_variant_gene_result_from_exomiser(
     exomiser_json_result: [dict], ranking_method: str
 ) -> [RankedPhEvalVariantResult]:
+    """Create ranked PhEval variant result from Exomiser json."""
     pheval_variant_result = PhEvalVariantResultFromExomiserJsonCreator(
         exomiser_json_result, ranking_method
     ).extract_pheval_variant_requirements()
     return create_pheval_result(pheval_variant_result, ranking_method)
-
-
-def write_pheval_gene_result(
-    ranked_pheval_result: [RankedPhEvalGeneResult], output_dir: Path, tool_result_path: Path
-) -> None:
-    """Write ranked PhEval gene result to tsv."""
-    ranked_result = pd.DataFrame([x.as_dict() for x in ranked_pheval_result])
-    pheval_gene_output = ranked_result.loc[:, ["rank", "score", "gene_symbol", "gene_identifier"]]
-    pheval_gene_output.to_csv(
-        output_dir.joinpath(
-            "pheval_gene_results/" + tool_result_path.stem + "-pheval_gene_result.tsv"
-        ),
-        sep="\t",
-        index=False,
-    )
-
-
-def write_pheval_variant_result(
-    ranked_pheval_result: [RankedPhEvalVariantResult], output_dir: Path, tool_result_path: Path
-) -> None:
-    """Write ranked PhEval variant result to tsv."""
-    ranked_result = pd.DataFrame([x.as_dict() for x in ranked_pheval_result])
-    pheval_variant_output = ranked_result.loc[
-        :, ["rank", "score", "chromosome", "start", "end", "ref", "alt"]
-    ]
-    pheval_variant_output.to_csv(
-        output_dir.joinpath(
-            "pheval_variant_results/" + tool_result_path.stem + "-pheval_variant_result.tsv"
-        ),
-        sep="\t",
-        index=False,
-    )
 
 
 def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method: str) -> None:
@@ -195,6 +176,6 @@ def create_standardised_results(results_dir: Path, output_dir: Path, ranking_met
     show_default=True,
 )
 def post_process_exomiser_results(output_dir: Path, results_dir: Path, ranking_method: str):
-    """Post-process Exomiser json results into standardised gene and variant outputs."""
+    """Post-process Exomiser json results into PhEval gene and variant outputs."""
     output_dir.mkdir(exist_ok=True, parents=True)
     create_standardised_results(results_dir, output_dir, ranking_method)
