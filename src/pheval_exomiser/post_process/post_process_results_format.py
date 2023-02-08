@@ -154,8 +154,8 @@ def write_pheval_variant_result(
 
 def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method: str) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
-    output_dir.joinpath("pheval_gene_results/").mkdir(exist_ok=True)
-    output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True)
+    output_dir.joinpath("pheval_gene_results/").mkdir(exist_ok=True, parents=True)
+    output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True, parents=True)
     for result in files_with_suffix(results_dir, ".json"):
         exomiser_result = read_exomiser_json_result(result)
         pheval_gene_result = create_pheval_gene_result_from_exomiser(
