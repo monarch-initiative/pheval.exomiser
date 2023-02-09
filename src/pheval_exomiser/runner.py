@@ -22,22 +22,6 @@ class ExomiserPhEvalRunner(PhEvalRunner):
     def prepare(self):
         """prepare"""
         print("preparing")
-        # config = parse_exomiser_config(self.config_file)
-        # try:
-        #     Path(self.input_dir).mkdir()
-        # except FileExistsError:
-        #     pass
-        # prepare_updated_phenopackets(
-        #     input_dir=Path(self.input_dir).joinpath("phenopackets"),
-        #     testdata_dir=Path(self.testdata_dir),
-        #     config=config,
-        # )
-        # prepare_scrambled_phenopackets(
-        #     input_dir=Path(self.input_dir), testdata_dir=Path(self.testdata_dir), config=config
-        # )
-        # prepare_spiked_vcfs(
-        #     input_dir=Path(self.input_dir), testdata_dir=Path(self.testdata_dir), config=config
-        # )
 
     def run(self):
         """run"""

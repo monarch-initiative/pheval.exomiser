@@ -388,6 +388,14 @@ def create_batch_file(
     help="Path to VCF files.",
 )
 @click.option(
+    "--output-dir",
+    "-out",
+    required=True,
+    metavar="PATH",
+    type=Path,
+    help="Path to output directory.",
+)
+@click.option(
     "--batch-prefix",
     "-b",
     required=False,
