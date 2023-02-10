@@ -29,16 +29,16 @@ class PhEvalGeneResultFromExomiserJsonCreator:
         self.ranking_method = ranking_method
 
     @staticmethod
-    def find_gene_symbol(result_entry: dict) -> str:
+    def _find_gene_symbol(result_entry: dict) -> str:
         """Return gene symbol from Exomiser result entry."""
         return result_entry["geneSymbol"]
 
     @staticmethod
-    def find_gene_identifier(result_entry: dict) -> str:
+    def _find_gene_identifier(result_entry: dict) -> str:
         """Return ensembl gene identifier from Exomiser result entry."""
         return result_entry["geneIdentifier"]["geneId"]
 
-    def find_relevant_score(self, result_entry: dict):
+    def _find_relevant_score(self, result_entry: dict):
         """Return score from Exomiser result entry."""
         return round(result_entry[self.ranking_method], 4)
 
@@ -49,9 +49,9 @@ class PhEvalGeneResultFromExomiserJsonCreator:
             if self.ranking_method in result_entry:
                 simplified_exomiser_result.append(
                     PhEvalGeneResult(
-                        gene_symbol=self.find_gene_symbol(result_entry),
-                        gene_identifier=self.find_gene_identifier(result_entry),
-                        score=self.find_relevant_score(result_entry),
+                        gene_symbol=self._find_gene_symbol(result_entry),
+                        gene_identifier=self._find_gene_identifier(result_entry),
+                        score=self._find_relevant_score(result_entry),
                     )
                 )
 
@@ -64,31 +64,31 @@ class PhEvalVariantResultFromExomiserJsonCreator:
         self.ranking_method = ranking_method
 
     @staticmethod
-    def find_chromosome(result_entry: dict) -> str:
+    def _find_chromosome(result_entry: dict) -> str:
         """Return chromosome from Exomiser result entry."""
         return result_entry["contigName"]
 
     @staticmethod
-    def find_start_pos(result_entry: dict) -> int:
+    def _find_start_pos(result_entry: dict) -> int:
         """Return start position from Exomiser result entry."""
         return result_entry["start"]
 
     @staticmethod
-    def find_end_pos(result_entry: dict) -> int:
+    def _find_end_pos(result_entry: dict) -> int:
         """Return end position from Exomiser result entry."""
         return result_entry["end"]
 
     @staticmethod
-    def find_ref(result_entry: dict) -> str:
+    def _find_ref(result_entry: dict) -> str:
         """Return reference allele from Exomiser result entry."""
         return result_entry["ref"]
 
     @staticmethod
-    def find_alt(result_entry: dict) -> str:
+    def _find_alt(result_entry: dict) -> str:
         """Return alternate allele from Exomiser result entry."""
         return result_entry["alt"]
 
-    def find_relevant_score(self, result_entry) -> float:
+    def _find_relevant_score(self, result_entry) -> float:
         """Return score from Exomiser result entry."""
         return round(result_entry[self.ranking_method], 4)
 
@@ -99,15 +99,15 @@ class PhEvalVariantResultFromExomiserJsonCreator:
             for gene_hit in result_entry["geneScores"]:
                 if self.ranking_method in result_entry:
                     if "contributingVariants" in gene_hit:
-                        score = self.find_relevant_score(result_entry)
+                        score = self._find_relevant_score(result_entry)
                         for cv in gene_hit["contributingVariants"]:
                             simplified_exomiser_result.append(
                                 PhEvalVariantResult(
-                                    chromosome=self.find_chromosome(cv),
-                                    start=self.find_start_pos(cv),
-                                    end=self.find_end_pos(cv),
-                                    ref=self.find_ref(cv),
-                                    alt=self.find_alt(cv),
+                                    chromosome=self._find_chromosome(cv),
+                                    start=self._find_start_pos(cv),
+                                    end=self._find_end_pos(cv),
+                                    ref=self._find_ref(cv),
+                                    alt=self._find_alt(cv),
                                     score=score,
                                 )
                             )
@@ -115,37 +115,37 @@ class PhEvalVariantResultFromExomiserJsonCreator:
 
 
 def create_pheval_gene_result_from_exomiser(
-    exomiser_json_result: [dict], ranking_method: str
+    exomiser_json_result: [dict], score_name: str, score_order: str,
 ) -> [RankedPhEvalGeneResult]:
     """Create ranked PhEval gene result from Exomiser json."""
     pheval_gene_result = PhEvalGeneResultFromExomiserJsonCreator(
-        exomiser_json_result, ranking_method
+        exomiser_json_result, score_name
     ).extract_pheval_gene_requirements()
-    return create_pheval_result(pheval_gene_result, ranking_method)
+    return create_pheval_result(pheval_gene_result, score_order)
 
 
 def create_variant_gene_result_from_exomiser(
-    exomiser_json_result: [dict], ranking_method: str
+    exomiser_json_result: [dict], score_name: str, score_order: str,
 ) -> [RankedPhEvalVariantResult]:
     """Create ranked PhEval variant result from Exomiser json."""
     pheval_variant_result = PhEvalVariantResultFromExomiserJsonCreator(
-        exomiser_json_result, ranking_method
+        exomiser_json_result, score_name
     ).extract_pheval_variant_requirements()
-    return create_pheval_result(pheval_variant_result, ranking_method)
+    return create_pheval_result(pheval_variant_result, score_order)
 
 
-def create_standardised_results(results_dir: Path, output_dir: Path, ranking_method: str) -> None:
+def create_standardised_results(results_dir: Path, output_dir: Path, score_name: str, score_order: str) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
     output_dir.joinpath("pheval_gene_results/").mkdir(exist_ok=True, parents=True)
     output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True, parents=True)
     for result in files_with_suffix(results_dir, ".json"):
         exomiser_result = read_exomiser_json_result(result)
         pheval_gene_result = create_pheval_gene_result_from_exomiser(
-            exomiser_result, ranking_method
+            exomiser_result, score_name, score_order
         )
         write_pheval_gene_result(pheval_gene_result, output_dir, result)
         pheval_variant_result = create_variant_gene_result_from_exomiser(
-            exomiser_result, ranking_method
+            exomiser_result, score_name, score_order
         )
         write_pheval_variant_result(pheval_variant_result, output_dir, result)
 
@@ -168,15 +168,24 @@ def create_standardised_results(results_dir: Path, output_dir: Path, ranking_met
     type=Path,
 )
 @click.option(
-    "--ranking-method",
-    "-r",
+    "--score-name",
+    "-s",
     required=True,
-    help="ranking method",
+    help="Score name to extract from results.",
     type=click.Choice(["combinedScore", "priorityScore", "variantScore", "pValue"]),
     default="combinedScore",
     show_default=True,
 )
-def post_process_exomiser_results(output_dir: Path, results_dir: Path, ranking_method: str):
+@click.option(
+    "--score-order",
+    "-so",
+    required=True,
+    help="Ordering of results for ranking.",
+    type=click.Choice(["ascending", "descending"]),
+    default="descending",
+    show_default=True,
+)
+def post_process_exomiser_results(output_dir: Path, results_dir: Path, score_name: str, score_order: str):
     """Post-process Exomiser json results into PhEval gene and variant outputs."""
     output_dir.mkdir(exist_ok=True, parents=True)
-    create_standardised_results(results_dir, output_dir, ranking_method)
+    create_standardised_results(results_dir, output_dir, score_name, score_order)
