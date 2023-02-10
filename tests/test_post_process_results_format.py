@@ -1714,7 +1714,7 @@ class TestPhEvalVariantFromExomiserJsonCreator(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.json_result = PhEvalVariantResultFromExomiserJsonCreator(
-            exomiser_json_result=example_exomiser_result, ranking_method="combinedScore"
+            exomiser_json_result=example_exomiser_result, score_name="combinedScore"
         )
         cls.result_entry = example_exomiser_result[0]["geneScores"][0]["contributingVariants"][0]
 

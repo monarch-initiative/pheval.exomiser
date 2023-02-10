@@ -24,9 +24,9 @@ def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
 
 
 class PhEvalGeneResultFromExomiserJsonCreator:
-    def __init__(self, exomiser_json_result: [dict], ranking_method: str):
+    def __init__(self, exomiser_json_result: [dict], score_name: str):
         self.exomiser_json_result = exomiser_json_result
-        self.ranking_method = ranking_method
+        self.score_name = score_name
 
     @staticmethod
     def _find_gene_symbol(result_entry: dict) -> str:
@@ -40,13 +40,13 @@ class PhEvalGeneResultFromExomiserJsonCreator:
 
     def _find_relevant_score(self, result_entry: dict):
         """Return score from Exomiser result entry."""
-        return round(result_entry[self.ranking_method], 4)
+        return round(result_entry[self.score_name], 4)
 
     def extract_pheval_gene_requirements(self) -> [PhEvalGeneResult]:
         """Extract data required to produce PhEval gene output."""
         simplified_exomiser_result = []
         for result_entry in self.exomiser_json_result:
-            if self.ranking_method in result_entry:
+            if self.score_name in result_entry:
                 simplified_exomiser_result.append(
                     PhEvalGeneResult(
                         gene_symbol=self._find_gene_symbol(result_entry),
@@ -59,9 +59,9 @@ class PhEvalGeneResultFromExomiserJsonCreator:
 
 
 class PhEvalVariantResultFromExomiserJsonCreator:
-    def __init__(self, exomiser_json_result: [dict], ranking_method: str):
+    def __init__(self, exomiser_json_result: [dict], score_name: str):
         self.exomiser_json_result = exomiser_json_result
-        self.ranking_method = ranking_method
+        self.score_name = score_name
 
     @staticmethod
     def _find_chromosome(result_entry: dict) -> str:
@@ -90,14 +90,14 @@ class PhEvalVariantResultFromExomiserJsonCreator:
 
     def _find_relevant_score(self, result_entry) -> float:
         """Return score from Exomiser result entry."""
-        return round(result_entry[self.ranking_method], 4)
+        return round(result_entry[self.score_name], 4)
 
     def extract_pheval_variant_requirements(self) -> [PhEvalVariantResult]:
         """Extract data required to produce PhEval variant output."""
         simplified_exomiser_result = []
         for result_entry in self.exomiser_json_result:
             for gene_hit in result_entry["geneScores"]:
-                if self.ranking_method in result_entry:
+                if self.score_name in result_entry:
                     if "contributingVariants" in gene_hit:
                         score = self._find_relevant_score(result_entry)
                         for cv in gene_hit["contributingVariants"]:
