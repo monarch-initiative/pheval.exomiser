@@ -18,5 +18,6 @@ def post_process_result_format(
         results_dir=Path(run_output_dir).joinpath("exomiser_results"),
         output_dir=run_output_dir,
         score_name=config.post_process.score_name,
+        score_order=config.post_process.score_order
     )
     print("done")
