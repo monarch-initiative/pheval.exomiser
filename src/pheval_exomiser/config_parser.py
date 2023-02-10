@@ -142,7 +142,8 @@ class ExomiserConfigRun:
 @serde
 @dataclass
 class ExomiserConfigPostProcess:
-    ranking_method: str
+    score_name: str
+    score_order: str
 
 
 @serde
