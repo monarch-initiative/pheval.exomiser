@@ -1722,7 +1722,9 @@ class TestPhEvalVariantFromExomiserJsonCreator(unittest.TestCase):
         self.assertEqual(self.json_result._find_chromosome(result_entry=self.result_entry), "3")
 
     def test_find_start_pos(self):
-        self.assertEqual(self.json_result._find_start_pos(result_entry=self.result_entry), 126730873)
+        self.assertEqual(
+            self.json_result._find_start_pos(result_entry=self.result_entry), 126730873
+        )
 
     def test_find_end_pos(self):
         self.assertEqual(self.json_result._find_end_pos(result_entry=self.result_entry), 126730873)

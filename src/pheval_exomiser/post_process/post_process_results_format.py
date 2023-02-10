@@ -115,7 +115,9 @@ class PhEvalVariantResultFromExomiserJsonCreator:
 
 
 def create_pheval_gene_result_from_exomiser(
-    exomiser_json_result: [dict], score_name: str, score_order: str,
+    exomiser_json_result: [dict],
+    score_name: str,
+    score_order: str,
 ) -> [RankedPhEvalGeneResult]:
     """Create ranked PhEval gene result from Exomiser json."""
     pheval_gene_result = PhEvalGeneResultFromExomiserJsonCreator(
@@ -125,7 +127,9 @@ def create_pheval_gene_result_from_exomiser(
 
 
 def create_variant_gene_result_from_exomiser(
-    exomiser_json_result: [dict], score_name: str, score_order: str,
+    exomiser_json_result: [dict],
+    score_name: str,
+    score_order: str,
 ) -> [RankedPhEvalVariantResult]:
     """Create ranked PhEval variant result from Exomiser json."""
     pheval_variant_result = PhEvalVariantResultFromExomiserJsonCreator(
@@ -134,7 +138,9 @@ def create_variant_gene_result_from_exomiser(
     return create_pheval_result(pheval_variant_result, score_order)
 
 
-def create_standardised_results(results_dir: Path, output_dir: Path, score_name: str, score_order: str) -> None:
+def create_standardised_results(
+    results_dir: Path, output_dir: Path, score_name: str, score_order: str
+) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
     output_dir.joinpath("pheval_gene_results/").mkdir(exist_ok=True, parents=True)
     output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True, parents=True)
@@ -185,7 +191,9 @@ def create_standardised_results(results_dir: Path, output_dir: Path, score_name:
     default="descending",
     show_default=True,
 )
-def post_process_exomiser_results(output_dir: Path, results_dir: Path, score_name: str, score_order: str):
+def post_process_exomiser_results(
+    output_dir: Path, results_dir: Path, score_name: str, score_order: str
+):
     """Post-process Exomiser json results into PhEval gene and variant outputs."""
     output_dir.mkdir(exist_ok=True, parents=True)
     create_standardised_results(results_dir, output_dir, score_name, score_order)
