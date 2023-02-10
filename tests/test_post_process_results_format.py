@@ -1764,7 +1764,9 @@ class TestCreatePhEvalGeneResultFromExomiser(unittest.TestCase):
     def test_create_pheval_gene_result_from_exomiser(self):
         self.assertEqual(
             create_pheval_gene_result_from_exomiser(
-                exomiser_json_result=example_exomiser_result, ranking_method="combinedScore"
+                exomiser_json_result=example_exomiser_result,
+                score_name="combinedScore",
+                score_order="descending",
             ),
             [
                 RankedPhEvalGeneResult(
@@ -1779,7 +1781,9 @@ class TestCreatePhEvalGeneResultFromExomiser(unittest.TestCase):
     def test_create_pheval_gene_result_from_exomiser_pvalue(self):
         self.assertEqual(
             create_pheval_gene_result_from_exomiser(
-                exomiser_json_result=example_exomiser_result, ranking_method="pValue"
+                exomiser_json_result=example_exomiser_result,
+                score_name="pValue",
+                score_order="ascending",
             ),
             [
                 RankedPhEvalGeneResult(
@@ -1796,7 +1800,9 @@ class TestCreateVariantGeneResultFromExomiser(unittest.TestCase):
     def test_create_variant_gene_result_from_exomiser(self):
         self.assertEqual(
             create_variant_gene_result_from_exomiser(
-                exomiser_json_result=example_exomiser_result, ranking_method="variantScore"
+                exomiser_json_result=example_exomiser_result,
+                score_name="variantScore",
+                score_order="descending",
             ),
             [
                 RankedPhEvalVariantResult(
@@ -1838,7 +1844,9 @@ class TestCreateVariantGeneResultFromExomiser(unittest.TestCase):
     def test_create_variant_gene_result_from_exomiser_pvalue(self):
         self.assertEqual(
             create_variant_gene_result_from_exomiser(
-                exomiser_json_result=example_exomiser_result, ranking_method="pValue"
+                exomiser_json_result=example_exomiser_result,
+                score_name="pValue",
+                score_order="ascending",
             ),
             [
                 RankedPhEvalVariantResult(
