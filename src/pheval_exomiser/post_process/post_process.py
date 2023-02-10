@@ -17,6 +17,6 @@ def post_process_result_format(
     create_standardised_results(
         results_dir=Path(run_output_dir).joinpath("exomiser_results"),
         output_dir=run_output_dir,
-        ranking_method=config.post_process.ranking_method,
+        ranking_method=config.post_process.score_name,
     )
     print("done")
