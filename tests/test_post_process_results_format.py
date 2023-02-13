@@ -1685,18 +1685,18 @@ class TestPhEvalGeneResultFromExomiserJsonCreator(unittest.TestCase):
 
     def test_find_gene_symbol(self):
         self.assertEqual(
-            self.json_result.find_gene_symbol(result_entry=example_exomiser_result[0]), "PLXNA1"
+            self.json_result._find_gene_symbol(result_entry=example_exomiser_result[0]), "PLXNA1"
         )
 
     def test_find_gene_identifier(self):
         self.assertEqual(
-            self.json_result.find_gene_identifier(result_entry=example_exomiser_result[0]),
+            self.json_result._find_gene_identifier(result_entry=example_exomiser_result[0]),
             "ENSG00000114554",
         )
 
     def test_find_relevant_score(self):
         self.assertEqual(
-            self.json_result.find_relevant_score(result_entry=example_exomiser_result[0]), 0.0484
+            self.json_result._find_relevant_score(result_entry=example_exomiser_result[0]), 0.0484
         )
 
     def test_extract_pheval_gene_requirements(self):
@@ -1714,28 +1714,30 @@ class TestPhEvalVariantFromExomiserJsonCreator(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.json_result = PhEvalVariantResultFromExomiserJsonCreator(
-            exomiser_json_result=example_exomiser_result, ranking_method="combinedScore"
+            exomiser_json_result=example_exomiser_result, score_name="combinedScore"
         )
         cls.result_entry = example_exomiser_result[0]["geneScores"][0]["contributingVariants"][0]
 
     def test_find_chromosome(self):
-        self.assertEqual(self.json_result.find_chromosome(result_entry=self.result_entry), "3")
+        self.assertEqual(self.json_result._find_chromosome(result_entry=self.result_entry), "3")
 
     def test_find_start_pos(self):
-        self.assertEqual(self.json_result.find_start_pos(result_entry=self.result_entry), 126730873)
+        self.assertEqual(
+            self.json_result._find_start_pos(result_entry=self.result_entry), 126730873
+        )
 
     def test_find_end_pos(self):
-        self.assertEqual(self.json_result.find_end_pos(result_entry=self.result_entry), 126730873)
+        self.assertEqual(self.json_result._find_end_pos(result_entry=self.result_entry), 126730873)
 
     def test_find_ref(self):
-        self.assertEqual(self.json_result.find_ref(result_entry=self.result_entry), "G")
+        self.assertEqual(self.json_result._find_ref(result_entry=self.result_entry), "G")
 
     def test_find_alt(self):
-        self.assertEqual(self.json_result.find_alt(result_entry=self.result_entry), "A")
+        self.assertEqual(self.json_result._find_alt(result_entry=self.result_entry), "A")
 
     def test_find_relevant_score(self):
         self.assertEqual(
-            self.json_result.find_relevant_score(
+            self.json_result._find_relevant_score(
                 result_entry=example_exomiser_result[0]["geneScores"][0]
             ),
             0.0484,
@@ -1762,7 +1764,9 @@ class TestCreatePhEvalGeneResultFromExomiser(unittest.TestCase):
     def test_create_pheval_gene_result_from_exomiser(self):
         self.assertEqual(
             create_pheval_gene_result_from_exomiser(
-                exomiser_json_result=example_exomiser_result, ranking_method="combinedScore"
+                exomiser_json_result=example_exomiser_result,
+                score_name="combinedScore",
+                score_order="descending",
             ),
             [
                 RankedPhEvalGeneResult(
@@ -1777,7 +1781,9 @@ class TestCreatePhEvalGeneResultFromExomiser(unittest.TestCase):
     def test_create_pheval_gene_result_from_exomiser_pvalue(self):
         self.assertEqual(
             create_pheval_gene_result_from_exomiser(
-                exomiser_json_result=example_exomiser_result, ranking_method="pValue"
+                exomiser_json_result=example_exomiser_result,
+                score_name="pValue",
+                score_order="ascending",
             ),
             [
                 RankedPhEvalGeneResult(
@@ -1794,7 +1800,9 @@ class TestCreateVariantGeneResultFromExomiser(unittest.TestCase):
     def test_create_variant_gene_result_from_exomiser(self):
         self.assertEqual(
             create_variant_gene_result_from_exomiser(
-                exomiser_json_result=example_exomiser_result, ranking_method="variantScore"
+                exomiser_json_result=example_exomiser_result,
+                score_name="variantScore",
+                score_order="descending",
             ),
             [
                 RankedPhEvalVariantResult(
@@ -1836,7 +1844,9 @@ class TestCreateVariantGeneResultFromExomiser(unittest.TestCase):
     def test_create_variant_gene_result_from_exomiser_pvalue(self):
         self.assertEqual(
             create_variant_gene_result_from_exomiser(
-                exomiser_json_result=example_exomiser_result, ranking_method="pValue"
+                exomiser_json_result=example_exomiser_result,
+                score_name="pValue",
+                score_order="ascending",
             ),
             [
                 RankedPhEvalVariantResult(
