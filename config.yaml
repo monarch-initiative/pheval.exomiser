@@ -1,5 +1,6 @@
 run:
   environment: local
+  phenotype_only: True
   path_to_exomiser_software_directory: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0
   path_to_analysis_yaml: /Users/yaseminbridges/preset-exome-analysis.yml
   exomiser_configurations:
