@@ -139,21 +139,22 @@ def create_variant_gene_result_from_exomiser(
 
 
 def create_standardised_results(
-    results_dir: Path, output_dir: Path, score_name: str, score_order: str
+    results_dir: Path, output_dir: Path, score_name: str, score_order: str, phenotype_only: bool
 ) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
     output_dir.joinpath("pheval_gene_results/").mkdir(exist_ok=True, parents=True)
-    output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True, parents=True)
     for result in files_with_suffix(results_dir, ".json"):
         exomiser_result = read_exomiser_json_result(result)
         pheval_gene_result = create_pheval_gene_result_from_exomiser(
             exomiser_result, score_name, score_order
         )
         write_pheval_gene_result(pheval_gene_result, output_dir, result)
-        pheval_variant_result = create_variant_gene_result_from_exomiser(
-            exomiser_result, score_name, score_order
-        )
-        write_pheval_variant_result(pheval_variant_result, output_dir, result)
+        if not phenotype_only:
+            output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True, parents=True)
+            pheval_variant_result = create_variant_gene_result_from_exomiser(
+                exomiser_result, score_name, score_order
+            )
+            write_pheval_variant_result(pheval_variant_result, output_dir, result)
 
 
 @click.command()
@@ -191,9 +192,15 @@ def create_standardised_results(
     default="descending",
     show_default=True,
 )
+@click.option(
+    "--phenotype-only",
+    type=bool,
+    default=False,
+    help="Specify if Exomiser was run with phenotype-only analysis.",
+)
 def post_process_exomiser_results(
-    output_dir: Path, results_dir: Path, score_name: str, score_order: str
+    output_dir: Path, results_dir: Path, score_name: str, score_order: str, phenotype_only: bool
 ):
     """Post-process Exomiser json results into PhEval gene and variant outputs."""
     output_dir.mkdir(exist_ok=True, parents=True)
-    create_standardised_results(results_dir, output_dir, score_name, score_order)
+    create_standardised_results(results_dir, output_dir, score_name, score_order, phenotype_only)
