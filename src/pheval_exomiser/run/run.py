@@ -5,11 +5,11 @@ from pathlib import Path
 from typing import Optional
 
 import docker
+from packaging import version
 from pheval.utils.file_utils import all_files
 
 from pheval_exomiser.config_parser import ExomiserConfig
 from pheval_exomiser.prepare.create_batch_commands import create_batch_file
-from packaging import version
 
 # def write_output_options(input_dir: Path, output_dir: Path, run: ExomiserConfigSingleRun):
 #     try:
@@ -51,8 +51,10 @@ def prepare_batch_files(
         max_jobs=config.run.max_jobs,
         output_options_file=None,
         output_options_dir=None,
-        results_dir=results_sub_output_dir.joinpath(f"{Path(testdata_dir).name}_results/exomiser_results"),
-        phenotype_only=config.run.phenotype_only
+        results_dir=results_sub_output_dir.joinpath(
+            f"{Path(testdata_dir).name}_results/exomiser_results"
+        ),
+        phenotype_only=config.run.phenotype_only,
     )
 
 
