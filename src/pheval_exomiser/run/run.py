@@ -9,6 +9,7 @@ from pheval.utils.file_utils import all_files
 
 from pheval_exomiser.config_parser import ExomiserConfig
 from pheval_exomiser.prepare.create_batch_commands import create_batch_file
+from packaging import version
 
 # def write_output_options(input_dir: Path, output_dir: Path, run: ExomiserConfigSingleRun):
 #     try:
@@ -27,9 +28,8 @@ def prepare_batch_files(
     """Prepare the exomiser batch files"""
     results_sub_output_dir = Path(output_dir).joinpath(
         f"exomiser_{config.run.exomiser_configurations.exomiser_version.replace('.', '_')}_"
-        f"{os.path.basename(input_dir)}"
+        f"{Path(input_dir).name}"
     )
-
     results_sub_output_dir.mkdir(parents=True, exist_ok=True)
     print("...created sub results output directory...")
     print("...preparing batch files...")
@@ -47,10 +47,12 @@ def prepare_batch_files(
             [directory for directory in os.listdir(str(testdata_dir)) if "vcf" in str(directory)][0]
         ),
         output_dir=results_sub_output_dir,
-        batch_prefix=os.path.basename(testdata_dir),
+        batch_prefix=Path(testdata_dir).name,
         max_jobs=config.run.max_jobs,
         output_options_file=None,
         output_options_dir=None,
+        results_dir=results_sub_output_dir.joinpath(f"{Path(testdata_dir).name}_results/exomiser_results"),
+        phenotype_only=config.run.phenotype_only
     )
 
 
@@ -151,7 +153,7 @@ def mount_docker(
     batch_file_path = str(
         Path(output_dir).joinpath(
             f"exomiser_{config.run.exomiser_configurations.exomiser_version.replace('.', '_')}"
-            f"_{os.path.basename(input_dir)}{os.sep}exomiser_batch_files{os.sep}:/exomiser-batch-file"
+            f"_{input_dir.name}{os.sep}exomiser_batch_files{os.sep}:/exomiser-batch-file"
         )
     )
     exomiser_data_dir = f"{input_dir}{os.sep}:/exomiser-data"
@@ -216,17 +218,17 @@ def run_exomiser_local(
     print("...running exomiser...")
     results_sub_output_dir = Path(output_dir).joinpath(
         f"exomiser_{config.run.exomiser_configurations.exomiser_version.replace('.', '_')}"
-        f"_{os.path.basename(input_dir)}"
+        f"_{Path(input_dir).name}"
     )
-    results_sub_output_dir.joinpath(f"{os.path.basename(testdata_dir)}_results").mkdir(
+    results_sub_output_dir.joinpath(f"{Path(testdata_dir).name}_results").mkdir(
         exist_ok=True, parents=True
     )
     write_edited_application_properties(config, input_dir, read_application_properties(config))
-    os.chdir(results_sub_output_dir.joinpath(f"{os.path.basename(testdata_dir)}_results"))
+    os.chdir(results_sub_output_dir.joinpath(f"{Path(testdata_dir).name}_results"))
     batch_files = [
         file
         for file in all_files(Path(results_sub_output_dir).joinpath("exomiser_batch_files"))
-        if file.name.startswith(os.path.basename(testdata_dir))
+        if file.name.startswith(Path(testdata_dir).name)
     ]
     exomiser_jar_file = [
         filename
@@ -249,14 +251,15 @@ def run_exomiser_local(
             ],
             shell=False,
         )
-    os.rename(
-        Path(results_sub_output_dir).joinpath(
-            f"{os.path.basename(testdata_dir)}_results{os.sep}results"
-        ),
-        Path(results_sub_output_dir).joinpath(
-            f"{os.path.basename(testdata_dir)}_results{os.sep}exomiser_results"
-        ),
-    )
+    if version.parse(config.run.exomiser_configurations.exomiser_version) < version.parse("13.1.0"):
+        os.rename(
+            Path(results_sub_output_dir).joinpath(
+                f"{os.path.basename(testdata_dir)}_results{os.sep}results"
+            ),
+            Path(results_sub_output_dir).joinpath(
+                f"{os.path.basename(testdata_dir)}_results{os.sep}exomiser_results"
+            ),
+        )
 
 
 def create_docker_run_command(config: ExomiserConfig, batch_file: Path) -> [str]:
@@ -287,17 +290,17 @@ def run_exomiser_docker(
     client = docker.from_env()
     results_sub_output_dir = Path(output_dir).joinpath(
         f"exomiser_{config.run.exomiser_configurations.exomiser_version.replace('.', '_')}"
-        f"_{os.path.basename(input_dir)}"
+        f"_{input_dir.name}"
     )
-    results_sub_output_dir.joinpath(f"{os.path.basename(testdata_dir)}_results").mkdir(
+    results_sub_output_dir.joinpath(f"{testdata_dir.name}_results").mkdir(
         exist_ok=True, parents=True
     )
     write_edited_application_properties(config, input_dir, read_application_properties(config))
-    os.chdir(results_sub_output_dir.joinpath(f"{os.path.basename(testdata_dir)}_results"))
+    os.chdir(results_sub_output_dir.joinpath(f"{testdata_dir.name}_results"))
     batch_files = [
         file
         for file in all_files(Path(results_sub_output_dir).joinpath("exomiser_batch_files"))
-        if file.name.startswith(os.path.basename(testdata_dir))
+        if file.name.startswith(testdata_dir.name)
     ]
     for file in batch_files:
         docker_command = create_docker_run_command(config, file)
