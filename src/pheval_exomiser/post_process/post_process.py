@@ -19,6 +19,6 @@ def post_process_result_format(
         output_dir=run_output_dir,
         score_name=config.post_process.score_name,
         score_order=config.post_process.score_order,
-        phenotype_only=config.run.phenotype_only
+        phenotype_only=config.run.phenotype_only,
     )
     print("done")
