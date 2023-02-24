@@ -1,5 +1,6 @@
 run:
   environment: local
+  # NOTE phenotype-only preset analysis should only be run with Exomiser versions >= 13.2.0
   phenotype_only: True
   path_to_exomiser_software_directory: /Users/yaseminbridges/exomiser/exomiser-cli-13.1.0
   path_to_analysis_yaml: /Users/yaseminbridges/preset-exome-analysis.yml
