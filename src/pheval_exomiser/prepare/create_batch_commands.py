@@ -16,8 +16,10 @@ class ExomiserCommandLineArguments:
     """Store command line arguments for each phenopacket to be run with Exomiser."""
 
     sample: Path
-    vcf_file: Path
-    vcf_assembly: str
+    vcf_file: Path or None = None
+    vcf_assembly: str or None = None
+    results_dir: Path or None = None
+    phenotype_only: bool or None = None
     output_options_file: Optional[Path] = None
 
 
@@ -44,16 +46,20 @@ class CommandCreator:
     """Create a command for a phenopacket."""
 
     def __init__(
-        self,
-        phenopacket_path: Path,
-        phenopacket: Phenopacket or Family,
-        output_options_dir_files: list[Path] or None,
-        output_options_file: Path or None,
+            self,
+            phenopacket_path: Path,
+            phenopacket: Phenopacket or Family,
+            phenotype_only: bool,
+            output_options_dir_files: list[Path] or None,
+            output_options_file: Path or None,
+            results_dir: Path or None,
     ):
         self.phenopacket_path = phenopacket_path
         self.phenopacket = phenopacket
+        self.phenotype_only = phenotype_only
         self.output_options_dir_files = output_options_dir_files
         self.output_options_file = output_options_file
+        self.results_dir = results_dir
 
     def assign_output_options_file(self) -> Path or None:
         """Return the path of a single output option yaml if specified,
@@ -67,32 +73,59 @@ class CommandCreator:
                 else obtain_closest_file_name(self.phenopacket_path, self.output_options_dir_files)
             )
 
-    def add_command_line_arguments(self, vcf_dir: Path) -> ExomiserCommandLineArguments:
-        """Return a dataclass of all the command line arguments corresponding to phenopacket sample."""
+    def add_phenotype_only_arguments(self) -> ExomiserCommandLineArguments:
+        output_options_file = self.assign_output_options_file()
+        return (
+            ExomiserCommandLineArguments(
+                sample=Path(self.phenopacket_path),
+                phenotype_only=self.phenotype_only,
+                results_dir=self.results_dir,
+            )
+            if output_options_file is None
+            else ExomiserCommandLineArguments(
+                sample=Path(self.phenopacket_path),
+                phenotype_only=self.phenotype_only,
+                output_options_file=output_options_file,
+                results_dir=self.results_dir,
+            )
+        )
+
+    def add_variant_analysis_arguments(self, vcf_dir: Path) -> ExomiserCommandLineArguments:
         vcf_file_data = PhenopacketUtil(self.phenopacket).vcf_file_data(
             self.phenopacket_path, vcf_dir
         )
         output_options_file = self.assign_output_options_file()
-        if output_options_file is None:
-            return ExomiserCommandLineArguments(
+        return (
+            ExomiserCommandLineArguments(
                 sample=Path(self.phenopacket_path),
                 vcf_file=Path(vcf_file_data.uri),
                 vcf_assembly=vcf_file_data.file_attributes["genomeAssembly"],
+                results_dir=self.results_dir,
             )
-        if output_options_file is not None:
-            return ExomiserCommandLineArguments(
+            if output_options_file is None
+            else ExomiserCommandLineArguments(
                 sample=Path(self.phenopacket_path),
                 vcf_file=Path(vcf_file_data.uri),
                 vcf_assembly=vcf_file_data.file_attributes["genomeAssembly"],
                 output_options_file=output_options_file,
+                phenotype_only=self.phenotype_only,
+                results_dir=self.results_dir,
             )
+        )
+
+    def add_command_line_arguments(self, vcf_dir: Path or None) -> ExomiserCommandLineArguments:
+        """Return a dataclass of all the command line arguments corresponding to phenopacket sample."""
+        return self.add_phenotype_only_arguments() if not self.phenotype_only else self.add_variant_analysis_arguments(
+            vcf_dir)
 
 
 def create_command_arguments(
-    phenopacket_dir: Path,
-    vcf_dir: Path,
-    output_options_dir: Path or None = None,
-    output_options_file: Path or None = None,
+        phenopacket_dir: Path,
+        phenotype_only: bool,
+        vcf_dir: Path,
+        results_dir: Path or None,
+        output_options_dir: Path or None = None,
+        output_options_file: Path or None = None,
 ) -> list[ExomiserCommandLineArguments]:
     """Return a list of Exomiser command line arguments for a directory of phenopackets."""
     phenopacket_paths = files_with_suffix(phenopacket_dir, ".json")
@@ -105,7 +138,7 @@ def create_command_arguments(
         #                                                                                   is not None else None
         commands.append(
             CommandCreator(
-                phenopacket_path, phenopacket, output_option_dir_files, output_options_file
+                phenopacket_path, phenopacket, phenotype_only, output_option_dir_files, output_options_file, results_dir
             ).add_command_line_arguments(vcf_dir)
         )
     return commands
@@ -114,13 +147,12 @@ def create_command_arguments(
 class CommandsWriter:
     """Write a command to file."""
 
-    def __init__(self, file: Path):
+    def __init__(self, file: Path, phenotype_only: bool):
         self.file = open(file, "w")
+        self.phenotype_only = phenotype_only
 
-    def write_command(
-        self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments
-    ) -> None:
-        """Write a command out for exomiser to run."""
+    def write_basic_analysis_command(self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments):
+        """Write basic analysis command for Exomiser"""
         try:
             self.file.write(
                 "--analysis "
@@ -130,14 +162,69 @@ class CommandsWriter:
                 + " --vcf "
                 + str(command_arguments.vcf_file)
                 + " --assembly "
-                + command_arguments.vcf_assembly
+                + command_arguments.vcf_assembly)
+        except IOError:
+            print("Error writing ", self.file)
+
+    def write_results_dir(
+            self, command_arguments: ExomiserCommandLineArguments
+    ) -> None:
+        """Write results directory for exomiser ≥13.2.0 to run."""
+        try:
+            self.file.write(" --output-directory "
+                            + str(command_arguments.results_dir)
+                            + "\n") if command_arguments.results_dir is not None else None
+        except IOError:
+            print("Error writing ", self.file)
+
+    def write_output_options(
+            self, command_arguments: ExomiserCommandLineArguments
+    ) -> None:
+        """Write a command out for exomiser ≤13.1.0 to run - including output option file specified."""
+        try:
+            self.file.write(
+                " --output "
+                + str(command_arguments.output_options_file)
+                + "\n"
+            ) if command_arguments.output_options_file is not None else None
+        except IOError:
+            print("Error writing ", self.file)
+
+    def write_analysis_command(self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments):
+        self.write_basic_analysis_command(analysis_yaml, command_arguments)
+        self.write_results_dir(command_arguments)
+        self.write_output_options(command_arguments)
+        self.file.write("\n")
+
+    def write_basic_phenotype_only_command(
+            self, command_arguments: ExomiserCommandLineArguments
+    ) -> None:
+        """Write a phenotype-only command out for exomiser ≥13.2.0 to run."""
+        try:
+            self.file.write(
+                "--sample "
+                + str(command_arguments.sample)
+                + " --output-directory "
+                + str(command_arguments.results_dir)
+                + " --output-file-name "
+                + f"{command_arguments.sample.stem}-exomiser"
+                + " --preset "
+                + "phenotype-only"
                 + "\n"
             )
         except IOError:
             print("Error writing ", self.file)
 
+    def write_phenotype_only_command(self, command_arguments: ExomiserCommandLineArguments):
+        self.write_basic_phenotype_only_command(command_arguments)
+        self.write_output_options(command_arguments)
+        self.file.write("\n")
+
+    def write_local_commands(self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments):
+        self.write_basic_phenotype_only_command(command_arguments) if self.phenotype_only else self.write_analysis_command(analysis_yaml, command_arguments)
+
     def write_docker_command(
-        self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments
+            self, analysis_yaml: Path, command_arguments: ExomiserCommandLineArguments
     ) -> None:
         """Write a docker command out for exomiser to run."""
         try:
@@ -155,29 +242,8 @@ class CommandsWriter:
         except IOError:
             print("Error writing ", self.file)
 
-    def write_command_output_options(
-        self, analysis_yaml, command_arguments: ExomiserCommandLineArguments
-    ) -> None:
-        """Write a command out for exomiser to run - including output option file specified."""
-        try:
-            self.file.write(
-                "--analysis "
-                + str(analysis_yaml)
-                + " --sample "
-                + str(command_arguments.sample)
-                + " --vcf "
-                + str(command_arguments.vcf_file)
-                + " --assembly "
-                + command_arguments.vcf_assembly
-                + " --output "
-                + str(command_arguments.output_options_file)
-                + "\n"
-            )
-        except IOError:
-            print("Error writing ", self.file)
-
     def write_docker_command_output_options(
-        self, analysis_yaml, command_arguments: ExomiserCommandLineArguments
+            self, analysis_yaml, command_arguments: ExomiserCommandLineArguments
     ) -> None:
         """Write a docker command out for exomiser to run - including output option file specified."""
         try:
@@ -212,25 +278,28 @@ class BatchFileWriter:
     """Write all the commands out to a batch file."""
 
     def __init__(
-        self,
-        analysis_yaml: Path,
-        command_arguments_list: list[ExomiserCommandLineArguments],
-        output_dir: Path,
-        batch_prefix: str,
+            self,
+            analysis_yaml: Path,
+            command_arguments_list: list[ExomiserCommandLineArguments],
+            phenotype_only: bool,
+            output_dir: Path,
+            batch_prefix: str,
     ):
         self.analysis_yaml = analysis_yaml
         self.command_arguments_list = command_arguments_list
+        self.phenotype_only = phenotype_only
         self.output_dir = output_dir
         self.batch_prefix = batch_prefix
 
     def write_commands(self, commands_writer: CommandsWriter) -> None:
         """Write command arguments to a file."""
         for command_arguments in self.command_arguments_list:
-            commands_writer.write_command(
-                self.analysis_yaml, command_arguments
-            ) if command_arguments.output_options_file is None else commands_writer.write_command_output_options(
-                self.analysis_yaml, command_arguments
-            )
+            commands_writer.write_local_commands(self.analysis_yaml, command_arguments)
+            # commands_writer.write_command(
+            #     self.analysis_yaml, command_arguments
+            # ) if command_arguments.output_options_file is None else commands_writer.write_command_output_options(
+            #     self.analysis_yaml, command_arguments
+            # )
         commands_writer.close()
 
     def write_docker_commands(self, commands_writer: CommandsWriter) -> None:
@@ -246,28 +315,28 @@ class BatchFileWriter:
     def write_temp_file(self) -> str:
         """Write commands out to a temporary file."""
         temp = tempfile.NamedTemporaryFile(delete=False)
-        commands_writer = CommandsWriter(Path(temp.name))
+        commands_writer = CommandsWriter(Path(temp.name), self.phenotype_only)
         self.write_commands(commands_writer)
         return temp.name
 
     def write_docker_temp_file(self) -> str:
         """Write docker commands out to a temporary file."""
         temp = tempfile.NamedTemporaryFile(delete=False)
-        commands_writer = CommandsWriter(Path(temp.name))
+        commands_writer = CommandsWriter(Path(temp.name), self.phenotype_only)
         self.write_docker_commands(commands_writer)
         return temp.name
 
     def write_all_commands(self) -> None:
         """Write all commands out to a single file."""
         commands_writer = CommandsWriter(
-            Path(self.output_dir).joinpath(self.batch_prefix + "-exomiser-batch.txt")
+            Path(self.output_dir).joinpath(self.batch_prefix + "-exomiser-batch.txt"), self.phenotype_only
         )
         self.write_commands(commands_writer)
 
     def write_all_docker_commands(self) -> None:
         """Write all docker commands out to a single file."""
         commands_writer = CommandsWriter(
-            Path(self.output_dir).joinpath(self.batch_prefix + "-exomiser-batch.txt")
+            Path(self.output_dir).joinpath(self.batch_prefix + "-exomiser-batch.txt"), self.phenotype_only
         )
         self.write_docker_commands(commands_writer)
 
@@ -315,15 +384,17 @@ class BatchFileWriter:
 
 
 def create_batch_file(
-    environment: str,
-    analysis: Path,
-    phenopacket_dir: Path,
-    vcf_dir: Path,
-    output_dir: Path,
-    batch_prefix: str,
-    max_jobs: int,
-    output_options_dir: Path = None,
-    output_options_file: Path = None,
+        environment: str,
+        analysis: Path,
+        phenopacket_dir: Path,
+        vcf_dir: Path,
+        output_dir: Path,
+        batch_prefix: str,
+        max_jobs: int,
+        phenotype_only: bool,
+        results_dir: Path,
+        output_options_dir: Path = None,
+        output_options_file: Path = None,
 ) -> None:
     """Create Exomiser batch files."""
     try:
@@ -331,26 +402,24 @@ def create_batch_file(
     except FileExistsError:
         pass
     command_arguments = create_command_arguments(
-        phenopacket_dir, vcf_dir, output_options_dir, output_options_file
+        phenopacket_dir, phenotype_only, vcf_dir, results_dir, output_options_dir, output_options_file
     )
     if environment == "local":
         BatchFileWriter(
-            analysis, command_arguments, output_dir.joinpath("exomiser_batch_files/"), batch_prefix
+            analysis, command_arguments, phenotype_only, output_dir.joinpath("exomiser_batch_files/"), batch_prefix
         ).write_all_commands() if max_jobs == 0 else BatchFileWriter(
-            analysis, command_arguments, output_dir.joinpath("exomiser_batch_files/"), batch_prefix
+            analysis, command_arguments, phenotype_only, output_dir.joinpath("exomiser_batch_files/"), batch_prefix
         ).create_split_batch_files(
             max_jobs
         )
     elif environment == "docker":
         BatchFileWriter(
-            analysis, command_arguments, output_dir.joinpath("exomiser_batch_files/"), batch_prefix
+            analysis, command_arguments, phenotype_only, output_dir.joinpath("exomiser_batch_files/"), batch_prefix
         ).write_all_docker_commands() if max_jobs == 0 else BatchFileWriter(
-            analysis, command_arguments, output_dir.joinpath("exomiser_batch_files/"), batch_prefix
+            analysis, command_arguments, phenotype_only, output_dir.joinpath("exomiser_batch_files/"), batch_prefix
         ).create_docker_split_batch_files(
             max_jobs
         )
-    else:
-        raise EnvironmentError
 
 
 @click.command()
@@ -366,7 +435,7 @@ def create_batch_file(
 @click.option(
     "--analysis-yaml",
     "-a",
-    required=True,
+    required=False,
     metavar="FILE",
     type=Path,
     help="Path to the analysis .yml file.",
@@ -388,14 +457,6 @@ def create_batch_file(
     help="Path to VCF files.",
 )
 @click.option(
-    "--output-dir",
-    "-out",
-    required=True,
-    metavar="PATH",
-    type=Path,
-    help="Path to output directory.",
-)
-@click.option(
     "--batch-prefix",
     "-b",
     required=False,
@@ -413,6 +474,20 @@ def create_batch_file(
     default=0,
     show_default=True,
     help="Number of jobs in each file.",
+)
+@click.option(
+    "--phenotype-only",
+    type=bool,
+    default=False,
+    cls=MutuallyExclusiveOptionError,
+    mutually_exclusive=["vcf_dir", "analysis_yaml"],
+    help="Run Exomiser with phenotype only preset - strongly recommended to run with versions 13.2.0 onwards.",
+)
+@click.option(
+    "--results-dir",
+    type=Path,
+    required=False,
+    help="Results directory for Exomiser results - compatible with versions 13.2.0 onwards.",
 )
 @click.option(
     "--output-options-dir",
@@ -435,15 +510,16 @@ def create_batch_file(
     help="Path to the output options file. ",
 )
 def prepare_exomiser_batch(
-    environment: str,
-    analysis_yaml: Path,
-    phenopacket_dir: Path,
-    vcf_dir: Path,
-    output_dir: Path,
-    batch_prefix,
-    max_jobs,
-    output_options_dir: Path = None,
-    output_options_file: Path = None,
+        environment: str,
+        analysis_yaml: Path,
+        phenopacket_dir: Path,
+        vcf_dir: Path,
+        output_dir: Path,
+        batch_prefix: str,
+        max_jobs: int,
+        phenotype_only: bool,
+        output_options_dir: Path = None,
+        output_options_file: Path = None,
 ):
     """Generate Exomiser batch files."""
     create_batch_file(
@@ -454,6 +530,8 @@ def prepare_exomiser_batch(
         output_dir,
         batch_prefix,
         max_jobs,
+        phenotype_only,
         output_options_dir,
         output_options_file,
     )
+
