@@ -100,6 +100,7 @@ class CommandCreator:
                 sample=Path(self.phenopacket_path),
                 vcf_file=Path(vcf_file_data.uri),
                 vcf_assembly=vcf_file_data.file_attributes["genomeAssembly"],
+                phenotype_only=self.phenotype_only,
                 results_dir=self.results_dir,
             )
             if output_options_file is None
