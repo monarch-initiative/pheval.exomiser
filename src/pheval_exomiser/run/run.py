@@ -67,6 +67,7 @@ class BasicDockerMountsForExomiser:
     exomiser_yaml: str
     batch_file_path: str
     exomiser_data_dir: str
+    results_dir: Path
     exomiser_application_properties: Optional[str] = None
 
 
@@ -142,6 +143,10 @@ def mount_docker(
     input_dir: Path, testdata_dir: Path, output_dir: Path, config: ExomiserConfig
 ) -> BasicDockerMountsForExomiser:
     """Create docker mounts for paths required for running Exomiser."""
+    sub_output_dir = Path(output_dir).joinpath(
+        f"exomiser_{config.run.exomiser_configurations.exomiser_version.replace('.', '_')}"
+        f"_{Path(input_dir).name}"
+    )
     test_data = os.listdir(str(testdata_dir))
     phenopacket_test_data = (
         f"{Path(testdata_dir).joinpath([sub_dir for sub_dir in test_data if 'phenopackets' in str(sub_dir)][0])}"
@@ -153,20 +158,25 @@ def mount_docker(
     )
     exomiser_yaml = f"{config.run.path_to_analysis_yaml.parents[0]}{os.sep}:/exomiser-yaml-template"
     batch_file_path = str(
-        Path(output_dir).joinpath(
-            f"exomiser_{config.run.exomiser_configurations.exomiser_version.replace('.', '_')}"
-            f"_{input_dir.name}{os.sep}exomiser_batch_files{os.sep}:/exomiser-batch-file"
-        )
+        Path(sub_output_dir).joinpath("exomiser_batch_files:/exomiser-batch-file")
     )
     exomiser_data_dir = f"{input_dir}{os.sep}:/exomiser-data"
+    results_dir = (
+        f"{Path(sub_output_dir).joinpath(f'{Path(testdata_dir).name}_results{os.sep}results')}"
+        f"{os.sep}:/exomiser-results"
+        if version.parse(config.run.exomiser_configurations.exomiser_version)
+        < version.parse("13.2.0")
+        else f"{Path(sub_output_dir).joinpath(f'{Path(testdata_dir).name}_results{os.sep}results')}"
+        f"{os.sep}:/exomiser-results"
+    )
     if config.run.exomiser_configurations.path_to_application_properties_config is None:
-        # TODO add mount for results directory to be specified in the output-options
         return BasicDockerMountsForExomiser(
             phenopacket_test_data=phenopacket_test_data,
             vcf_test_data=vcf_test_data,
             exomiser_yaml=exomiser_yaml,
             batch_file_path=batch_file_path,
             exomiser_data_dir=exomiser_data_dir,
+            results_dir=results_dir,
         )
     else:
         exomiser_config = (
@@ -180,6 +190,7 @@ def mount_docker(
             batch_file_path=batch_file_path,
             exomiser_data_dir=exomiser_data_dir,
             exomiser_application_properties=exomiser_config,
+            results_dir=results_dir,
         )
 
 
@@ -292,17 +303,17 @@ def run_exomiser_docker(
     client = docker.from_env()
     results_sub_output_dir = Path(output_dir).joinpath(
         f"exomiser_{config.run.exomiser_configurations.exomiser_version.replace('.', '_')}"
-        f"_{input_dir.name}"
+        f"_{Path(input_dir).name}"
     )
-    results_sub_output_dir.joinpath(f"{testdata_dir.name}_results").mkdir(
+    results_sub_output_dir.joinpath(f"{Path(testdata_dir).name}_results").mkdir(
         exist_ok=True, parents=True
     )
     write_edited_application_properties(config, input_dir, read_application_properties(config))
-    os.chdir(results_sub_output_dir.joinpath(f"{testdata_dir.name}_results"))
+    os.chdir(results_sub_output_dir.joinpath(f"{Path(testdata_dir).name}_results"))
     batch_files = [
         file
         for file in all_files(Path(results_sub_output_dir).joinpath("exomiser_batch_files"))
-        if file.name.startswith(testdata_dir.name)
+        if file.name.startswith(Path(testdata_dir).name)
     ]
     for file in batch_files:
         docker_command = create_docker_run_command(config, file)
@@ -314,6 +325,7 @@ def run_exomiser_docker(
             docker_mounts.exomiser_yaml,
             docker_mounts.batch_file_path,
             docker_mounts.exomiser_application_properties,
+            docker_mounts.results_dir,
         ]
         container = client.containers.run(
             f"exomiser/exomiser-cli:{config.run.exomiser_configurations.exomiser_version}",
