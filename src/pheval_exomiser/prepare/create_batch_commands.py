@@ -117,7 +117,7 @@ class CommandCreator:
         """Return a dataclass of all the command line arguments corresponding to phenopacket sample."""
         return (
             self.add_phenotype_only_arguments()
-            if not self.phenotype_only
+            if self.phenotype_only
             else self.add_variant_analysis_arguments(vcf_dir)
         )
 
