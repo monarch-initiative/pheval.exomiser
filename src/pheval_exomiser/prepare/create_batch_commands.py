@@ -432,10 +432,7 @@ def create_batch_file(
     output_options_file: Path = None,
 ) -> None:
     """Create Exomiser batch files."""
-    try:
-        Path(output_dir).joinpath("exomiser_batch_files").mkdir()
-    except FileExistsError:
-        pass
+    Path(output_dir).joinpath("exomiser_batch_files").mkdir(exist_ok=True)
     command_arguments = create_command_arguments(
         phenopacket_dir,
         phenotype_only,
