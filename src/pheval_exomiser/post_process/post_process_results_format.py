@@ -148,13 +148,13 @@ def create_standardised_results(
         pheval_gene_result = create_pheval_gene_result_from_exomiser(
             exomiser_result, score_name, score_order
         )
-        write_pheval_gene_result(pheval_gene_result, output_dir, result)
+        write_pheval_gene_result(pheval_gene_result, output_dir, Path(str(result).replace("-exomiser", "")))
         if not phenotype_only:
             output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True, parents=True)
             pheval_variant_result = create_variant_gene_result_from_exomiser(
                 exomiser_result, score_name, score_order
             )
-            write_pheval_variant_result(pheval_variant_result, output_dir, result)
+            write_pheval_variant_result(pheval_variant_result, output_dir, Path(str(result).replace("-exomiser", "")))
 
 
 @click.command()
