@@ -131,74 +131,147 @@ output_options_files = [
 class TestCommandCreator(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.no_output_options = CommandCreator(
-            Path("/full/path/to/phenopacket.json"), phenopacket, None, None
+        cls.command_creator_output_options_dir = CommandCreator(
+            phenopacket_path=Path("/path/to/phenopacket.json"),
+            phenopacket=phenopacket,
+            phenotype_only=False,
+            output_options_dir_files=output_options_files,
+            output_options_file=None,
+            results_dir=Path("/path/to/results_dir"),
         )
-        cls.output_options_file = CommandCreator(
-            Path("/full/path/to/phenopacket.json"),
-            phenopacket,
-            None,
-            Path("/full/path/to/output/option/file.json"),
+        cls.command_creator_output_options_file = CommandCreator(
+            phenopacket_path=Path("/path/to/phenopacket.json"),
+            phenopacket=phenopacket,
+            phenotype_only=False,
+            output_options_dir_files=None,
+            output_options_file=Path(
+                "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
+            ),
+            results_dir=Path("/path/to/results_dir"),
         )
-        cls.output_options_dir = CommandCreator(
-            Path("/full/path/to/phenopacket.json"),
-            phenopacket,
-            output_options_files,
-            None,
+        cls.command_creator_none = CommandCreator(
+            phenopacket_path=Path("/path/to/phenopacket.json"),
+            phenopacket=phenopacket,
+            phenotype_only=False,
+            output_options_dir_files=None,
+            output_options_file=None,
+            results_dir=Path("/path/to/results_dir"),
+        )
+        cls.command_creator_phenotype_only = CommandCreator(
+            phenopacket_path=Path("/path/to/phenopacket.json"),
+            phenopacket=phenopacket,
+            phenotype_only=True,
+            output_options_dir_files=None,
+            output_options_file=None,
+            results_dir=Path("/path/to/results_dir"),
+        )
+        cls.command_creator_phenotype_only_output_options = CommandCreator(
+            phenopacket_path=Path("/path/to/phenopacket.json"),
+            phenopacket=phenopacket,
+            phenotype_only=True,
+            output_options_dir_files=None,
+            output_options_file=Path(
+                "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
+            ),
+            results_dir=Path("/path/to/results_dir"),
         )
 
-    # def test_find_output_options_file_from_dir(self):
-    #     self.assertEqual(
-    #         self.output_options_dir.find_output_options_file_from_dir(output_options_files),
-    #         Path("/full/path/to/some/alternate/output_options/phenopacket-output-options.json"),
-    #     )
-
-    def test_assign_output_options_file_none_specified(self):
-        self.assertEqual(self.no_output_options.assign_output_options_file(), None)
-
-    def test_assign_output_options_file_file_specified(self):
+    def test_assign_output_options_file_from_dir(self):
         self.assertEqual(
-            self.output_options_file.assign_output_options_file(),
-            Path("/full/path/to/output/option/file.json"),
-        )
-
-    def test_assign_output_options_file_directory_specified(self):
-        self.assertEqual(
-            self.output_options_dir.assign_output_options_file(),
+            self.command_creator_output_options_dir.assign_output_options_file(),
             Path("/full/path/to/some/alternate/output_options/phenopacket-output-options.json"),
         )
 
-    def test_add_command_line_arguments_no_output_options(self):
+    def test_assign_output_options_file(self):
         self.assertEqual(
-            self.no_output_options.add_command_line_arguments(Path("/full/path/to/vcf_dir")),
+            self.command_creator_output_options_file.assign_output_options_file(),
+            Path("/full/path/to/some/alternate/output_options/phenopacket-output-options.json"),
+        )
+
+    def test_assign_output_options_none(self):
+        self.assertEqual(self.command_creator_phenotype_only.assign_output_options_file(), None)
+
+    def test_add_phenotype_only_arguments(self):
+        self.assertEqual(
+            self.command_creator_phenotype_only.add_phenotype_only_arguments(),
             ExomiserCommandLineArguments(
-                sample=Path("/full/path/to/phenopacket.json"),
-                vcf_file=Path("/full/path/to/vcf_dir/test_1.vcf"),
-                vcf_assembly="GRCh37",
-                output_options_file=None,
+                sample=Path("/path/to/phenopacket.json"),
+                vcf_file=None,
+                vcf_assembly=None,
+                results_dir=Path("/path/to/results_dir"),
+                phenotype_only=True,
             ),
         )
 
-    def test_add_command_line_arguments_output_options_file(self):
+    def test_add_phenotype_only_arguments_output_options(self):
         self.assertEqual(
-            self.output_options_file.add_command_line_arguments(Path("/full/path/to/vcf_dir")),
+            self.command_creator_phenotype_only_output_options.add_phenotype_only_arguments(),
             ExomiserCommandLineArguments(
-                sample=Path("/full/path/to/phenopacket.json"),
-                vcf_file=Path("/full/path/to/vcf_dir/test_1.vcf"),
-                vcf_assembly="GRCh37",
-                output_options_file=Path("/full/path/to/output/option/file.json"),
-            ),
-        )
-
-    def test_add_command_line_arguments_output_options_dir(self):
-        self.assertEqual(
-            self.output_options_dir.add_command_line_arguments(Path("/full/path/to/vcf_dir")),
-            ExomiserCommandLineArguments(
-                sample=Path("/full/path/to/phenopacket.json"),
-                vcf_file=Path("/full/path/to/vcf_dir/test_1.vcf"),
-                vcf_assembly="GRCh37",
+                sample=Path("/path/to/phenopacket.json"),
+                vcf_file=None,
+                vcf_assembly=None,
+                results_dir=Path("/path/to/results_dir"),
+                phenotype_only=True,
                 output_options_file=Path(
                     "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
                 ),
+            ),
+        )
+
+    def test_add_variant_analysis_arguments(self):
+        self.assertEqual(
+            self.command_creator_output_options_dir.add_variant_analysis_arguments(
+                Path("/path/to/vcf_dir")
+            ),
+            ExomiserCommandLineArguments(
+                sample=Path("/path/to/phenopacket.json"),
+                vcf_file=Path("/path/to/vcf_dir/test_1.vcf"),
+                vcf_assembly="GRCh37",
+                results_dir=Path("/path/to/results_dir"),
+                phenotype_only=False,
+                output_options_file=Path(
+                    "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
+                ),
+            ),
+        )
+
+    def test_add_variant_analysis_arguments_none(self):
+        self.assertEqual(
+            self.command_creator_none.add_variant_analysis_arguments(Path("/path/to/vcf_dir")),
+            ExomiserCommandLineArguments(
+                sample=Path("/path/to/phenopacket.json"),
+                vcf_file=Path("/path/to/vcf_dir/test_1.vcf"),
+                vcf_assembly="GRCh37",
+                results_dir=Path("/path/to/results_dir"),
+                phenotype_only=False,
+            ),
+        )
+
+    def test_add_command_line_arguments(self):
+        self.assertEqual(
+            self.command_creator_output_options_file.add_command_line_arguments(
+                Path("/path/to/vcf_dir")
+            ),
+            ExomiserCommandLineArguments(
+                sample=Path("/path/to/phenopacket.json"),
+                vcf_file=Path("/path/to/vcf_dir/test_1.vcf"),
+                vcf_assembly="GRCh37",
+                results_dir=Path("/path/to/results_dir"),
+                phenotype_only=False,
+                output_options_file=Path(
+                    "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
+                ),
+            ),
+        )
+
+    def test_add_command_line_arguments_phenotype_only(self):
+        self.assertEqual(
+            self.command_creator_phenotype_only.add_phenotype_only_arguments(),
+            ExomiserCommandLineArguments(
+                sample=Path("/path/to/phenopacket.json"),
+                vcf_file=None,
+                vcf_assembly=None,
+                results_dir=Path("/path/to/results_dir"),
+                phenotype_only=True,
             ),
         )
