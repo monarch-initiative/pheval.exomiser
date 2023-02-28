@@ -267,10 +267,10 @@ def run_exomiser_local(
     if version.parse(config.run.exomiser_configurations.exomiser_version) < version.parse("13.1.0"):
         os.rename(
             Path(results_sub_output_dir).joinpath(
-                f"{os.path.basename(testdata_dir)}_results{os.sep}results"
+                f"{Path(testdata_dir).name}_results{os.sep}results"
             ),
             Path(results_sub_output_dir).joinpath(
-                f"{os.path.basename(testdata_dir)}_results{os.sep}exomiser_results"
+                f"{Path(testdata_dir).name}_results{os.sep}exomiser_results"
             ),
         )
 
