@@ -9,8 +9,8 @@ from pheval_exomiser.config_parser import (
     ExomiserConfigRunExomiserConfigs,
     ExomiserConfigRunExomiserManualConfigs,
 )
-from pheval_exomiser.run.run import EditExomiserApplicationProperties
 from pheval_exomiser.run.run import (
+    EditExomiserApplicationProperties,
     ExomiserConfigParameters,
     add_exomiser_config_file_for_docker,
     create_docker_run_command,
