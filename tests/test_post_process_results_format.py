@@ -1778,7 +1778,7 @@ class TestCreatePhEvalGeneResultFromExomiser(unittest.TestCase):
             ],
         )
 
-    def test_create_pheval_gene_result_from_exomiser_pvalue(self):
+    def test_create_pheval_gene_result_from_exomiser_ascending_order(self):
         self.assertEqual(
             create_pheval_gene_result_from_exomiser(
                 exomiser_json_result=example_exomiser_result,
@@ -1796,7 +1796,7 @@ class TestCreatePhEvalGeneResultFromExomiser(unittest.TestCase):
         )
 
 
-class TestCreateVariantGeneResultFromExomiser(unittest.TestCase):
+class TestPhEvalVariantResultFromExomiserJsonCreator(unittest.TestCase):
     def test_create_variant_gene_result_from_exomiser(self):
         self.assertEqual(
             create_variant_gene_result_from_exomiser(
@@ -1841,7 +1841,7 @@ class TestCreateVariantGeneResultFromExomiser(unittest.TestCase):
             ],
         )
 
-    def test_create_variant_gene_result_from_exomiser_pvalue(self):
+    def test_create_variant_gene_result_from_exomiser_ascending_order(self):
         self.assertEqual(
             create_variant_gene_result_from_exomiser(
                 exomiser_json_result=example_exomiser_result,
