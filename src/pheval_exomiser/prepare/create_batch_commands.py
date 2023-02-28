@@ -28,20 +28,6 @@ def get_all_files_from_output_opt_directory(output_options_dir: Path) -> list[Pa
     return None if output_options_dir is None else all_files(output_options_dir)
 
 
-# def edit_output_options_file_output_prefix(output_options_file: Path, phenopacket_path: Path) -> Path:
-#     with open(output_options_file) as output_options:
-#         output_opt = yaml.safe_load(output_options)
-#     output_options.close()
-#     output_opt['outputPrefix'] = output_options_file.absolute().parents[0].joinpath(phenopacket_path.stem)
-#     with open
-#     (output_options_file.absolute().parents[0].joinpath(phenopacket_path.stem + "-" + str(output_options_file.name)),
-#               'w') as correct_prefixed:
-#         yaml.dump(output_opt, correct_prefixed)
-#     correct_prefixed.close()
-#     return
-#     output_options_file.absolute().parents[0].joinpath(phenopacket_path.stem + "-" + str(output_options_file.name))
-
-
 class CommandCreator:
     """Create a command for a phenopacket."""
 
@@ -137,9 +123,6 @@ def create_command_arguments(
     output_option_dir_files = get_all_files_from_output_opt_directory(output_options_dir)
     for phenopacket_path in phenopacket_paths:
         phenopacket = phenopacket_reader(phenopacket_path)
-        # output_options_file = edit_output_options_file_output_prefix(output_options_file,
-        #                                                              phenopacket_path) if output_options_file \
-        #                                                                                   is not None else None
         commands.append(
             CommandCreator(
                 phenopacket_path,
