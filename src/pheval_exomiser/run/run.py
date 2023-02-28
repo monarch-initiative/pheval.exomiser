@@ -11,19 +11,9 @@ from pheval.utils.file_utils import all_files
 from pheval_exomiser.config_parser import ExomiserConfig
 from pheval_exomiser.prepare.create_batch_commands import create_batch_file
 
-# def write_output_options(input_dir: Path, output_dir: Path, run: ExomiserConfigSingleRun):
-#     try:
-#         Path(input_dir.joinpath("output_options")).mkdir()
-#     except FileExistsError:
-#         pass
-#     with open(Path(input_dir).joinpath("output_options/output_options.yaml"), "w") as output_options:
-#         yaml.dump({'outputPrefix': f'{output_dir.absolute().joinpath(run.run_identifier)}_results/'}, output_options)
-#     output_options.close()
-#     return Path(input_dir).joinpath("output_options/output_options.yaml")
-
 
 def prepare_batch_files(
-    input_dir: Path, output_dir: Path, testdata_dir: Path, config: ExomiserConfig
+        input_dir: Path, output_dir: Path, testdata_dir: Path, config: ExomiserConfig
 ) -> None:
     """Prepare the exomiser batch files"""
     results_sub_output_dir = Path(output_dir).joinpath(
@@ -84,7 +74,7 @@ class ExomiserConfigParameters:
 def read_application_properties(config: ExomiserConfig) -> [str]:
     """Return contents of Exomiser application.properties."""
     with open(
-        config.run.exomiser_configurations.path_to_application_properties_config
+            config.run.exomiser_configurations.path_to_application_properties_config
     ) as exomiser_config:
         exomiser_config_lines = exomiser_config.readlines()
     exomiser_config.close()
@@ -125,11 +115,11 @@ class EditExomiserApplicationProperties:
 
 
 def write_edited_application_properties(
-    config: ExomiserConfig, input_dir: Path, exomiser_config_contents: [str]
+        config: ExomiserConfig, input_dir: Path, exomiser_config_contents: [str]
 ) -> None:
     """Write application.properties with edited contents."""
     with open(
-        config.run.exomiser_configurations.path_to_application_properties_config, "w"
+            config.run.exomiser_configurations.path_to_application_properties_config, "w"
     ) as exomiser_config:
         exomiser_config.writelines(
             EditExomiserApplicationProperties(
@@ -140,7 +130,7 @@ def write_edited_application_properties(
 
 
 def mount_docker(
-    input_dir: Path, testdata_dir: Path, output_dir: Path, config: ExomiserConfig
+        input_dir: Path, testdata_dir: Path, output_dir: Path, config: ExomiserConfig
 ) -> BasicDockerMountsForExomiser:
     """Create docker mounts for paths required for running Exomiser."""
     sub_output_dir = Path(output_dir).joinpath(
@@ -165,9 +155,9 @@ def mount_docker(
         f"{Path(sub_output_dir).joinpath(f'{Path(testdata_dir).name}_results{os.sep}results')}"
         f"{os.sep}:/exomiser-results"
         if version.parse(config.run.exomiser_configurations.exomiser_version)
-        < version.parse("13.2.0")
+           < version.parse("13.2.0")
         else f"{Path(sub_output_dir).joinpath(f'{Path(testdata_dir).name}_results{os.sep}results')}"
-        f"{os.sep}:/exomiser-results"
+             f"{os.sep}:/exomiser-results"
     )
     if config.run.exomiser_configurations.path_to_application_properties_config is None:
         return BasicDockerMountsForExomiser(
@@ -204,7 +194,7 @@ def add_exomiser_config_file_for_docker(config: ExomiserConfig) -> ExomiserConfi
 
 
 def add_exomiser_config_parameters_for_docker(
-    config: ExomiserConfig,
+        config: ExomiserConfig,
 ) -> ExomiserConfigParameters:
     """Add manual arguments required for application.properties."""
     configs = config.run.exomiser_configurations.application_properties_arguments
@@ -225,7 +215,7 @@ def exomiser_config_parameters(config: ExomiserConfig) -> ExomiserConfigParamete
 
 
 def run_exomiser_local(
-    input_dir: Path, testdata_dir: Path, output_dir: Path, config: ExomiserConfig
+        input_dir: Path, testdata_dir: Path, output_dir: Path, config: ExomiserConfig
 ) -> None:
     """Run Exomiser locally."""
     print("...running exomiser...")
@@ -296,7 +286,7 @@ def create_docker_run_command(config: ExomiserConfig, batch_file: Path) -> [str]
 
 
 def run_exomiser_docker(
-    input_dir: Path, testdata_dir: Path, output_dir: Path, config: ExomiserConfig
+        input_dir: Path, testdata_dir: Path, output_dir: Path, config: ExomiserConfig
 ):
     """Run Exomiser with docker."""
     print("...running exomiser...")
