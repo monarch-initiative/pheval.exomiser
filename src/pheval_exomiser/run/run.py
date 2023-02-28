@@ -156,7 +156,7 @@ def mount_docker(
         f"{os.sep}:/exomiser-results"
         if version.parse(config.run.exomiser_configurations.exomiser_version)
         < version.parse("13.2.0")
-        else f"{Path(sub_output_dir).joinpath(f'{Path(testdata_dir).name}_results{os.sep}results')}"
+        else f"{Path(sub_output_dir).joinpath(f'{Path(testdata_dir).name}_results{os.sep}exomiser_results')}"
         f"{os.sep}:/exomiser-results"
     )
     if config.run.exomiser_configurations.path_to_application_properties_config is None:
