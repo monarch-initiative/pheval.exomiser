@@ -9,7 +9,7 @@ from pheval_exomiser.config_parser import (
     ExomiserConfigRunExomiserConfigs,
     ExomiserConfigRunExomiserManualConfigs,
 )
-from pheval_exomiser.run.run import EditExomiserApplicationProperties  # mount_docker,
+from pheval_exomiser.run.run import EditExomiserApplicationProperties
 from pheval_exomiser.run.run import (
     ExomiserConfigParameters,
     add_exomiser_config_file_for_docker,
@@ -177,15 +177,6 @@ class TestEditExomiserApplicationProperties(unittest.TestCase):
         )
 
 
-# class TestMountDocker(unittest.TestCase):
-#     @classmethod
-#     def setUpClass(cls) -> None:
-#         cls.mount_docker = mount_docker(input_dir=Path("/path/to/exomiser/input/data"),
-#                                         testdata_dir=Path("/path/to/testdata"),
-#                                         output_dir=Path('/path/to/output'), config=basic_pheval_config)
-#
-#     def test_mount_docker(self):
-#         print(self.mount_docker)
 class TestAddExomiserConfigFileForDocker(unittest.TestCase):
     def test_add_exomiser_config_file_for_docker(self):
         self.assertEqual(
