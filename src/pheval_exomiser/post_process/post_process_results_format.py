@@ -197,7 +197,7 @@ def create_standardised_results(
     show_default=True,
 )
 @click.option(
-    "--phenotype-only",
+    "--phenotype-only/--variant-analysis",
     type=bool,
     default=False,
     help="Specify if Exomiser was run with phenotype-only analysis.",
