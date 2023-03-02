@@ -126,7 +126,7 @@ def create_pheval_gene_result_from_exomiser(
     return create_pheval_result(pheval_gene_result, score_order)
 
 
-def create_variant_gene_result_from_exomiser(
+def create_pheval_variant_result_from_exomiser(
     exomiser_json_result: [dict],
     score_name: str,
     score_order: str,
@@ -153,7 +153,7 @@ def create_standardised_results(
         )
         if not phenotype_only:
             output_dir.joinpath("pheval_variant_results/").mkdir(exist_ok=True, parents=True)
-            pheval_variant_result = create_variant_gene_result_from_exomiser(
+            pheval_variant_result = create_pheval_variant_result_from_exomiser(
                 exomiser_result, score_name, score_order
             )
             write_pheval_variant_result(
