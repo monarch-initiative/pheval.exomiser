@@ -272,7 +272,6 @@ class CommandsWriter:
                 + str("/exomiser-testdata-phenopacket/" + command_arguments.sample.name)
                 + " --output-file-name "
                 + f"{command_arguments.sample.stem}-exomiser"
-
             )
         except IOError:
             print("Error writing ", self.file)
