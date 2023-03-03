@@ -266,12 +266,13 @@ class CommandsWriter:
     def write_basic_docker_phenotype_only(self, command_arguments: ExomiserCommandLineArguments):
         try:
             self.file.write(
-                "--sample "
+                "--preset "
+                + "phenotype-only"
+                + " --sample "
                 + str("/exomiser-testdata-phenopacket/" + command_arguments.sample.name)
                 + " --output-file-name "
                 + f"{command_arguments.sample.stem}-exomiser"
-                + " --preset "
-                + "phenotype-only"
+
             )
         except IOError:
             print("Error writing ", self.file)
