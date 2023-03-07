@@ -24,6 +24,7 @@ docker = "^6.0.1"
 pytest = "^7.1.2"
 pylint = "^2.15.6"
 pycodestyle = "^2.10.0"
+coverage = "^6.5.0"
 
 [tool.poetry.scripts]
 pheval-exomiser = "pheval_exomiser.cli:main"
