@@ -197,7 +197,7 @@ class CommandsWriter:
                 + str(command_arguments.sample)
                 + " --output-directory "
                 + str(command_arguments.results_dir)
-                + " --output-file-name "
+                + " --output-filename "
                 + f"{command_arguments.sample.stem}-exomiser"
                 + " --preset "
                 + "phenotype-only"
@@ -230,6 +230,7 @@ class CommandsWriter:
                 + str("/exomiser-testdata-vcf/" + command_arguments.vcf_file.name)
                 + " --assembly "
                 + command_arguments.vcf_assembly
+                + " "
             )
         except IOError:
             print("Error writing ", self.file)
@@ -250,7 +251,16 @@ class CommandsWriter:
         """Write results directory for exomiser ≥13.2.0 to run."""
         try:
             self.file.write(
-                " --output-directory " + "/exomiser-results/"
+                "--output-directory " + "/exomiser-results/"
+            ) if command_arguments.results_dir is not None else None
+        except IOError:
+            print("Error writing ", self.file)
+
+    def write_docker_file_name(self, command_arguments: ExomiserCommandLineArguments) -> None:
+        """Write results directory for exomiser ≥13.2.0 to run."""
+        try:
+            self.file.write(
+                " --output-filename " + f"{command_arguments.sample.stem}-exomiser"
             ) if command_arguments.results_dir is not None else None
         except IOError:
             print("Error writing ", self.file)
@@ -266,20 +276,21 @@ class CommandsWriter:
     def write_basic_docker_phenotype_only(self, command_arguments: ExomiserCommandLineArguments):
         try:
             self.file.write(
-                "--preset "
+                " --preset "
                 + "phenotype-only"
                 + " --sample "
                 + str("/exomiser-testdata-phenopacket/" + command_arguments.sample.name)
-                + " --output-file-name "
-                + f"{command_arguments.sample.stem}-exomiser"
+                # + " --output-file-name "
+                # + f"{command_arguments.sample.stem}-exomiser"
             )
         except IOError:
             print("Error writing ", self.file)
 
     def write_phenotype_only_docker_command(self, command_arguments: ExomiserCommandLineArguments):
-        self.write_basic_docker_phenotype_only(command_arguments)
-        self.write_docker_output_options(command_arguments)
         self.write_docker_results_dir(command_arguments)
+        self.write_basic_docker_phenotype_only(command_arguments)
+        self.write_docker_file_name(command_arguments)
+        self.write_docker_output_options(command_arguments)
         self.file.write("\n")
 
     def write_docker_commands(
