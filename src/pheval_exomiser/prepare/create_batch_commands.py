@@ -18,7 +18,7 @@ class ExomiserCommandLineArguments:
     sample: Path
     vcf_file: Path or None = None
     vcf_assembly: str or None = None
-    results_dir: Path or None = None
+    raw_results_dir: Path or None = None
     phenotype_only: bool or None = None
     output_options_file: Optional[Path] = None
 
@@ -38,14 +38,14 @@ class CommandCreator:
         phenotype_only: bool,
         output_options_dir_files: list[Path] or None,
         output_options_file: Path or None,
-        results_dir: Path or None,
+        raw_results_dir: Path or None,
     ):
         self.phenopacket_path = phenopacket_path
         self.phenopacket = phenopacket
         self.phenotype_only = phenotype_only
         self.output_options_dir_files = output_options_dir_files
         self.output_options_file = output_options_file
-        self.results_dir = results_dir
+        self.results_dir = raw_results_dir
 
     def assign_output_options_file(self) -> Path or None:
         """Return the path of a single output option yaml if specified,
@@ -65,14 +65,14 @@ class CommandCreator:
             ExomiserCommandLineArguments(
                 sample=Path(self.phenopacket_path),
                 phenotype_only=self.phenotype_only,
-                results_dir=self.results_dir,
+                raw_results_dir=self.results_dir,
             )
             if output_options_file is None
             else ExomiserCommandLineArguments(
                 sample=Path(self.phenopacket_path),
                 phenotype_only=self.phenotype_only,
                 output_options_file=output_options_file,
-                results_dir=self.results_dir,
+                raw_results_dir=self.results_dir,
             )
         )
 
@@ -87,7 +87,7 @@ class CommandCreator:
                 vcf_file=Path(vcf_file_data.uri),
                 vcf_assembly=vcf_file_data.file_attributes["genomeAssembly"],
                 phenotype_only=self.phenotype_only,
-                results_dir=self.results_dir,
+                raw_results_dir=self.results_dir,
             )
             if output_options_file is None
             else ExomiserCommandLineArguments(
@@ -96,7 +96,7 @@ class CommandCreator:
                 vcf_assembly=vcf_file_data.file_attributes["genomeAssembly"],
                 output_options_file=output_options_file,
                 phenotype_only=self.phenotype_only,
-                results_dir=self.results_dir,
+                raw_results_dir=self.results_dir,
             )
         )
 
@@ -165,8 +165,8 @@ class CommandsWriter:
         """Write results directory for exomiser ≥13.2.0 to run."""
         try:
             self.file.write(
-                " --output-directory " + str(command_arguments.results_dir)
-            ) if command_arguments.results_dir is not None else None
+                " --output-directory " + str(command_arguments.raw_results_dir)
+            ) if command_arguments.raw_results_dir is not None else None
         except IOError:
             print("Error writing ", self.file)
 
@@ -196,7 +196,7 @@ class CommandsWriter:
                 "--sample "
                 + str(command_arguments.sample)
                 + " --output-directory "
-                + str(command_arguments.results_dir)
+                + str(command_arguments.raw_results_dir)
                 + " --output-filename "
                 + f"{command_arguments.sample.stem}-exomiser"
                 + " --preset "
@@ -251,7 +251,7 @@ class CommandsWriter:
         try:
             self.file.write(
                 " --output-directory " + "/exomiser-results/"
-            ) if command_arguments.results_dir is not None else None
+            ) if command_arguments.raw_results_dir is not None else None
         except IOError:
             print("Error writing ", self.file)
 

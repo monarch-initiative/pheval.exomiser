@@ -137,7 +137,7 @@ class TestCommandCreator(unittest.TestCase):
             phenotype_only=False,
             output_options_dir_files=output_options_files,
             output_options_file=None,
-            results_dir=Path("/path/to/results_dir"),
+            raw_results_dir=Path("/path/to/results_dir"),
         )
         cls.command_creator_output_options_file = CommandCreator(
             phenopacket_path=Path("/path/to/phenopacket.json"),
@@ -147,7 +147,7 @@ class TestCommandCreator(unittest.TestCase):
             output_options_file=Path(
                 "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
             ),
-            results_dir=Path("/path/to/results_dir"),
+            raw_results_dir=Path("/path/to/results_dir"),
         )
         cls.command_creator_none = CommandCreator(
             phenopacket_path=Path("/path/to/phenopacket.json"),
@@ -155,7 +155,7 @@ class TestCommandCreator(unittest.TestCase):
             phenotype_only=False,
             output_options_dir_files=None,
             output_options_file=None,
-            results_dir=Path("/path/to/results_dir"),
+            raw_results_dir=Path("/path/to/results_dir"),
         )
         cls.command_creator_phenotype_only = CommandCreator(
             phenopacket_path=Path("/path/to/phenopacket.json"),
@@ -163,7 +163,7 @@ class TestCommandCreator(unittest.TestCase):
             phenotype_only=True,
             output_options_dir_files=None,
             output_options_file=None,
-            results_dir=Path("/path/to/results_dir"),
+            raw_results_dir=Path("/path/to/results_dir"),
         )
         cls.command_creator_phenotype_only_output_options = CommandCreator(
             phenopacket_path=Path("/path/to/phenopacket.json"),
@@ -173,7 +173,7 @@ class TestCommandCreator(unittest.TestCase):
             output_options_file=Path(
                 "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
             ),
-            results_dir=Path("/path/to/results_dir"),
+            raw_results_dir=Path("/path/to/results_dir"),
         )
 
     def test_assign_output_options_file_from_dir(self):
@@ -198,7 +198,7 @@ class TestCommandCreator(unittest.TestCase):
                 sample=Path("/path/to/phenopacket.json"),
                 vcf_file=None,
                 vcf_assembly=None,
-                results_dir=Path("/path/to/results_dir"),
+                raw_results_dir=Path("/path/to/results_dir"),
                 phenotype_only=True,
             ),
         )
@@ -210,7 +210,7 @@ class TestCommandCreator(unittest.TestCase):
                 sample=Path("/path/to/phenopacket.json"),
                 vcf_file=None,
                 vcf_assembly=None,
-                results_dir=Path("/path/to/results_dir"),
+                raw_results_dir=Path("/path/to/results_dir"),
                 phenotype_only=True,
                 output_options_file=Path(
                     "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
@@ -227,7 +227,7 @@ class TestCommandCreator(unittest.TestCase):
                 sample=Path("/path/to/phenopacket.json"),
                 vcf_file=Path("/path/to/vcf_dir/test_1.vcf"),
                 vcf_assembly="GRCh37",
-                results_dir=Path("/path/to/results_dir"),
+                raw_results_dir=Path("/path/to/results_dir"),
                 phenotype_only=False,
                 output_options_file=Path(
                     "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
@@ -242,7 +242,7 @@ class TestCommandCreator(unittest.TestCase):
                 sample=Path("/path/to/phenopacket.json"),
                 vcf_file=Path("/path/to/vcf_dir/test_1.vcf"),
                 vcf_assembly="GRCh37",
-                results_dir=Path("/path/to/results_dir"),
+                raw_results_dir=Path("/path/to/results_dir"),
                 phenotype_only=False,
             ),
         )
@@ -256,7 +256,7 @@ class TestCommandCreator(unittest.TestCase):
                 sample=Path("/path/to/phenopacket.json"),
                 vcf_file=Path("/path/to/vcf_dir/test_1.vcf"),
                 vcf_assembly="GRCh37",
-                results_dir=Path("/path/to/results_dir"),
+                raw_results_dir=Path("/path/to/results_dir"),
                 phenotype_only=False,
                 output_options_file=Path(
                     "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
@@ -271,7 +271,7 @@ class TestCommandCreator(unittest.TestCase):
                 sample=Path("/path/to/phenopacket.json"),
                 vcf_file=None,
                 vcf_assembly=None,
-                results_dir=Path("/path/to/results_dir"),
+                raw_results_dir=Path("/path/to/results_dir"),
                 phenotype_only=True,
             ),
         )
