@@ -13,7 +13,7 @@ from pheval_exomiser.prepare.create_batch_commands import create_batch_file
 
 
 def prepare_batch_files(
-        testdata_dir: Path, config: ExomiserConfig, runner_input_dir: Path, runner_results_dir: Path
+        testdata_dir: Path, config: ExomiserConfig, tool_input_commands_dir: Path, runner_raw_results_dir: Path
 ) -> None:
     """Prepare the exomiser batch files"""
     print("...preparing batch files...")
@@ -30,12 +30,12 @@ def prepare_batch_files(
         vcf_dir=Path(testdata_dir).joinpath(
             [directory for directory in os.listdir(str(testdata_dir)) if "vcf" in str(directory)][0]
         ),
-        output_dir=runner_input_dir,
+        output_dir=tool_input_commands_dir,
         batch_prefix=Path(testdata_dir).name,
         max_jobs=config.run.max_jobs,
         output_options_file=None,
         output_options_dir=None,
-        results_dir=runner_results_dir,
+        results_dir=runner_raw_results_dir,
         phenotype_only=config.run.phenotype_only,
     )
 
@@ -314,12 +314,12 @@ def run_exomiser(
         output_dir: Path,
         config: ExomiserConfig,
         corpus_variant_dir: Path,
-        runner_input_dir: Path,
-        runner_results_dir: Path
+        tool_input_commands_dir: Path,
+        runner_raw_results_dir: Path
 ):
     """Run Exomiser with specified environment."""
     run_exomiser_local(
-        input_dir, testdata_dir, config, corpus_variant_dir, runner_input_dir
+        input_dir, testdata_dir, config, corpus_variant_dir, tool_input_commands_dir
     ) if config.run.environment == "local" else run_exomiser_docker(
-        input_dir, testdata_dir, output_dir, config, runner_input_dir, runner_results_dir
+        input_dir, testdata_dir, output_dir, config, tool_input_commands_dir, runner_raw_results_dir
     )
