@@ -557,7 +557,7 @@ def prepare_exomiser_batch(
     output_options_file: Path = None,
 ):
     """Generate Exomiser batch files."""
-    Path(output_dir).joinpath("runner_input_commands").mkdir(exist_ok=True)
+    Path(output_dir).joinpath("tool_input_commands").mkdir(exist_ok=True)
     create_batch_file(
         environment,
         analysis_yaml,
