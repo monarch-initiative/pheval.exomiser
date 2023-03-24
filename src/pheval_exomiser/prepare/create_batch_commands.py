@@ -165,7 +165,7 @@ class CommandsWriter:
         """Write results directory for exomiser ≥13.2.0 to run."""
         try:
             self.file.write(
-                " --output-directory " + str(command_arguments.results_dir) + "\n"
+                " --output-directory " + str(command_arguments.results_dir)
             ) if command_arguments.results_dir is not None else None
         except IOError:
             print("Error writing ", self.file)
@@ -174,7 +174,7 @@ class CommandsWriter:
         """Write a command out for exomiser ≤13.1.0 to run - including output option file specified."""
         try:
             self.file.write(
-                " --output " + str(command_arguments.output_options_file) + "\n"
+                " --output " + str(command_arguments.output_options_file)
             ) if command_arguments.output_options_file is not None else None
         except IOError:
             print("Error writing ", self.file)
@@ -230,7 +230,6 @@ class CommandsWriter:
                 + str("/exomiser-testdata-vcf/" + command_arguments.vcf_file.name)
                 + " --assembly "
                 + command_arguments.vcf_assembly
-                + " "
             )
         except IOError:
             print("Error writing ", self.file)
@@ -251,16 +250,7 @@ class CommandsWriter:
         """Write results directory for exomiser ≥13.2.0 to run."""
         try:
             self.file.write(
-                "--output-directory " + "/exomiser-results/"
-            ) if command_arguments.results_dir is not None else None
-        except IOError:
-            print("Error writing ", self.file)
-
-    def write_docker_file_name(self, command_arguments: ExomiserCommandLineArguments) -> None:
-        """Write results directory for exomiser ≥13.2.0 to run."""
-        try:
-            self.file.write(
-                " --output-filename " + f"{command_arguments.sample.stem}-exomiser"
+                " --output-directory " + "/exomiser-results/"
             ) if command_arguments.results_dir is not None else None
         except IOError:
             print("Error writing ", self.file)
@@ -276,20 +266,19 @@ class CommandsWriter:
     def write_basic_docker_phenotype_only(self, command_arguments: ExomiserCommandLineArguments):
         try:
             self.file.write(
-                " --preset "
-                + "phenotype-only"
-                + " --sample "
+                "--sample "
                 + str("/exomiser-testdata-phenopacket/" + command_arguments.sample.name)
-                # + " --output-file-name "
-                # + f"{command_arguments.sample.stem}-exomiser"
+                + " --preset "
+                + "phenotype-only"
+                + " --output-filename "
+                + f"{command_arguments.sample.stem}-exomiser"
             )
         except IOError:
             print("Error writing ", self.file)
 
     def write_phenotype_only_docker_command(self, command_arguments: ExomiserCommandLineArguments):
-        self.write_docker_results_dir(command_arguments)
         self.write_basic_docker_phenotype_only(command_arguments)
-        self.write_docker_file_name(command_arguments)
+        self.write_docker_results_dir(command_arguments)
         self.write_docker_output_options(command_arguments)
         self.file.write("\n")
 
@@ -426,7 +415,6 @@ def create_batch_file(
     output_options_file: Path = None,
 ) -> None:
     """Create Exomiser batch files."""
-    Path(output_dir).joinpath("exomiser_batch_files").mkdir(exist_ok=True)
     command_arguments = create_command_arguments(
         phenopacket_dir,
         phenotype_only,
@@ -440,13 +428,13 @@ def create_batch_file(
             analysis,
             command_arguments,
             phenotype_only,
-            output_dir.joinpath("exomiser_batch_files/"),
+            output_dir,
             batch_prefix,
         ).write_all_commands() if max_jobs == 0 else BatchFileWriter(
             analysis,
             command_arguments,
             phenotype_only,
-            output_dir.joinpath("exomiser_batch_files/"),
+            output_dir,
             batch_prefix,
         ).create_split_batch_files(
             max_jobs
@@ -456,13 +444,13 @@ def create_batch_file(
             analysis,
             command_arguments,
             phenotype_only,
-            output_dir.joinpath("exomiser_batch_files/"),
+            output_dir,
             batch_prefix,
         ).write_all_docker_commands() if max_jobs == 0 else BatchFileWriter(
             analysis,
             command_arguments,
             phenotype_only,
-            output_dir.joinpath("exomiser_batch_files/"),
+            output_dir,
             batch_prefix,
         ).create_docker_split_batch_files(
             max_jobs
@@ -569,6 +557,7 @@ def prepare_exomiser_batch(
     output_options_file: Path = None,
 ):
     """Generate Exomiser batch files."""
+    Path(output_dir).joinpath("runner_input_commands").mkdir(exist_ok=True)
     create_batch_file(
         environment,
         analysis_yaml,
