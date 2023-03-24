@@ -29,8 +29,10 @@ class ExomiserPhEvalRunner(PhEvalRunner):
         print("running with exomiser")
         config = parse_exomiser_config(self.config_file)
         prepare_batch_files(
-            config=config, testdata_dir=self.testdata_dir, tool_input_commands_dir=self.tool_input_commands_dir,
-            raw_results_dir=self.raw_results_dir
+            config=config,
+            testdata_dir=self.testdata_dir,
+            tool_input_commands_dir=self.tool_input_commands_dir,
+            raw_results_dir=self.raw_results_dir,
         )
         run_exomiser(
             input_dir=self.input_dir,
@@ -38,13 +40,13 @@ class ExomiserPhEvalRunner(PhEvalRunner):
             config=config,
             output_dir=self.output_dir,
             tool_input_commands_dir=self.tool_input_commands_dir,
-            raw_results_dir=self.raw_results_dir
+            raw_results_dir=self.raw_results_dir,
         )
 
     def post_process(self):
         """post_process"""
         print("post processing")
         config = parse_exomiser_config(self.config_file)
-        post_process_result_format(config=config, runner_raw_results_dir=self.raw_results_dir,
-                                   runner=self)
-
+        post_process_result_format(
+            config=config, runner_raw_results_dir=self.raw_results_dir, runner=self
+        )
