@@ -212,5 +212,6 @@ def post_process_exomiser_results(
     output_dir: Path, results_dir: Path, score_name: str, score_order: str, phenotype_only: bool
 ):
     """Post-process Exomiser json results into PhEval gene and variant outputs."""
-    output_dir.mkdir(exist_ok=True, parents=True)
+    output_dir.joinpath("pheval_gene_results").mkdir(parents=True, exist_ok=True)
+    output_dir.joinpath("pheval_variant_results").mkdir(parents=True, exist_ok=True) if not phenotype_only else None
     create_standardised_results(results_dir, output_dir, score_name, score_order, phenotype_only)
