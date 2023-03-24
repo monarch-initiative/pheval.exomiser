@@ -1134,13 +1134,14 @@ pandas = ">=1.5.1"
 phenopackets = "^2.0.2"
 plotly = "^5.13.0"
 pyaml = "^21.10.1"
+pyserde = "^0.9.8"
 tqdm = ">=4.64.1"
 
 [package.source]
 type = "git"
 url = "https://github.com/monarch-initiative/pheval.git"
 reference = "HEAD"
-resolved_reference = "a1e31cd4ed5fddcc7af9f284c86f22efe65e0cb3"
+resolved_reference = "96bcbf111ceb5e417d185ce9b72853d7c642d143"
 
 [[package]]
 name = "platformdirs"
@@ -1345,7 +1346,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "pyserde"
-version = "0.9.7"
+version = "0.9.8"
 description = "Yet another serialization library on top of dataclasses"
 category = "main"
 optional = false
@@ -3117,8 +3118,8 @@ pyrsistent = [
     {file = "pyrsistent-0.19.3.tar.gz", hash = "sha256:1a2994773706bbb4995c31a97bc94f1418314923bd1048c6d964837040376440"},
 ]
 pyserde = [
-    {file = "pyserde-0.9.7-py3-none-any.whl", hash = "sha256:dae7c92793d4306577b84990b866db7cee8dd5d7a22f3afd174f7d7b5116a38b"},
-    {file = "pyserde-0.9.7.tar.gz", hash = "sha256:76d8c85ecaac943ee6f0b5104e6bc977afb79a0f3d17343d279b62530b7849db"},
+    {file = "pyserde-0.9.8-py3-none-any.whl", hash = "sha256:daf51935129301af0f639d2bcf016022acb4ce4c473667c23b8cbbd1a1a15bb9"},
+    {file = "pyserde-0.9.8.tar.gz", hash = "sha256:9d695aed4d5d0f98674ae371d8b25e60e1f4fa67a01a72b4f24618e4f0a0ceb6"},
 ]
 pyshex = [
     {file = "PyShEx-0.8.1-py3-none-any.whl", hash = "sha256:6da1b10123e191abf8dcb6bf3e54aa3e1fcf771df5d1a0ed453217c8900c8e6a"},
