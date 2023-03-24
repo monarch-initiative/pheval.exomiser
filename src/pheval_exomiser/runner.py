@@ -47,6 +47,4 @@ class ExomiserPhEvalRunner(PhEvalRunner):
         """post_process"""
         print("post processing")
         config = parse_exomiser_config(self.config_file)
-        post_process_result_format(
-            config=config, raw_results_dir=self.raw_results_dir, runner=self
-        )
+        post_process_result_format(config=config, raw_results_dir=self.raw_results_dir, runner=self)
