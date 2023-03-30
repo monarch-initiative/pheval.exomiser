@@ -180,7 +180,7 @@ class TestAddExomiserConfigFileForDocker(unittest.TestCase):
         self.assertEqual(
             add_exomiser_config_file_for_docker(basic_pheval_config),
             ExomiserConfigParameters(
-                application_properties_path=Path("/exomiser/exomiser-cli-13.1.0"),
+                application_properties_path=Path("/opt/exomiser/exomiser-cli-13.1.0"),
                 exomiser_phenotype_version=None,
                 exomiser_hg19_version=None,
                 exomiser_hg38_version=None,
