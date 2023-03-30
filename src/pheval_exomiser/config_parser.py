@@ -26,6 +26,7 @@ class ExomiserConfigRunExomiserConfigs:
 @dataclass
 class ExomiserConfigRun:
     environment: str
+    phenotype_only: bool
     path_to_exomiser_software_directory: Path
     path_to_analysis_yaml: Path
     exomiser_configurations: ExomiserConfigRunExomiserConfigs
