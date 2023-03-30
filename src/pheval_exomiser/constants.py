@@ -1,3 +1,4 @@
+EXOMISER_FILE_SUFFIX = "-exomiser"
 PHENOPACKET_TARGET_DIRECTORY_DOCKER = "/exomiser-testdata-phenopacket/"
 RAW_RESULTS_TARGET_DIRECTORY_DOCKER = "/exomiser-results/"
 OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER = "/exomiser-testdata-output-options/"
