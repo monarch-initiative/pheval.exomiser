@@ -1,1 +1,0 @@
-EXOMISER_FILE_SUFFIX = "-exomiser"
