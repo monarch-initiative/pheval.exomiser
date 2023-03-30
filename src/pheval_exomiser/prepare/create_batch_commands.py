@@ -10,6 +10,11 @@ from pheval.prepare.custom_exceptions import MutuallyExclusiveOptionError
 from pheval.utils.file_utils import all_files, files_with_suffix, obtain_closest_file_name
 from pheval.utils.phenopacket_utils import PhenopacketUtil, phenopacket_reader
 
+from pheval_exomiser.constants import (
+    PHENOPACKET_TARGET_DIRECTORY_DOCKER, EXOMISER_YAML_TARGET_DIRECTORY_DOCKER,
+    VCF_TARGET_DIRECTORY_DOCKER, OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER, RAW_RESULTS_TARGET_DIRECTORY_DOCKER
+)
+
 
 @dataclass
 class ExomiserCommandLineArguments:
@@ -223,11 +228,11 @@ class CommandsWriter:
         try:
             self.file.write(
                 "--analysis "
-                + str("/exomiser-yaml-template/" + Path(analysis_yaml).name)
+                + str(EXOMISER_YAML_TARGET_DIRECTORY_DOCKER + Path(analysis_yaml).name)
                 + " --sample "
-                + str("/exomiser-testdata-phenopacket/" + command_arguments.sample.name)
+                + str(PHENOPACKET_TARGET_DIRECTORY_DOCKER + command_arguments.sample.name)
                 + " --vcf "
-                + str("/exomiser-testdata-vcf/" + command_arguments.vcf_file.name)
+                + str(VCF_TARGET_DIRECTORY_DOCKER + command_arguments.vcf_file.name)
                 + " --assembly "
                 + command_arguments.vcf_assembly
             )
@@ -239,7 +244,7 @@ class CommandsWriter:
             self.file.write(
                 " --output "
                 + str(
-                    "/exomiser-testdata-output-options/"
+                    OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER
                     + command_arguments.output_options_file.name
                 )
             ) if command_arguments.output_options_file is not None else None
@@ -250,7 +255,7 @@ class CommandsWriter:
         """Write results directory for exomiser ≥13.2.0 to run."""
         try:
             self.file.write(
-                " --output-directory " + "/exomiser-results/"
+                " --output-directory " + RAW_RESULTS_TARGET_DIRECTORY_DOCKER
             ) if command_arguments.raw_results_dir is not None else None
         except IOError:
             print("Error writing ", self.file)
@@ -267,7 +272,7 @@ class CommandsWriter:
         try:
             self.file.write(
                 "--sample "
-                + str("/exomiser-testdata-phenopacket/" + command_arguments.sample.name)
+                + str(PHENOPACKET_TARGET_DIRECTORY_DOCKER + command_arguments.sample.name)
                 + " --preset "
                 + "phenotype-only"
                 + " --output-filename "
