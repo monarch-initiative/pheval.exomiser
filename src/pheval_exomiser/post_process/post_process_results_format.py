@@ -15,6 +15,8 @@ from pheval.post_processing.post_processing import (
 from pheval.runners.runner import PhEvalRunner
 from pheval.utils.file_utils import files_with_suffix
 
+from pheval_exomiser.constants import EXOMISER_FILE_SUFFIX
+
 
 def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
     """Load Exomiser json result."""
@@ -26,7 +28,7 @@ def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
 
 def trim_exomiser_result_filename(exomiser_result_path: Path) -> Path:
     """Trim suffix appended to Exomiser JSON result path."""
-    return Path(str(exomiser_result_path).replace("-exomiser", ""))
+    return Path(str(exomiser_result_path).replace(EXOMISER_FILE_SUFFIX, ""))
 
 
 class PhEvalGeneResultFromExomiserJsonCreator:
