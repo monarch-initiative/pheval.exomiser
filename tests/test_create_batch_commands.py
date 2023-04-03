@@ -132,6 +132,7 @@ class TestCommandCreator(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.command_creator_output_options_dir = CommandCreator(
+            environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
             phenotype_only=False,
@@ -140,6 +141,7 @@ class TestCommandCreator(unittest.TestCase):
             raw_results_dir=Path("/path/to/results_dir"),
         )
         cls.command_creator_output_options_file = CommandCreator(
+            environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
             phenotype_only=False,
@@ -150,6 +152,7 @@ class TestCommandCreator(unittest.TestCase):
             raw_results_dir=Path("/path/to/results_dir"),
         )
         cls.command_creator_none = CommandCreator(
+            environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
             phenotype_only=False,
@@ -158,6 +161,7 @@ class TestCommandCreator(unittest.TestCase):
             raw_results_dir=Path("/path/to/results_dir"),
         )
         cls.command_creator_phenotype_only = CommandCreator(
+            environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
             phenotype_only=True,
@@ -166,6 +170,7 @@ class TestCommandCreator(unittest.TestCase):
             raw_results_dir=Path("/path/to/results_dir"),
         )
         cls.command_creator_phenotype_only_output_options = CommandCreator(
+            environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
             phenotype_only=True,
