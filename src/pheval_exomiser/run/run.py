@@ -206,6 +206,7 @@ def run_exomiser_local(
     config: ExomiserConfig,
     output_dir: Path,
     tool_input_commands_dir: Path,
+    exomiser_version: str,
 ) -> None:
     """Run Exomiser locally."""
     print("...running exomiser...")
@@ -237,7 +238,7 @@ def run_exomiser_local(
             ],
             shell=False,
         )
-    if version.parse(config.run.exomiser_configurations.exomiser_version) < version.parse("13.1.0"):
+    if version.parse(exomiser_version) < version.parse("13.1.0"):
         os.rename(
             f"{output_dir}/results",
             output_dir.joinpath("raw_results"),
@@ -270,6 +271,7 @@ def run_exomiser_docker(
     config: ExomiserConfig,
     tool_input_commands_dir: Path,
     raw_results_dir: Path,
+    exomiser_version: str,
 ):
     """Run Exomiser with docker."""
     print("...running exomiser...")
@@ -295,7 +297,7 @@ def run_exomiser_docker(
             docker_mounts.raw_results_dir,
         ]
         container = client.containers.run(
-            f"exomiser/exomiser-cli:{config.run.exomiser_configurations.exomiser_version}",
+            f"exomiser/exomiser-cli:{exomiser_version}",
             " ".join(docker_command),
             volumes=[x for x in vol if x is not None],
             detach=True,
@@ -312,10 +314,11 @@ def run_exomiser(
     output_dir: Path,
     tool_input_commands_dir: Path,
     raw_results_dir: Path,
+    exomiser_version: str,
 ):
     """Run Exomiser with specified environment."""
     run_exomiser_local(
-        input_dir, testdata_dir, config, output_dir, tool_input_commands_dir
+        input_dir, testdata_dir, config, output_dir, tool_input_commands_dir, exomiser_version
     ) if config.run.environment == "local" else run_exomiser_docker(
-        input_dir, testdata_dir, config, tool_input_commands_dir, raw_results_dir
+        input_dir, testdata_dir, config, tool_input_commands_dir, raw_results_dir, exomiser_version
     )
