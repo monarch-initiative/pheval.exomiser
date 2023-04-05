@@ -62,64 +62,6 @@ class ExomiserConfigParameters:
     exomiser_hg38_version: str = None
 
 
-def read_application_properties(config: ExomiserConfig) -> [str]:
-    """Return contents of Exomiser application.properties."""
-    with open(
-        config.run.exomiser_configurations.path_to_application_properties_config
-    ) as exomiser_config:
-        exomiser_config_lines = exomiser_config.readlines()
-    exomiser_config.close()
-    return exomiser_config_lines
-
-
-class EditExomiserApplicationProperties:
-    def __init__(self, config: ExomiserConfig, input_dir: Path, exomiser_config_contents: [str]):
-        self.config = config
-        self.input_dir = input_dir
-        self.exomiser_config_contents = exomiser_config_contents
-
-    def edit_data_path_for_local_run(self):
-        """Edit input data path for running locally."""
-        return [
-            line.replace(line, f"exomiser.data-directory={self.input_dir}\n")
-            if line.startswith("exomiser.data-directory=")
-            else line
-            for line in self.exomiser_config_contents
-        ]
-
-    def edit_data_path_for_docker_run(self):
-        """Edit input data path for running with docker."""
-        return [
-            line.replace(line, "exomiser.data-directory=/exomiser-data\n")
-            if line.startswith("exomiser.data-directory=")
-            else line
-            for line in self.exomiser_config_contents
-        ]
-
-    def edit_data_path(self) -> [str]:
-        """Return edited contents of application.properties."""
-        return (
-            self.edit_data_path_for_local_run()
-            if self.config.run.environment == "local"
-            else self.edit_data_path_for_docker_run()
-        )
-
-
-def write_edited_application_properties(
-    config: ExomiserConfig, input_dir: Path, exomiser_config_contents: [str]
-) -> None:
-    """Write application.properties with edited contents."""
-    with open(
-        config.run.exomiser_configurations.path_to_application_properties_config, "w"
-    ) as exomiser_config:
-        exomiser_config.writelines(
-            EditExomiserApplicationProperties(
-                config, input_dir, exomiser_config_contents
-            ).edit_data_path()
-        )
-    exomiser_config.close()
-
-
 def mount_docker(
     input_dir: Path,
     testdata_dir: Path,
@@ -209,7 +151,6 @@ def run_exomiser_local(
 ) -> None:
     """Run Exomiser locally."""
     print("...running exomiser...")
-    write_edited_application_properties(config, input_dir, read_application_properties(config))
     os.chdir(output_dir)
     batch_files = [
         file
@@ -233,7 +174,7 @@ def run_exomiser_local(
                 exomiser_jar_file_path,
                 "--batch",
                 file,
-                f"--spring.config.location={config.run.exomiser_configurations.path_to_application_properties_config}",
+                f"--spring.config.location={Path(input_dir).joinpath('application.properties')}",
             ],
             shell=False,
         )
@@ -274,7 +215,6 @@ def run_exomiser_docker(
     """Run Exomiser with docker."""
     print("...running exomiser...")
     client = docker.from_env()
-    write_edited_application_properties(config, input_dir, read_application_properties(config))
     batch_files = [
         file
         for file in all_files(tool_input_commands_dir)
