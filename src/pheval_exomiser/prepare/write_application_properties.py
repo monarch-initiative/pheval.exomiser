@@ -1,3 +1,4 @@
+import inspect
 from pathlib import Path
 
 from pheval_exomiser.prepare.tool_specific_configuration_options import ExomiserConfigurations
@@ -127,20 +128,8 @@ class ExomiserConfigurationFileWriter:
 
     def write_application_properties(self) -> None:
         """Write the application.properties file."""
-        self.write_remm_version()
-        self.write_cadd_version()
-        self.write_exomiser_data_directory()
-        self.write_exomiser_phenotype_data_version()
-        self.write_exomiser_hg19_data_version()
-        self.write_exomiser_hg19_cadd_snv_path()
-        self.write_exomiser_hg19_cadd_indel_path()
-        self.write_exomiser_hg19_remm_path()
-        self.write_exomiser_hg19_local_frequency_path()
-        self.write_hg19_white_list_path()
-        self.write_exomiser_hg38_data_version()
-        self.write_exomiser_hg38_cadd_snv_path()
-        self.write_exomiser_hg38_cadd_indel_path()
-        self.write_exomiser_hg38_remm_path()
-        self.write_exomiser_hg38_local_frequency_path()
-        self.write_hg38_white_list_path()
+        methods = inspect.getmembers(self, predicate=inspect.ismethod)
+        for name, method in methods:
+            if name != 'write_application_properties' and name != '__init__':
+                method()
         self.application_properties.close()
