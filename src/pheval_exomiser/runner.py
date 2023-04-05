@@ -25,9 +25,12 @@ class ExomiserPhEvalRunner(PhEvalRunner):
     def prepare(self):
         """prepare"""
         print("preparing")
-        ExomiserConfigurationFileWriter(input_dir=self.input_dir,
-                                        configurations=ExomiserConfigurations(
-                                            **self.input_dir_config.tool_specific_configuration_options)).write_application_properties()
+        ExomiserConfigurationFileWriter(
+            input_dir=self.input_dir,
+            configurations=ExomiserConfigurations(
+                **self.input_dir_config.tool_specific_configuration_options
+            ),
+        ).write_application_properties()
 
     def run(self):
         """run"""
