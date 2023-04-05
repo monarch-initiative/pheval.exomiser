@@ -130,6 +130,6 @@ class ExomiserConfigurationFileWriter:
         """Write the application.properties file."""
         methods = inspect.getmembers(self, predicate=inspect.ismethod)
         for name, method in methods:
-            if name != 'write_application_properties' and name != '__init__':
+            if name != "write_application_properties" and name != "__init__":
                 method()
         self.application_properties.close()
