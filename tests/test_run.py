@@ -10,7 +10,6 @@ from pheval_exomiser.config_parser import (
     ExomiserConfigRunExomiserManualConfigs,
 )
 from pheval_exomiser.run.run import (
-    EditExomiserApplicationProperties,
     ExomiserConfigParameters,
     add_exomiser_config_file_for_docker,
     create_docker_run_command,
@@ -111,70 +110,6 @@ basic_pheval_config = ExomiserConfig(
     post_process=ExomiserConfigPostProcess(score_name="combinedScore", score_order="descending"),
 )
 
-
-class TestEditExomiserApplicationProperties(unittest.TestCase):
-    def setUp(self) -> None:
-        self.contents_to_edit_path = EditExomiserApplicationProperties(
-            basic_pheval_config,
-            Path("/path/to/exomiser/input/data"),
-            exomiser_application_properties,
-        )
-
-    def test_edit_data_path_for_local_run(self):
-        self.assertEqual(
-            [
-                line
-                for line in self.contents_to_edit_path.edit_data_path_for_local_run()
-                if line.startswith("exomiser.data-directory=")
-            ],
-            ["exomiser.data-directory=/path/to/exomiser/input/data\n"],
-        )
-        self.assertNotEqual(
-            [
-                line
-                for line in self.contents_to_edit_path.edit_data_path_for_local_run()
-                if line.startswith("exomiser.data-directory=")
-            ],
-            ["exomiser.data-directory=/fake/path/to/data\n"],
-        )
-
-    def test_edit_data_path_for_docker_run(self):
-        self.assertEqual(
-            [
-                line
-                for line in self.contents_to_edit_path.edit_data_path_for_docker_run()
-                if line.startswith("exomiser.data-directory=")
-            ],
-            ["exomiser.data-directory=/exomiser-data\n"],
-        )
-        self.assertNotEqual(
-            [
-                line
-                for line in self.contents_to_edit_path.edit_data_path_for_docker_run()
-                if line.startswith("exomiser.data-directory=")
-            ],
-            ["exomiser.data-directory=/fake/path/to/data\n"],
-        )
-
-    def test_edit_data_path(self):
-        self.assertEqual(
-            [
-                line
-                for line in self.contents_to_edit_path.edit_data_path()
-                if line.startswith("exomiser.data-directory=")
-            ],
-            ["exomiser.data-directory=/path/to/exomiser/input/data\n"],
-        )
-        copied_contents = copy(self.contents_to_edit_path)
-        copied_contents.config.run.environment = "docker"
-        self.assertEqual(
-            [
-                line
-                for line in copied_contents.edit_data_path()
-                if line.startswith("exomiser.data-directory=")
-            ],
-            ["exomiser.data-directory=/exomiser-data\n"],
-        )
 
 
 class TestAddExomiserConfigFileForDocker(unittest.TestCase):
