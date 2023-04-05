@@ -1,5 +1,4 @@
 import unittest
-from copy import copy
 from pathlib import Path
 
 from pheval_exomiser.config_parser import (
@@ -109,7 +108,6 @@ basic_pheval_config = ExomiserConfig(
     ),
     post_process=ExomiserConfigPostProcess(score_name="combinedScore", score_order="descending"),
 )
-
 
 
 class TestAddExomiserConfigFileForDocker(unittest.TestCase):
