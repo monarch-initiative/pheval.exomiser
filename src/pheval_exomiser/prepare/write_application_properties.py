@@ -1,6 +1,7 @@
 import inspect
 from pathlib import Path
 
+from pheval_exomiser.constants import EXOMISER_DATA_DIRECTORY_TARGET_DOCKER
 from pheval_exomiser.prepare.tool_specific_configuration_options import ExomiserConfigurations
 
 
