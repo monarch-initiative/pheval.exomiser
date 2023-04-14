@@ -117,7 +117,7 @@ class PhEvalVariantResultFromExomiserJsonCreator:
 
 
 def create_standardised_results(
-        results_dir: Path, runner: PhEvalRunner, score_name: str, sort_order: str, phenotype_only: bool
+    results_dir: Path, runner: PhEvalRunner, score_name: str, sort_order: str, phenotype_only: bool
 ) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
     for result in files_with_suffix(results_dir, ".json"):
@@ -125,18 +125,22 @@ def create_standardised_results(
         pheval_gene_requirements = PhEvalGeneResultFromExomiserJsonCreator(
             exomiser_result, score_name
         ).extract_pheval_gene_requirements()
-        generate_pheval_result(pheval_result=pheval_gene_requirements,
-                               sort_order_str=sort_order,
-                               output_dir=results_dir,
-                               tool_result_path=runner.output_dir)
+        generate_pheval_result(
+            pheval_result=pheval_gene_requirements,
+            sort_order_str=sort_order,
+            output_dir=results_dir,
+            tool_result_path=runner.output_dir,
+        )
         if not phenotype_only:
             pheval_variant_requirements = PhEvalVariantResultFromExomiserJsonCreator(
                 exomiser_result, score_name
             ).extract_pheval_variant_requirements()
-            generate_pheval_result(pheval_result=pheval_variant_requirements,
-                                   sort_order_str=sort_order,
-                                   output_dir=results_dir,
-                                   tool_result_path=runner.output_dir)
+            generate_pheval_result(
+                pheval_result=pheval_variant_requirements,
+                sort_order_str=sort_order,
+                output_dir=results_dir,
+                tool_result_path=runner.output_dir,
+            )
 
 
 @click.command()
@@ -181,7 +185,7 @@ def create_standardised_results(
     help="Specify if Exomiser was run with phenotype-only analysis.",
 )
 def post_process_exomiser_results(
-        output_dir: Path, results_dir: Path, score_name: str, sort_order: str, phenotype_only: bool
+    output_dir: Path, results_dir: Path, score_name: str, sort_order: str, phenotype_only: bool
 ):
     """Post-process Exomiser json results into PhEval gene and variant outputs."""
     output_dir.joinpath("pheval_gene_results").mkdir(parents=True, exist_ok=True)
