@@ -118,30 +118,6 @@ class PhEvalVariantResultFromExomiserJsonCreator:
         return simplified_exomiser_result
 
 
-def create_pheval_gene_result_from_exomiser(
-        exomiser_json_result: [dict],
-        score_name: str,
-        score_order: str,
-) -> [RankedPhEvalGeneResult]:
-    """Create ranked PhEval gene result from Exomiser json."""
-    pheval_gene_result = PhEvalGeneResultFromExomiserJsonCreator(
-        exomiser_json_result, score_name
-    ).extract_pheval_gene_requirements()
-    return create_pheval_result(pheval_gene_result, score_order)
-
-
-def create_pheval_variant_result_from_exomiser(
-        exomiser_json_result: [dict],
-        score_name: str,
-        score_order: str,
-) -> [RankedPhEvalVariantResult]:
-    """Create ranked PhEval variant result from Exomiser json."""
-    pheval_variant_result = PhEvalVariantResultFromExomiserJsonCreator(
-        exomiser_json_result, score_name
-    ).extract_pheval_variant_requirements()
-    return create_pheval_result(pheval_variant_result, score_order)
-
-
 def create_standardised_results(
         results_dir: Path, runner: PhEvalRunner, score_name: str, score_order: str, phenotype_only: bool
 ) -> None:
