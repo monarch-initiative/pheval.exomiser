@@ -6,8 +6,6 @@ import click
 from pheval.post_processing.post_processing import (
     PhEvalGeneResult,
     PhEvalVariantResult,
-    RankedPhEvalGeneResult,
-    RankedPhEvalVariantResult,
     generate_pheval_result,
 )
 from pheval.runners.runner import PhEvalRunner
