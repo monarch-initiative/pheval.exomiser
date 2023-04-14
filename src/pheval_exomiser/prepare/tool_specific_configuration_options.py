@@ -24,6 +24,7 @@ class ExomiserConfigurations:
         phenotype_data_version (str): Data version of the Exomiser phenotype data
         cache_caffeine_spec (int): Cache limit
     """
+
     environment: str
     analysis_configuration_file: Path
     remm_version: str
