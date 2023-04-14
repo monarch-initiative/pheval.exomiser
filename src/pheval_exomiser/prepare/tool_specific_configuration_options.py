@@ -5,7 +5,8 @@ from pathlib import Path
 @dataclass
 class ExomiserConfigurations:
     """
-    Class for defining the Exomiser configurations in tool_specific_configurations field within the input_dir config.yaml
+    Class for defining the Exomiser configurations in tool_specific_configurations field,
+    within the input_dir config.yaml
     Args:
         environment (str): Environment to run Exomiser, i.e., local/docker
         analysis_configuration_file (Path): The file name of the analysis configuration file located in the input_dir
