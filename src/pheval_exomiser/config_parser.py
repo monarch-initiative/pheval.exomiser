@@ -37,7 +37,7 @@ class ExomiserConfigRun:
 @dataclass
 class ExomiserConfigPostProcess:
     score_name: str
-    score_order: str
+    sort_order: str
 
 
 @serde
