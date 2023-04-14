@@ -10,6 +10,13 @@ from pheval.prepare.custom_exceptions import MutuallyExclusiveOptionError
 from pheval.utils.file_utils import all_files, files_with_suffix, obtain_closest_file_name
 from pheval.utils.phenopacket_utils import PhenopacketUtil, phenopacket_reader
 
+from pheval_exomiser.constants import (
+    OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER,
+    PHENOPACKET_TARGET_DIRECTORY_DOCKER,
+    RAW_RESULTS_TARGET_DIRECTORY_DOCKER,
+    VCF_TARGET_DIRECTORY_DOCKER,
+)
+
 
 @dataclass
 class ExomiserCommandLineArguments:
