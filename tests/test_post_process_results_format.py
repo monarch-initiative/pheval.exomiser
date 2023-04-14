@@ -1,9 +1,6 @@
 import unittest
 
-from pheval.post_processing.post_processing import (
-    PhEvalGeneResult,
-    PhEvalVariantResult,
-)
+from pheval.post_processing.post_processing import PhEvalGeneResult, PhEvalVariantResult
 
 from pheval_exomiser.post_process.post_process_results_format import (
     PhEvalGeneResultFromExomiserJsonCreator,
