@@ -128,8 +128,8 @@ def create_standardised_results(
         generate_pheval_result(
             pheval_result=pheval_gene_requirements,
             sort_order_str=sort_order,
-            output_dir=results_dir,
-            tool_result_path=runner.output_dir,
+            output_dir=runner.output_dir,
+            tool_result_path=result,
         )
         if not phenotype_only:
             pheval_variant_requirements = PhEvalVariantResultFromExomiserJsonCreator(
@@ -138,8 +138,8 @@ def create_standardised_results(
             generate_pheval_result(
                 pheval_result=pheval_variant_requirements,
                 sort_order_str=sort_order,
-                output_dir=results_dir,
-                tool_result_path=runner.output_dir,
+                output_dir=runner.output_dir,
+                tool_result_path=result,
             )
 
 
