@@ -10,10 +10,10 @@ from pheval.utils.file_utils import all_files
 
 from pheval_exomiser.config_parser import ExomiserConfig
 from pheval_exomiser.constants import (
-    EXOMISER_CONFIG_TARGET_DIRECTORY,
+    EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER,
     EXOMISER_DATA_DIRECTORY_TARGET_DOCKER,
     EXOMISER_YAML_TARGET_DIRECTORY_DOCKER,
-    INPUT_COMMANDS_TARGET_DIRECTORY,
+    INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER,
     PHENOPACKET_TARGET_DIRECTORY_DOCKER,
     RAW_RESULTS_TARGET_DIRECTORY_DOCKER,
     VCF_TARGET_DIRECTORY_DOCKER,
@@ -151,7 +151,7 @@ def mount_docker(
         else None
     )
     exomiser_yaml = f"{config.run.path_to_analysis_yaml.parents[0]}{os.sep}:{EXOMISER_YAML_TARGET_DIRECTORY_DOCKER}"
-    batch_file_path = f"{tool_input_commands_dir}/:{INPUT_COMMANDS_TARGET_DIRECTORY}"
+    batch_file_path = f"{tool_input_commands_dir}/:{INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER}"
     exomiser_data_dir = f"{input_dir}{os.sep}:{EXOMISER_DATA_DIRECTORY_TARGET_DOCKER}"
     results_dir = f"{raw_results_dir}/:{RAW_RESULTS_TARGET_DIRECTORY_DOCKER}"
     if config.run.exomiser_configurations.path_to_application_properties_config is None:
@@ -166,7 +166,7 @@ def mount_docker(
     else:
         exomiser_config = (
             f"{config.run.exomiser_configurations.path_to_application_properties_config.parents[0]}{os.sep}"
-            f":{EXOMISER_CONFIG_TARGET_DIRECTORY}"
+            f":{EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}"
         )
         return BasicDockerMountsForExomiser(
             phenopacket_test_data=phenopacket_test_data,
@@ -268,8 +268,8 @@ def create_docker_run_command(config: ExomiserConfig, batch_file: Path) -> [str]
     else:
         return [
             "--batch",
-            f"{INPUT_COMMANDS_TARGET_DIRECTORY}" + batch_file.name,
-            f"--spring.config.location={EXOMISER_CONFIG_TARGET_DIRECTORY}application.properties",
+            f"{INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER}" + batch_file.name,
+            f"--spring.config.location={EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}application.properties",
         ]
 
 
