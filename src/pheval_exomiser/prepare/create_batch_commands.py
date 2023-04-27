@@ -78,7 +78,9 @@ class CommandCreator:
             return ExomiserCommandLineArguments(
                 sample=f"{PHENOPACKET_TARGET_DIRECTORY_DOCKER}{Path(self.phenopacket_path.name)}",
                 phenotype_only=self.phenotype_only,
-                output_options_file=f"{OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER}{Path(output_options_file).name}",
+                output_options_file=f"{OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER}{Path(output_options_file).name}"
+                if output_options_file is not None
+                else None,
                 raw_results_dir=RAW_RESULTS_TARGET_DIRECTORY_DOCKER,
             )
         elif self.environment == "local":
@@ -215,7 +217,7 @@ class CommandsWriter:
                 + " --output-directory "
                 + str(command_arguments.raw_results_dir)
                 + " --output-filename "
-                + f"{command_arguments.sample.stem}-exomiser"
+                + f"{Path(command_arguments.sample).stem}-exomiser"
                 + " --preset "
                 + "phenotype-only"
             )
