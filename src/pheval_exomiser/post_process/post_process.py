@@ -13,7 +13,7 @@ def post_process_result_format(config: ExomiserConfig, raw_results_dir: Path, ru
         results_dir=raw_results_dir,
         runner=runner,
         score_name=config.post_process.score_name,
-        score_order=config.post_process.score_order,
+        sort_order=config.post_process.sort_order,
         phenotype_only=config.run.phenotype_only,
     )
     print("done")

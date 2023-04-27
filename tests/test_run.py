@@ -18,14 +18,12 @@ basic_pheval_config = ExomiserConfig(
     run=ExomiserConfigRun(
         environment="local",
         phenotype_only=False,
-        path_to_exomiser_software_directory=Path(
-            "/Users/yaseminbridges/exomiser/exomiser-cli-13.1.0"
-        ),
-        path_to_analysis_yaml=Path("/Users/yaseminbridges/preset-exome-analysis.yml"),
+        path_to_exomiser_software_directory=Path("/opt/exomiser/exomiser-cli-13.1.0"),
+        path_to_analysis_yaml=Path("/exomiser/preset-exome-analysis.yml"),
         exomiser_configurations=ExomiserConfigRunExomiserConfigs(
             exomiser_version="13.1.0",
             path_to_application_properties_config=Path(
-                "/Users/yaseminbridges/exomiser/exomiser-cli-13.1.0/application.properties"
+                "/opt/exomiser/exomiser-cli-13.1.0/application.properties"
             ),
             application_properties_arguments=ExomiserConfigRunExomiserManualConfigs(
                 exomiser_phenotype_version=None,
@@ -35,7 +33,7 @@ basic_pheval_config = ExomiserConfig(
         ),
         max_jobs=0,
     ),
-    post_process=ExomiserConfigPostProcess(score_name="combinedScore", score_order="descending"),
+    post_process=ExomiserConfigPostProcess(score_name="combinedScore", sort_order="descending"),
 )
 
 
@@ -44,9 +42,7 @@ class TestAddExomiserConfigFileForDocker(unittest.TestCase):
         self.assertEqual(
             add_exomiser_config_file_for_docker(basic_pheval_config),
             ExomiserConfigParameters(
-                application_properties_path=Path(
-                    "/Users/yaseminbridges/exomiser/exomiser-cli-13.1.0"
-                ),
+                application_properties_path=Path("/opt/exomiser/exomiser-cli-13.1.0"),
                 exomiser_phenotype_version=None,
                 exomiser_hg19_version=None,
                 exomiser_hg38_version=None,

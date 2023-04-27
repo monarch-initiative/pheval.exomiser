@@ -49,6 +49,7 @@ class ExomiserPhEvalRunner(PhEvalRunner):
             output_dir=self.output_dir,
             tool_input_commands_dir=self.tool_input_commands_dir,
             raw_results_dir=self.raw_results_dir,
+            exomiser_version=self.version,
         )
 
     def post_process(self):
