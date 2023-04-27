@@ -16,11 +16,11 @@ run:
 post_process:
   # For Exomiser, valid ranking methods include combinedScore, priorityScore, variantScore or pValue
   score_name: combinedScore
-  # Score order should be specified to either ASCENDING or DESCENDING
+  # sort order should be specified to either ASCENDING or DESCENDING
   # ASCENDING orders results with the lowest values ranked first
   # DESCENDING orders results with the highest values ranked first
-  # NOTE when changing the score_name ensure the score_order is also correct
-  score_order: DESCENDING
+  # NOTE when changing the score_name ensure the sort_order is also correct
+  sort_order: DESCENDING
 
 
 
