@@ -143,7 +143,7 @@ class TestEditExomiserApplicationProperties(unittest.TestCase):
                 for line in self.contents_to_edit_path.edit_data_path_for_docker_run()
                 if line.startswith("exomiser.data-directory=")
             ],
-            ["exomiser.data-directory=/exomiser-data\n"],
+            ["exomiser.data-directory=/exomiser-data/\n"],
         )
         self.assertNotEqual(
             [
@@ -171,7 +171,7 @@ class TestEditExomiserApplicationProperties(unittest.TestCase):
                 for line in copied_contents.edit_data_path()
                 if line.startswith("exomiser.data-directory=")
             ],
-            ["exomiser.data-directory=/exomiser-data\n"],
+            ["exomiser.data-directory=/exomiser-data/\n"],
         )
 
 
