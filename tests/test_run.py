@@ -106,7 +106,7 @@ basic_pheval_config = ExomiserConfig(
         ),
         max_jobs=0,
     ),
-    post_process=ExomiserConfigPostProcess(score_name="combinedScore", score_order="descending"),
+    post_process=ExomiserConfigPostProcess(score_name="combinedScore", sort_order="descending"),
 )
 
 

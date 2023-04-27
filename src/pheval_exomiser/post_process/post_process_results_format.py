@@ -6,11 +6,7 @@ import click
 from pheval.post_processing.post_processing import (
     PhEvalGeneResult,
     PhEvalVariantResult,
-    RankedPhEvalGeneResult,
-    RankedPhEvalVariantResult,
-    create_pheval_result,
-    write_pheval_gene_result,
-    write_pheval_variant_result,
+    generate_pheval_result,
 )
 from pheval.runners.runner import PhEvalRunner
 from pheval.utils.file_utils import files_with_suffix
@@ -120,48 +116,30 @@ class PhEvalVariantResultFromExomiserJsonCreator:
         return simplified_exomiser_result
 
 
-def create_pheval_gene_result_from_exomiser(
-    exomiser_json_result: [dict],
-    score_name: str,
-    score_order: str,
-) -> [RankedPhEvalGeneResult]:
-    """Create ranked PhEval gene result from Exomiser json."""
-    pheval_gene_result = PhEvalGeneResultFromExomiserJsonCreator(
-        exomiser_json_result, score_name
-    ).extract_pheval_gene_requirements()
-    return create_pheval_result(pheval_gene_result, score_order)
-
-
-def create_pheval_variant_result_from_exomiser(
-    exomiser_json_result: [dict],
-    score_name: str,
-    score_order: str,
-) -> [RankedPhEvalVariantResult]:
-    """Create ranked PhEval variant result from Exomiser json."""
-    pheval_variant_result = PhEvalVariantResultFromExomiserJsonCreator(
-        exomiser_json_result, score_name
-    ).extract_pheval_variant_requirements()
-    return create_pheval_result(pheval_variant_result, score_order)
-
-
 def create_standardised_results(
-    results_dir: Path, runner: PhEvalRunner, score_name: str, score_order: str, phenotype_only: bool
+    results_dir: Path, runner: PhEvalRunner, score_name: str, sort_order: str, phenotype_only: bool
 ) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
-    for result in files_with_suffix(results_dir, ".json"):
-        exomiser_result = read_exomiser_json_result(result)
-        pheval_gene_result = create_pheval_gene_result_from_exomiser(
-            exomiser_result, score_name, score_order
-        )
-        write_pheval_gene_result(
-            pheval_gene_result, runner.output_dir, trim_exomiser_result_filename(result)
+    for exomiser_json_result in files_with_suffix(results_dir, ".json"):
+        exomiser_result = read_exomiser_json_result(exomiser_json_result)
+        pheval_gene_requirements = PhEvalGeneResultFromExomiserJsonCreator(
+            exomiser_result, score_name
+        ).extract_pheval_gene_requirements()
+        generate_pheval_result(
+            pheval_result=pheval_gene_requirements,
+            sort_order_str=sort_order,
+            output_dir=runner.output_dir,
+            tool_result_path=exomiser_json_result,
         )
         if not phenotype_only:
-            pheval_variant_result = create_pheval_variant_result_from_exomiser(
-                exomiser_result, score_name, score_order
-            )
-            write_pheval_variant_result(
-                pheval_variant_result, runner.output_dir, trim_exomiser_result_filename(result)
+            pheval_variant_requirements = PhEvalVariantResultFromExomiserJsonCreator(
+                exomiser_result, score_name
+            ).extract_pheval_variant_requirements()
+            generate_pheval_result(
+                pheval_result=pheval_variant_requirements,
+                sort_order_str=sort_order,
+                output_dir=runner.output_dir,
+                tool_result_path=exomiser_json_result,
             )
 
 
@@ -192,7 +170,7 @@ def create_standardised_results(
     show_default=True,
 )
 @click.option(
-    "--score-order",
+    "--sort-order",
     "-so",
     required=True,
     help="Ordering of results for ranking.",
@@ -207,11 +185,11 @@ def create_standardised_results(
     help="Specify if Exomiser was run with phenotype-only analysis.",
 )
 def post_process_exomiser_results(
-    output_dir: Path, results_dir: Path, score_name: str, score_order: str, phenotype_only: bool
+    output_dir: Path, results_dir: Path, score_name: str, sort_order: str, phenotype_only: bool
 ):
     """Post-process Exomiser json results into PhEval gene and variant outputs."""
     output_dir.joinpath("pheval_gene_results").mkdir(parents=True, exist_ok=True)
     output_dir.joinpath("pheval_variant_results").mkdir(
         parents=True, exist_ok=True
     ) if not phenotype_only else None
-    create_standardised_results(results_dir, output_dir, score_name, score_order, phenotype_only)
+    create_standardised_results(results_dir, output_dir, score_name, sort_order, phenotype_only)
