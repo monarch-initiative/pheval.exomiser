@@ -3,7 +3,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pheval_exomiser.prepare.tool_specific_configuration_options import ExomiserConfigurations
+from pheval_exomiser.prepare.tool_specific_configuration_options import (
+    ApplicationProperties,
+    ExomiserConfigurations,
+)
 from pheval_exomiser.prepare.write_application_properties import ExomiserConfigurationFileWriter
 
 
@@ -18,20 +21,22 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
             configurations=ExomiserConfigurations(
                 environment="local",
                 analysis_configuration_file=Path("preset_exome_analysis.py"),
-                remm_version="0.3.1.post1",
-                cadd_version="1.4",
-                hg19_cadd_snv_path="whole_genome_SNVs.tsv.gz",
-                hg19_cadd_indel_path="InDels.tsv.gz",
-                hg19_remm_path=True,
-                hg19_local_frequency_path="local_frequency_test_hg19.tsv.gz",
-                hg38_cadd_snv_path="whole_genome_SNVs.tsv.gz",
-                hg38_cadd_indel_path="InDels.tsv.gz",
-                hg38_remm_path=True,
-                hg38_local_frequency_path="local_frequency_test_hg38.tsv.gz",
-                phenotype_data_version="2302",
-                hg19_data_version="2302",
-                hg38_data_version="2302",
-                cache_caffeine_spec=60000,
+                application_properties=ApplicationProperties(
+                    remm_version="0.3.1.post1",
+                    cadd_version="1.4",
+                    hg19_cadd_snv_path="whole_genome_SNVs.tsv.gz",
+                    hg19_cadd_indel_path="InDels.tsv.gz",
+                    hg19_remm_path=True,
+                    hg19_local_frequency_path="local_frequency_test_hg19.tsv.gz",
+                    hg38_cadd_snv_path="whole_genome_SNVs.tsv.gz",
+                    hg38_cadd_indel_path="InDels.tsv.gz",
+                    hg38_remm_path=True,
+                    hg38_local_frequency_path="local_frequency_test_hg38.tsv.gz",
+                    phenotype_data_version="2302",
+                    hg19_data_version="2302",
+                    hg38_data_version="2302",
+                    cache_caffeine_spec=60000,
+                ),
             ),
         )
 
@@ -48,7 +53,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         self.assertEqual(contents, ["remm.version=0.3.1.post1\n"])
 
     def test_write_remm_version_none_specified(self):
-        self.application_properties_settings.configurations.remm_version = None
+        self.application_properties_settings.configurations.application_properties.remm_version = (
+            None
+        )
         self.application_properties_settings.write_remm_version()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -65,7 +72,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         self.assertEqual(contents, ["cadd.version=1.4\n"])
 
     def test_write_cadd_version_none_specified(self):
-        self.application_properties_settings.configurations.cadd_version = None
+        self.application_properties_settings.configurations.application_properties.cadd_version = (
+            None
+        )
         self.application_properties_settings.write_cadd_version()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -104,7 +113,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg19_cadd_snv_path_none_specified(self):
-        self.application_properties_settings.configurations.hg19_cadd_snv_path = None
+        self.application_properties_settings.configurations.application_properties.hg19_cadd_snv_path = (
+            None
+        )
         self.application_properties_settings.write_exomiser_hg19_cadd_snv_path()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -127,7 +138,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg19_cadd_indel_path_none_specified(self):
-        self.application_properties_settings.configurations.hg19_cadd_indel_path = None
+        self.application_properties_settings.configurations.application_properties.hg19_cadd_indel_path = (
+            None
+        )
         self.application_properties_settings.write_exomiser_hg19_cadd_indel_path()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -150,7 +163,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg19_remm_path_none_specified(self):
-        self.application_properties_settings.configurations.hg19_remm_path = None
+        self.application_properties_settings.configurations.application_properties.hg19_remm_path = (
+            None
+        )
         self.application_properties_settings.write_exomiser_hg19_remm_path()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -173,7 +188,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg19_local_frequency_path_none_specified(self):
-        self.application_properties_settings.configurations.hg19_local_frequency_path = None
+        self.application_properties_settings.configurations.application_properties.hg19_local_frequency_path = (
+            None
+        )
         self.application_properties_settings.write_exomiser_hg19_local_frequency_path()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -204,7 +221,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg38_cadd_snv_path_none_specified(self):
-        self.application_properties_settings.configurations.hg38_cadd_snv_path = None
+        self.application_properties_settings.configurations.application_properties.hg38_cadd_snv_path = (
+            None
+        )
         self.application_properties_settings.write_exomiser_hg38_cadd_snv_path()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -227,7 +246,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg38_cadd_indel_path_none_specified(self):
-        self.application_properties_settings.configurations.hg38_cadd_indel_path = None
+        self.application_properties_settings.configurations.application_properties.hg38_cadd_indel_path = (
+            None
+        )
         self.application_properties_settings.write_exomiser_hg38_cadd_indel_path()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -250,7 +271,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg38_remm_path_none_specified(self):
-        self.application_properties_settings.configurations.hg38_remm_path = None
+        self.application_properties_settings.configurations.application_properties.hg38_remm_path = (
+            None
+        )
         self.application_properties_settings.write_exomiser_hg38_remm_path()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -273,7 +296,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg38_local_frequency_path_none_specified(self):
-        self.application_properties_settings.configurations.hg38_local_frequency_path = None
+        self.application_properties_settings.configurations.application_properties.hg38_local_frequency_path = (
+            None
+        )
         self.application_properties_settings.write_exomiser_hg38_local_frequency_path()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -304,7 +329,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_hg19_white_list_path_none_specified(self):
-        self.application_properties_settings.configurations.hg19_data_version = None
+        self.application_properties_settings.configurations.application_properties.hg19_data_version = (
+            None
+        )
         self.application_properties_settings.write_hg19_white_list_path()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -327,7 +354,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_hg38_white_list_path_none_specified(self):
-        self.application_properties_settings.configurations.hg38_data_version = None
+        self.application_properties_settings.configurations.application_properties.hg38_data_version = (
+            None
+        )
         self.application_properties_settings.write_hg38_white_list_path()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
@@ -344,7 +373,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         self.assertEqual(contents, ["spring.cache.caffeine.spec=maximumSize=60000\n"])
 
     def test_write_cache_spec_none_specified(self):
-        self.application_properties_settings.configurations.cache_caffeine_spec = None
+        self.application_properties_settings.configurations.application_properties.cache_caffeine_spec = (
+            None
+        )
         self.application_properties_settings.write_cache_spec()
         self.application_properties_settings.application_properties.close()
         with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
