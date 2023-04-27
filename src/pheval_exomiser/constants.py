@@ -1,0 +1,8 @@
+PHENOPACKET_TARGET_DIRECTORY_DOCKER = "/exomiser-testdata-phenopacket/"
+RAW_RESULTS_TARGET_DIRECTORY_DOCKER = "/exomiser-results/"
+OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER = "/exomiser-testdata-output-options/"
+VCF_TARGET_DIRECTORY_DOCKER = "/exomiser-testdata-vcf/"
+EXOMISER_YAML_TARGET_DIRECTORY_DOCKER = "/exomiser-yaml-template/"
+EXOMISER_DATA_DIRECTORY_TARGET_DOCKER = "/exomiser-data/"
+INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER = "/exomiser-batch-file/"
+EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER = "/exomiser-config/"
