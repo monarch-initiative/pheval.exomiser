@@ -1,5 +1,4 @@
 import unittest
-from copy import copy
 from pathlib import Path
 
 from pheval_exomiser.config_parser import (
