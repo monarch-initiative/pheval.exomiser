@@ -46,7 +46,8 @@ class ExomiserConfigurationFileWriter:
         if self.configurations.application_properties.hg19_cadd_snv_path is not None:
             self.application_properties.write(
                 f"exomiser.hg19.cadd-snv-path="
-                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg19/{self.configurations.application_properties.hg19_cadd_snv_path}\n"
+                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg19/"
+                f"{self.configurations.application_properties.hg19_cadd_snv_path}\n"
             )
 
     def write_exomiser_hg19_cadd_indel_path(self) -> None:
@@ -54,7 +55,8 @@ class ExomiserConfigurationFileWriter:
         if self.configurations.application_properties.hg19_cadd_indel_path is not None:
             self.application_properties.write(
                 f"exomiser.hg19.cadd-in-del-path="
-                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg19/{self.configurations.application_properties.hg19_cadd_indel_path}\n"
+                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg19/"
+                f"{self.configurations.application_properties.hg19_cadd_indel_path}\n"
             )
 
     def write_exomiser_hg19_remm_path(self) -> None:
@@ -70,7 +72,8 @@ class ExomiserConfigurationFileWriter:
         if self.configurations.application_properties.hg19_local_frequency_path is not None:
             self.application_properties.write(
                 f"exomiser.hg19.local-frequency-path="
-                f"${{exomiser.data-directory}}/local/{self.configurations.application_properties.hg19_local_frequency_path}\n"
+                f"${{exomiser.data-directory}}/local/"
+                f"{self.configurations.application_properties.hg19_local_frequency_path}\n"
             )
 
     def write_exomiser_hg38_data_version(self) -> None:
@@ -85,7 +88,8 @@ class ExomiserConfigurationFileWriter:
         if self.configurations.application_properties.hg38_cadd_snv_path is not None:
             self.application_properties.write(
                 f"exomiser.hg38.cadd-snv-path="
-                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg38/{self.configurations.application_properties.hg38_cadd_snv_path}\n"
+                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg38/"
+                f"{self.configurations.application_properties.hg38_cadd_snv_path}\n"
             )
 
     def write_exomiser_hg38_cadd_indel_path(self) -> None:
@@ -93,7 +97,8 @@ class ExomiserConfigurationFileWriter:
         if self.configurations.application_properties.hg38_cadd_indel_path is not None:
             self.application_properties.write(
                 f"exomiser.hg38.cadd-in-del-path="
-                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg38/{self.configurations.application_properties.hg38_cadd_indel_path}\n"
+                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg38/"
+                f"{self.configurations.application_properties.hg38_cadd_indel_path}\n"
             )
 
     def write_exomiser_hg38_remm_path(self) -> None:
@@ -109,7 +114,8 @@ class ExomiserConfigurationFileWriter:
         if self.configurations.application_properties.hg38_local_frequency_path is not None:
             self.application_properties.write(
                 f"exomiser.hg38.local-frequency-path="
-                f"${{exomiser.data-directory}}/local/{self.configurations.application_properties.hg38_local_frequency_path}\n"
+                f"${{exomiser.data-directory}}/local/"
+                f"{self.configurations.application_properties.hg38_local_frequency_path}\n"
             )
 
     def write_exomiser_phenotype_data_version(self) -> None:
@@ -135,7 +141,8 @@ class ExomiserConfigurationFileWriter:
     def write_cache_spec(self):
         if self.configurations.application_properties.cache_caffeine_spec is not None:
             self.application_properties.write(
-                f"spring.cache.caffeine.spec=maximumSize={self.configurations.application_properties.cache_caffeine_spec}\n"
+                f"spring.cache.caffeine.spec=maximumSize="
+                f"{self.configurations.application_properties.cache_caffeine_spec}\n"
             )
 
     def write_application_properties(self) -> None:
