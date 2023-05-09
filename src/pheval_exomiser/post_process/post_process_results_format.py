@@ -88,7 +88,7 @@ class PhEvalVariantResultFromExomiserJsonCreator:
     @staticmethod
     def _find_alt(result_entry: dict) -> str:
         """Return alternate allele from Exomiser result entry."""
-        return result_entry["alt"]
+        return result_entry["alt"].strip(">").strip("<")
 
     def _find_relevant_score(self, result_entry) -> float:
         """Return score from Exomiser result entry."""
