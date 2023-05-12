@@ -22,7 +22,7 @@ def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
 
 def trim_exomiser_result_filename(exomiser_result_path: Path) -> Path:
     """Trim suffix appended to Exomiser JSON result path."""
-    return Path(str(exomiser_result_path).replace("-exomiser", ""))
+    return Path(str(exomiser_result_path.name).replace("-exomiser", ""))
 
 
 class PhEvalGeneResultFromExomiserJsonCreator:
@@ -129,7 +129,7 @@ def create_standardised_results(
             pheval_result=pheval_gene_requirements,
             sort_order_str=sort_order,
             output_dir=runner.output_dir,
-            tool_result_path=exomiser_json_result,
+            tool_result_path=trim_exomiser_result_filename(exomiser_json_result),
         )
         if not phenotype_only:
             pheval_variant_requirements = PhEvalVariantResultFromExomiserJsonCreator(
@@ -139,7 +139,7 @@ def create_standardised_results(
                 pheval_result=pheval_variant_requirements,
                 sort_order_str=sort_order,
                 output_dir=runner.output_dir,
-                tool_result_path=exomiser_json_result,
+                tool_result_path=trim_exomiser_result_filename(exomiser_json_result),
             )
 
 
