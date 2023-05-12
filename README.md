@@ -14,7 +14,7 @@ This will change when pheval is published on pypi.
 
 ## Configuring the application.properties:
 
-The input directory config should be formatted like so:
+The input directory config.yaml should be formatted like so:
 
 ```yaml
 tool: exomiser
@@ -35,5 +35,22 @@ tool_specific_configuration_options:
 ```
 The bare minimum fields are filled to give an idea on the requirements. This is so that the application.properties can be correctly configured.
 
-If using optional databases, such as REMM or CADD the input directory should look like so:
+If using optional databases, such as REMM/CADD/local frequency the optional data input should look like so in the input
+directory:
 
+```tree
+├── cadd
+│   └── {{CADD-VERSION}}
+│       ├── hg19
+│       │   ├── InDels.tsv.gz
+│       │   └── whole_genome_SNVs.tsv.gz
+│       └── hg38
+│           ├── InDels.tsv.gz
+│           └── whole_genome_SNVs.tsv.gz
+├── local
+│   ├── local_frequency_test_hg19.tsv.gz
+│   └── local_frequency_test_hg38.tsv.gz
+└── remm
+    ├── ReMM.v{{REMM-VERSION}}.hg19.tsv.gz
+    └── ReMM.v{{REMM-VERSION}}.hg38.tsv.gz
+```
