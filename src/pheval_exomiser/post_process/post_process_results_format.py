@@ -8,7 +8,6 @@ from pheval.post_processing.post_processing import (
     PhEvalVariantResult,
     generate_pheval_result,
 )
-from pheval.runners.runner import PhEvalRunner
 from pheval.utils.file_utils import files_with_suffix
 
 
@@ -120,7 +119,7 @@ class PhEvalVariantResultFromExomiserJsonCreator:
 
 
 def create_standardised_results(
-    results_dir: Path, runner: PhEvalRunner, score_name: str, sort_order: str, phenotype_only: bool
+    results_dir: Path, output_dir: Path, score_name: str, sort_order: str, phenotype_only: bool
 ) -> None:
     """Write standardised gene and variant results from default Exomiser json output."""
     for exomiser_json_result in files_with_suffix(results_dir, ".json"):
@@ -131,8 +130,8 @@ def create_standardised_results(
         generate_pheval_result(
             pheval_result=pheval_gene_requirements,
             sort_order_str=sort_order,
-            output_dir=runner.output_dir,
-            tool_result_path=trim_exomiser_result_filename(exomiser_json_result),
+            output_dir=output_dir,
+            tool_result_path=exomiser_json_result,
         )
         if not phenotype_only:
             pheval_variant_requirements = PhEvalVariantResultFromExomiserJsonCreator(
@@ -141,8 +140,8 @@ def create_standardised_results(
             generate_pheval_result(
                 pheval_result=pheval_variant_requirements,
                 sort_order_str=sort_order,
-                output_dir=runner.output_dir,
-                tool_result_path=trim_exomiser_result_filename(exomiser_json_result),
+                output_dir=output_dir,
+                tool_result_path=exomiser_json_result,
             )
 
 
