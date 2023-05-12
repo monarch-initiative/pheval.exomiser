@@ -24,13 +24,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
                 application_properties=ApplicationProperties(
                     remm_version="0.3.1.post1",
                     cadd_version="1.4",
-                    hg19_cadd_snv_path="whole_genome_SNVs.tsv.gz",
-                    hg19_cadd_indel_path="InDels.tsv.gz",
-                    hg19_remm_path=True,
                     hg19_local_frequency_path="local_frequency_test_hg19.tsv.gz",
-                    hg38_cadd_snv_path="whole_genome_SNVs.tsv.gz",
-                    hg38_cadd_indel_path="InDels.tsv.gz",
-                    hg38_remm_path=True,
                     hg38_local_frequency_path="local_frequency_test_hg38.tsv.gz",
                     phenotype_data_version="2302",
                     hg19_data_version="2302",
@@ -113,7 +107,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg19_cadd_snv_path_none_specified(self):
-        self.application_properties_settings.configurations.application_properties.hg19_cadd_snv_path = (
+        self.application_properties_settings.configurations.application_properties.cadd_version = (
             None
         )
         self.application_properties_settings.write_exomiser_hg19_cadd_snv_path()
@@ -138,7 +132,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg19_cadd_indel_path_none_specified(self):
-        self.application_properties_settings.configurations.application_properties.hg19_cadd_indel_path = (
+        self.application_properties_settings.configurations.application_properties.cadd_version = (
             None
         )
         self.application_properties_settings.write_exomiser_hg19_cadd_indel_path()
@@ -163,7 +157,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg19_remm_path_none_specified(self):
-        self.application_properties_settings.configurations.application_properties.hg19_remm_path = (
+        self.application_properties_settings.configurations.application_properties.remm_version = (
             None
         )
         self.application_properties_settings.write_exomiser_hg19_remm_path()
@@ -221,7 +215,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg38_cadd_snv_path_none_specified(self):
-        self.application_properties_settings.configurations.application_properties.hg38_cadd_snv_path = (
+        self.application_properties_settings.configurations.application_properties.cadd_version = (
             None
         )
         self.application_properties_settings.write_exomiser_hg38_cadd_snv_path()
@@ -246,7 +240,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg38_cadd_indel_path_none_specified(self):
-        self.application_properties_settings.configurations.application_properties.hg38_cadd_indel_path = (
+        self.application_properties_settings.configurations.application_properties.cadd_version = (
             None
         )
         self.application_properties_settings.write_exomiser_hg38_cadd_indel_path()
@@ -271,7 +265,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_exomiser_hg38_remm_path_none_specified(self):
-        self.application_properties_settings.configurations.application_properties.hg38_remm_path = (
+        self.application_properties_settings.configurations.application_properties.remm_version = (
             None
         )
         self.application_properties_settings.write_exomiser_hg38_remm_path()
