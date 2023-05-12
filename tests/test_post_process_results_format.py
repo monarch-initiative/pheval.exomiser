@@ -1,4 +1,5 @@
 import unittest
+from copy import copy
 
 from pheval.post_processing.post_processing import PhEvalGeneResult, PhEvalVariantResult
 
@@ -1727,6 +1728,16 @@ class TestPhEvalVariantFromExomiserJsonCreator(unittest.TestCase):
 
     def test_find_alt(self):
         self.assertEqual(self.json_result._find_alt(result_entry=self.result_entry), "A")
+
+    def test_find_alt_sv(self):
+        copied_result_entry = copy(dict(self.result_entry))
+        copied_result_entry["alt"] = "<DEL>"
+        self.assertEqual(self.json_result._find_alt(result_entry=copied_result_entry), "DEL")
+
+    def test_find_alt_none(self):
+        copied_result_entry = copy(dict(self.result_entry))
+        copied_result_entry["alt"] = None
+        self.assertEqual(self.json_result._find_alt(result_entry=copied_result_entry), "")
 
     def test_find_relevant_score(self):
         self.assertEqual(
