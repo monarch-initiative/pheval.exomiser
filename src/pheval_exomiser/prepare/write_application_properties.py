@@ -43,25 +43,34 @@ class ExomiserConfigurationFileWriter:
 
     def write_exomiser_hg19_cadd_snv_path(self) -> None:
         """Write the hg19 cadd snv path to application.properties file."""
-        if self.configurations.application_properties.hg19_cadd_snv_path is not None:
+        if (
+            self.configurations.application_properties.cadd_version is not None
+            and self.configurations.application_properties.hg19_data_version is not None
+        ):
             self.application_properties.write(
-                f"exomiser.hg19.cadd-snv-path="
-                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg19/"
-                f"{self.configurations.application_properties.hg19_cadd_snv_path}\n"
+                "exomiser.hg19.cadd-snv-path="
+                "${exomiser.data-directory}/cadd/${cadd.version}/hg19/"
+                "whole_genome_SNVs.tsv.gz\n"
             )
 
     def write_exomiser_hg19_cadd_indel_path(self) -> None:
         """Write the hg19 cadd indel path to application.properties file."""
-        if self.configurations.application_properties.hg19_cadd_indel_path is not None:
+        if (
+            self.configurations.application_properties.cadd_version is not None
+            and self.configurations.application_properties.hg19_data_version is not None
+        ):
             self.application_properties.write(
-                f"exomiser.hg19.cadd-in-del-path="
-                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg19/"
-                f"{self.configurations.application_properties.hg19_cadd_indel_path}\n"
+                "exomiser.hg19.cadd-in-del-path="
+                "${exomiser.data-directory}/cadd/${cadd.version}/hg19/"
+                "InDels.tsv.gz\n"
             )
 
     def write_exomiser_hg19_remm_path(self) -> None:
         """Write the hg19 remm path to application.properties file."""
-        if self.configurations.application_properties.hg19_remm_path is True:
+        if (
+            self.configurations.application_properties.remm_version is not None
+            and self.configurations.application_properties.hg19_data_version is not None
+        ):
             self.application_properties.write(
                 "exomiser.hg19.remm-path="
                 "${exomiser.data-directory}/remm/ReMM.v${remm.version}.hg19.tsv.gz\n"
@@ -85,25 +94,34 @@ class ExomiserConfigurationFileWriter:
 
     def write_exomiser_hg38_cadd_snv_path(self) -> None:
         """Write the hg38 cadd snv path to application.properties file."""
-        if self.configurations.application_properties.hg38_cadd_snv_path is not None:
+        if (
+            self.configurations.application_properties.cadd_version is not None
+            and self.configurations.application_properties.hg38_data_version is not None
+        ):
             self.application_properties.write(
-                f"exomiser.hg38.cadd-snv-path="
-                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg38/"
-                f"{self.configurations.application_properties.hg38_cadd_snv_path}\n"
+                "exomiser.hg38.cadd-snv-path="
+                "${exomiser.data-directory}/cadd/${cadd.version}/hg38/"
+                "whole_genome_SNVs.tsv.gz\n"
             )
 
     def write_exomiser_hg38_cadd_indel_path(self) -> None:
         """Write the hg38 cadd indel path to application.properties file."""
-        if self.configurations.application_properties.hg38_cadd_indel_path is not None:
+        if (
+            self.configurations.application_properties.cadd_version is not None
+            and self.configurations.application_properties.hg38_data_version is not None
+        ):
             self.application_properties.write(
-                f"exomiser.hg38.cadd-in-del-path="
-                f"${{exomiser.data-directory}}/cadd/${{cadd.version}}/hg38/"
-                f"{self.configurations.application_properties.hg38_cadd_indel_path}\n"
+                "exomiser.hg38.cadd-in-del-path="
+                "${exomiser.data-directory}/cadd/${cadd.version}/hg38/"
+                "InDels.tsv.gz\n"
             )
 
     def write_exomiser_hg38_remm_path(self) -> None:
         """Write the hg38 remm path to application.properties file."""
-        if self.configurations.application_properties.hg38_remm_path is True:
+        if (
+            self.configurations.application_properties.remm_version is not None
+            and self.configurations.application_properties.hg38_data_version is not None
+        ):
             self.application_properties.write(
                 "exomiser.hg38.remm-path="
                 "${exomiser.data-directory}/remm/ReMM.v${remm.version}.hg38.tsv.gz\n"
