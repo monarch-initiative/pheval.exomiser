@@ -132,17 +132,14 @@ class TestCommandCreator(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.command_creator_output_options_dir = CommandCreator(
-            environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
             phenotype_only=False,
             output_options_dir_files=output_options_files,
             output_options_file=None,
             raw_results_dir=Path("/path/to/results_dir"),
-            analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
         )
         cls.command_creator_output_options_file = CommandCreator(
-            environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
             phenotype_only=False,
@@ -151,30 +148,24 @@ class TestCommandCreator(unittest.TestCase):
                 "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
             ),
             raw_results_dir=Path("/path/to/results_dir"),
-            analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
         )
         cls.command_creator_none = CommandCreator(
-            environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
             phenotype_only=False,
             output_options_dir_files=None,
             output_options_file=None,
             raw_results_dir=Path("/path/to/results_dir"),
-            analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
         )
         cls.command_creator_phenotype_only = CommandCreator(
-            environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
             phenotype_only=True,
             output_options_dir_files=None,
             output_options_file=None,
             raw_results_dir=Path("/path/to/results_dir"),
-            analysis_yaml=None,
         )
         cls.command_creator_phenotype_only_output_options = CommandCreator(
-            environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
             phenotype_only=True,
@@ -183,7 +174,6 @@ class TestCommandCreator(unittest.TestCase):
                 "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
             ),
             raw_results_dir=Path("/path/to/results_dir"),
-            analysis_yaml=None,
         )
 
     def test_assign_output_options_file_from_dir(self):
@@ -242,7 +232,6 @@ class TestCommandCreator(unittest.TestCase):
                 output_options_file=Path(
                     "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
                 ),
-                analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
             ),
         )
 
@@ -255,7 +244,6 @@ class TestCommandCreator(unittest.TestCase):
                 vcf_assembly="GRCh37",
                 raw_results_dir=Path("/path/to/results_dir"),
                 phenotype_only=False,
-                analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
             ),
         )
 
@@ -273,7 +261,6 @@ class TestCommandCreator(unittest.TestCase):
                 output_options_file=Path(
                     "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
                 ),
-                analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
             ),
         )
 
