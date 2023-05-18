@@ -29,6 +29,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
                     phenotype_data_version="2302",
                     hg19_data_version="2302",
                     hg38_data_version="2302",
+                    cache_type="caffeine",
                     cache_caffeine_spec=60000,
                 ),
             ),
@@ -358,6 +359,23 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         config.close()
         self.assertEqual(contents, [])
 
+    def test_write_cache_type(self):
+        self.application_properties_settings.write_cache_type()
+        self.application_properties_settings.application_properties.close()
+        with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
+            contents = config.readlines()
+        config.close()
+        self.assertEqual(contents, ["spring.cache.type=caffeine\n"])
+
+    def test_write_cache_type_none_specified(self):
+        self.application_properties_settings.configurations.application_properties.cache_type = None
+        self.application_properties_settings.write_cache_type()
+        self.application_properties_settings.application_properties.close()
+        with open(Path(self.input_dir).joinpath("application.properties"), "r") as config:
+            contents = config.readlines()
+        config.close()
+        self.assertEqual(contents, [])
+
     def test_write_cache_spec(self):
         self.application_properties_settings.write_cache_spec()
         self.application_properties_settings.application_properties.close()
@@ -386,6 +404,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
             contents,
             [
                 "spring.cache.caffeine.spec=maximumSize=60000\n",
+                "spring.cache.type=caffeine\n",
                 "cadd.version=1.4\n",
                 f"exomiser.data-directory={self.input_dir}\n",
                 "exomiser.hg19.cadd-in-del-path=${exomiser.data-directory}/cadd/${cadd.version}/hg19/InDels.tsv.gz\n",
