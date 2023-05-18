@@ -1,6 +1,7 @@
 tool: exomiser
 tool_version: 13.2.0
-phenotype_only: False # NOTE phenotype-only preset analysis should only be run with Exomiser versions >= 13.2.0
+# NOTE phenotype-only preset analysis should only be run with Exomiser versions >= 13.2.0
+phenotype_only: False
 tool_specific_configuration_options:
   environment: local
   exomiser_software_directory: exomiser-cli-13.2.0
@@ -13,7 +14,8 @@ tool_specific_configuration_options:
     hg19_local_frequency_path:
     hg38_data_version: 2302
     phenotype_data_version: 2302
-    cache_type: None
+    # either none, simple, or caffeine
+    cache_type: none
     cache_caffeine_spec:
   post_process:
     # For Exomiser, valid ranking methods include combinedScore, priorityScore, variantScore or pValue
