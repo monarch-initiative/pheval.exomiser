@@ -38,7 +38,7 @@ tool_specific_configuration_options:
     score_name: combinedScore
     sort_order: DESCENDING
 ```
-The bare minimum fields are filled to give an idea on the requirements. This is so that the application.properties can be correctly configured.
+The bare minimum fields are filled to give an idea on the requirements. This is so that the application.properties can be correctly configured. An example config has been provided `pheval.exomiser/config.yaml`.
 
 The analysis configuration file should be located within the input directory.
 
