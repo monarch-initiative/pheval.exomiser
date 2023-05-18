@@ -6,6 +6,8 @@ from pheval.runners.runner import PhEvalRunner
 
 from pheval_exomiser.config_parser import parse_exomiser_config
 from pheval_exomiser.post_process.post_process import post_process_result_format
+from pheval_exomiser.prepare.tool_specific_configuration_options import ExomiserConfigurations
+from pheval_exomiser.prepare.write_application_properties import ExomiserConfigurationFileWriter
 from pheval_exomiser.run.run import prepare_batch_files, run_exomiser
 
 
@@ -23,6 +25,12 @@ class ExomiserPhEvalRunner(PhEvalRunner):
     def prepare(self):
         """prepare"""
         print("preparing")
+        ExomiserConfigurationFileWriter(
+            input_dir=self.input_dir,
+            configurations=ExomiserConfigurations.parse_obj(
+                self.input_dir_config.tool_specific_configuration_options
+            ),
+        ).write_application_properties()
 
     def run(self):
         """run"""

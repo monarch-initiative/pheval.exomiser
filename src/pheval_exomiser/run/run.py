@@ -219,7 +219,6 @@ def run_exomiser_local(
 ) -> None:
     """Run Exomiser locally."""
     print("...running exomiser...")
-    write_edited_application_properties(config, input_dir, read_application_properties(config))
     os.chdir(output_dir)
     batch_files = [
         file
@@ -243,7 +242,7 @@ def run_exomiser_local(
                 exomiser_jar_file_path,
                 "--batch",
                 file,
-                f"--spring.config.location={config.run.exomiser_configurations.path_to_application_properties_config}",
+                f"--spring.config.location={Path(input_dir).joinpath('application.properties')}",
             ],
             shell=False,
         )
@@ -285,7 +284,6 @@ def run_exomiser_docker(
     """Run Exomiser with docker."""
     print("...running exomiser...")
     client = docker.from_env()
-    write_edited_application_properties(config, input_dir, read_application_properties(config))
     batch_files = [
         file
         for file in all_files(tool_input_commands_dir)
