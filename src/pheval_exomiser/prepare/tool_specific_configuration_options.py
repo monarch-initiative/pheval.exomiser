@@ -28,16 +28,33 @@ class ApplicationProperties(BaseModel):
     cache_caffeine_spec: int = Field(None)
 
 
+class PostProcessing(BaseModel):
+    """
+    Class for defining the post-processing configurations.
+    Args:
+        score_name (str): Name of score to extract from results.
+        sort_order (str): Order to sort results
+    """
+    score_name: str = Field(...)
+    sort_order: str = Field(...)
+
+
 class ExomiserConfigurations(BaseModel):
     """
     Class for defining the Exomiser configurations in tool_specific_configurations field,
     within the input_dir config.yaml
     Args:
         environment (str): Environment to run Exomiser, i.e., local/docker
+        exomiser_software_directory (Path): Directory name for Exomiser software directory
         analysis_configuration_file (Path): The file name of the analysis configuration file located in the input_dir
+        max_jobs (int): Maximum number of jobs to run in a batch
         application_properties (ApplicationProperties): application.properties configurations
+        post_process (PostProcessing): Post-processing configurations
     """
 
     environment: str = Field(...)
+    exomiser_software_directory: Path = Field(...)
     analysis_configuration_file: Path = Field(...)
+    max_jobs: int = Field(...)
     application_properties: ApplicationProperties = Field(...)
+    post_process: PostProcessing = Field(...)
