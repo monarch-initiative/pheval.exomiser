@@ -61,16 +61,6 @@ class BasicDockerMountsForExomiser:
     exomiser_application_properties: Optional[str] = None
 
 
-# @dataclass
-# class ExomiserConfigParameters:
-#     """Exomiser configuration arguments."""
-#
-#     application_properties_path: Path = None
-#     exomiser_phenotype_version: str = None
-#     exomiser_hg19_version: str = None
-#     exomiser_hg38_version: str = None
-
-
 def mount_docker(
         input_dir: Path,
         testdata_dir: Path,
