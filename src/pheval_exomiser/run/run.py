@@ -71,16 +71,6 @@ class ExomiserConfigParameters:
     exomiser_hg38_version: str = None
 
 
-def read_application_properties(config: ExomiserConfig) -> [str]:
-    """Return contents of Exomiser application.properties."""
-    with open(
-        config.run.exomiser_configurations.path_to_application_properties_config
-    ) as exomiser_config:
-        exomiser_config_lines = exomiser_config.readlines()
-    exomiser_config.close()
-    return exomiser_config_lines
-
-
 class EditExomiserApplicationProperties:
     def __init__(self, config: ExomiserConfig, input_dir: Path, exomiser_config_contents: [str]):
         self.config = config
