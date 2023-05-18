@@ -61,14 +61,14 @@ class BasicDockerMountsForExomiser:
     exomiser_application_properties: Optional[str] = None
 
 
-@dataclass
-class ExomiserConfigParameters:
-    """Exomiser configuration arguments."""
-
-    application_properties_path: Path = None
-    exomiser_phenotype_version: str = None
-    exomiser_hg19_version: str = None
-    exomiser_hg38_version: str = None
+# @dataclass
+# class ExomiserConfigParameters:
+#     """Exomiser configuration arguments."""
+#
+#     application_properties_path: Path = None
+#     exomiser_phenotype_version: str = None
+#     exomiser_hg19_version: str = None
+#     exomiser_hg38_version: str = None
 
 
 def mount_docker(
@@ -121,36 +121,6 @@ def mount_docker(
         )
 
 
-def add_exomiser_config_file_for_docker(config: ExomiserConfig) -> ExomiserConfigParameters:
-    """Add application.properties path to config parameters."""
-    return ExomiserConfigParameters(
-        application_properties_path=config.run.exomiser_configurations.path_to_application_properties_config.parents[
-            0
-        ]
-    )
-
-
-def add_exomiser_config_parameters_for_docker(
-        config: ExomiserConfig,
-) -> ExomiserConfigParameters:
-    """Add manual arguments required for application.properties."""
-    configs = config.run.exomiser_configurations.application_properties_arguments
-    return ExomiserConfigParameters(
-        exomiser_hg19_version=configs.exomiser_hg19_version,
-        exomiser_hg38_version=configs.exomiser_hg38_version,
-        exomiser_phenotype_version=configs.exomiser_phenotype_version,
-    )
-
-
-def exomiser_config_parameters(config: ExomiserConfig) -> ExomiserConfigParameters:
-    """Add application.properties path to config arguments if specified, otherwise add manual configurations."""
-    return (
-        add_exomiser_config_file_for_docker(config)
-        if config.run.exomiser_configurations.path_to_application_properties_config is not None
-        else add_exomiser_config_parameters_for_docker(config)
-    )
-
-
 def run_exomiser_local(
         input_dir: Path,
         testdata_dir: Path,
@@ -195,24 +165,13 @@ def run_exomiser_local(
         )
 
 
-def create_docker_run_command(config: ExomiserConfig, batch_file: Path) -> [str]:
+def create_docker_run_command(batch_file: Path) -> [str]:
     """Creates docker run command."""
-    exomiser_config_params = exomiser_config_parameters(config)
-    if exomiser_config_params.application_properties_path is None:
-        return [
-            "--batch",
-            "/exomiser-batch-file/" + batch_file.name,
-            f"--exomiser.data-directory={EXOMISER_DATA_DIRECTORY_TARGET_DOCKER}"
-            f"--exomiser.hg19.data-version={exomiser_config_params.exomiser_hg19_version}",
-            f"--exomiser.hg38.data-version={exomiser_config_params.exomiser_hg38_version}",
-            f"--exomiser.phenotype.data-version={exomiser_config_params.exomiser_phenotype_version}",
-        ]
-    else:
-        return [
-            "--batch",
-            f"{INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER}" + batch_file.name,
-            f"--spring.config.location={EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}application.properties",
-        ]
+    return [
+        "--batch",
+        f"{INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER}" + batch_file.name,
+        f"--spring.config.location={EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}application.properties",
+    ]
 
 
 def run_exomiser_docker(
@@ -232,7 +191,7 @@ def run_exomiser_docker(
         if file.name.startswith(Path(testdata_dir).name)
     ]
     for file in batch_files:
-        docker_command = create_docker_run_command(config, file)
+        docker_command = create_docker_run_command(file)
         docker_mounts = mount_docker(
             input_dir, testdata_dir, config, tool_input_commands_dir, raw_results_dir
         )
