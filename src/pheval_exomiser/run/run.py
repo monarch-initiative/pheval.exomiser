@@ -86,29 +86,19 @@ def mount_docker(
     batch_file_path = f"{tool_input_commands_dir}/:{INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER}"
     exomiser_data_dir = f"{input_dir}{os.sep}:{EXOMISER_DATA_DIRECTORY_TARGET_DOCKER}"
     results_dir = f"{raw_results_dir}/:{RAW_RESULTS_TARGET_DIRECTORY_DOCKER}"
-    if config.run.exomiser_configurations.path_to_application_properties_config is None:
-        return BasicDockerMountsForExomiser(
-            phenopacket_test_data=phenopacket_test_data,
-            vcf_test_data=vcf_test_data,
-            exomiser_yaml=exomiser_yaml,
-            tool_input_commands_path=batch_file_path,
-            exomiser_data_dir=exomiser_data_dir,
-            raw_results_dir=results_dir,
-        )
-    else:
-        exomiser_config = (
-            f"{config.run.exomiser_configurations.path_to_application_properties_config.parents[0]}{os.sep}"
-            f":{EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}"
-        )
-        return BasicDockerMountsForExomiser(
-            phenopacket_test_data=phenopacket_test_data,
-            vcf_test_data=vcf_test_data,
-            exomiser_yaml=exomiser_yaml,
-            tool_input_commands_path=batch_file_path,
-            exomiser_data_dir=exomiser_data_dir,
-            exomiser_application_properties=exomiser_config,
-            raw_results_dir=results_dir,
-        )
+    exomiser_config = (
+        f"{config.run.exomiser_configurations.path_to_application_properties_config.parents[0]}{os.sep}"
+        f":{EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}"
+    )
+    return BasicDockerMountsForExomiser(
+        phenopacket_test_data=phenopacket_test_data,
+        vcf_test_data=vcf_test_data,
+        exomiser_yaml=exomiser_yaml,
+        tool_input_commands_path=batch_file_path,
+        exomiser_data_dir=exomiser_data_dir,
+        exomiser_application_properties=exomiser_config,
+        raw_results_dir=results_dir,
+    )
 
 
 def run_exomiser_local(
