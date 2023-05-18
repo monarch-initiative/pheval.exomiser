@@ -2,7 +2,6 @@ import os
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import docker
 from packaging import version
@@ -82,12 +81,12 @@ def mount_docker(
         if not config.run.phenotype_only
         else None
     )
-    exomiser_yaml = f"{config.run.path_to_analysis_yaml.parents[0]}{os.sep}:{EXOMISER_YAML_TARGET_DIRECTORY_DOCKER}"
+    exomiser_yaml = f"{input_dir}:{EXOMISER_YAML_TARGET_DIRECTORY_DOCKER}"
     batch_file_path = f"{tool_input_commands_dir}/:{INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER}"
     exomiser_data_dir = f"{input_dir}{os.sep}:{EXOMISER_DATA_DIRECTORY_TARGET_DOCKER}"
     results_dir = f"{raw_results_dir}/:{RAW_RESULTS_TARGET_DIRECTORY_DOCKER}"
     exomiser_config = (
-        f"{config.run.exomiser_configurations.path_to_application_properties_config.parents[0]}{os.sep}"
+        f"{input_dir}{os.sep}"
         f":{EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}"
     )
     return BasicDockerMountsForExomiser(
