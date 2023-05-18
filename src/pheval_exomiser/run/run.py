@@ -21,6 +21,7 @@ from pheval_exomiser.prepare.tool_specific_configuration_options import Exomiser
 
 
 def prepare_batch_files(
+    input_dir: Path,
     testdata_dir: Path,
     config: ExomiserConfigurations,
     tool_input_commands_dir: Path,
@@ -32,7 +33,7 @@ def prepare_batch_files(
     vcf_dir_name = [directory for directory in Path(testdata_dir).glob("vcf")]
     create_batch_file(
         environment=config.environment,
-        analysis=config.analysis_configuration_file,
+        analysis=input_dir.joinpath(config.analysis_configuration_file),
         phenopacket_dir=Path(testdata_dir).joinpath(
             [
                 directory

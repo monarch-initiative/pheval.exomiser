@@ -38,6 +38,7 @@ class ExomiserPhEvalRunner(PhEvalRunner):
             self.input_dir_config.tool_specific_configuration_options
         )
         prepare_batch_files(
+            input_dir=self.input_dir,
             config=config,
             testdata_dir=self.testdata_dir,
             tool_input_commands_dir=self.tool_input_commands_dir,
