@@ -4,7 +4,6 @@ from pathlib import Path
 
 from pheval.runners.runner import PhEvalRunner
 
-from pheval_exomiser.config_parser import parse_exomiser_config
 from pheval_exomiser.post_process.post_process import post_process_result_format
 from pheval_exomiser.prepare.tool_specific_configuration_options import ExomiserConfigurations
 from pheval_exomiser.prepare.write_application_properties import ExomiserConfigurationFileWriter
@@ -35,7 +34,9 @@ class ExomiserPhEvalRunner(PhEvalRunner):
     def run(self):
         """run"""
         print("running with exomiser")
-        config = parse_exomiser_config(self.config_file)
+        config = ExomiserConfigurations.parse_obj(
+            self.input_dir_config.tool_specific_configuration_options
+        )
         prepare_batch_files(
             config=config,
             testdata_dir=self.testdata_dir,
@@ -55,7 +56,9 @@ class ExomiserPhEvalRunner(PhEvalRunner):
     def post_process(self):
         """post_process"""
         print("post processing")
-        config = parse_exomiser_config(self.config_file)
+        config = ExomiserConfigurations.parse_obj(
+            self.input_dir_config.tool_specific_configuration_options
+        )
         post_process_result_format(
             config=config, raw_results_dir=self.raw_results_dir, output_dir=self.output_dir
         )
