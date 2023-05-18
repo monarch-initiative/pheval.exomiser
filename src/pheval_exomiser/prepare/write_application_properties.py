@@ -156,7 +156,15 @@ class ExomiserConfigurationFileWriter:
                 "exomiser.hg38.variant-white-list-path=${exomiser.hg38.data-version}_hg38_clinvar_whitelist.tsv.gz\n"
             )
 
+    def write_cache_type(self):
+        """Write the cache type to application.properties file."""
+        if self.configurations.application_properties.cache_type is not None:
+            self.application_properties.write(
+                f"spring.cache.type=" f"{self.configurations.application_properties.cache_type}\n"
+            )
+
     def write_cache_spec(self):
+        """Write the cache spec to application.properties file."""
         if self.configurations.application_properties.cache_caffeine_spec is not None:
             self.application_properties.write(
                 f"spring.cache.caffeine.spec=maximumSize="
