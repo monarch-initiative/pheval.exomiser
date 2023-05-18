@@ -24,6 +24,7 @@ class ApplicationProperties(BaseModel):
     hg38_data_version: str = Field(None)
     hg38_local_frequency_path: Path = Field(None)
     phenotype_data_version: str = Field(None)
+    cache_type: str = Field(None)
     cache_caffeine_spec: int = Field(None)
 
 

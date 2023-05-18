@@ -31,6 +31,7 @@ tool_specific_configuration_options:
     hg38_data_version:
     hg38_local_frequency_path:
     phenotype_data_version: 2302
+    cache_type:            #either none,simple,caffeine
     cache_caffeine_spec:
 ```
 The bare minimum fields are filled to give an idea on the requirements. This is so that the application.properties can be correctly configured.
