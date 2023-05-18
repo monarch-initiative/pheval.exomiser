@@ -35,6 +35,7 @@ class PostProcessing(BaseModel):
         score_name (str): Name of score to extract from results.
         sort_order (str): Order to sort results
     """
+
     score_name: str = Field(...)
     sort_order: str = Field(...)
 
