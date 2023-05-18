@@ -89,7 +89,7 @@ phenotypic_features_with_excluded = [
 phenopacket_files = [
     File(
         uri="test/path/to/test_1.vcf",
-        file_attributes={"fileFormat": "VCF", "genomeAssembly": "GRCh37"},
+        file_attributes={"fileFormat": "vcf", "genomeAssembly": "GRCh37"},
     ),
     File(
         uri="test_1.ped",
