@@ -58,7 +58,7 @@ class BasicDockerMountsForExomiser:
     tool_input_commands_path: str
     exomiser_data_dir: str
     raw_results_dir: Path
-    exomiser_application_properties: Optional[str] = None
+    exomiser_application_properties: Path
 
 
 def mount_docker(
