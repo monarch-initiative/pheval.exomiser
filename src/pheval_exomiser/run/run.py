@@ -2,13 +2,11 @@ import os
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import docker
 from packaging import version
 from pheval.utils.file_utils import all_files
 
-from pheval_exomiser.config_parser import ExomiserConfig
 from pheval_exomiser.constants import (
     EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER,
     EXOMISER_DATA_DIRECTORY_TARGET_DOCKER,
@@ -19,17 +17,23 @@ from pheval_exomiser.constants import (
     VCF_TARGET_DIRECTORY_DOCKER,
 )
 from pheval_exomiser.prepare.create_batch_commands import create_batch_file
+from pheval_exomiser.prepare.tool_specific_configuration_options import ExomiserConfigurations
 
 
 def prepare_batch_files(
-    testdata_dir: Path, config: ExomiserConfig, tool_input_commands_dir: Path, raw_results_dir: Path
+    input_dir: Path,
+    testdata_dir: Path,
+    config: ExomiserConfigurations,
+    tool_input_commands_dir: Path,
+    raw_results_dir: Path,
+    phenotype_only: bool,
 ) -> None:
     """Prepare the exomiser batch files"""
     print("...preparing batch files...")
     vcf_dir_name = [directory for directory in Path(testdata_dir).glob("vcf")]
     create_batch_file(
-        environment=config.run.environment,
-        analysis=config.run.path_to_analysis_yaml,
+        environment=config.environment,
+        analysis=input_dir.joinpath(config.analysis_configuration_file),
         phenopacket_dir=Path(testdata_dir).joinpath(
             [
                 directory
@@ -40,11 +44,11 @@ def prepare_batch_files(
         vcf_dir=vcf_dir_name[0] if vcf_dir_name != [] else None,
         output_dir=tool_input_commands_dir,
         batch_prefix=Path(testdata_dir).name,
-        max_jobs=config.run.max_jobs,
+        max_jobs=config.max_jobs,
         output_options_file=None,
         output_options_dir=None,
         results_dir=raw_results_dir,
-        phenotype_only=config.run.phenotype_only,
+        phenotype_only=phenotype_only,
     )
 
 
@@ -58,83 +62,15 @@ class BasicDockerMountsForExomiser:
     tool_input_commands_path: str
     exomiser_data_dir: str
     raw_results_dir: Path
-    exomiser_application_properties: Optional[str] = None
-
-
-@dataclass
-class ExomiserConfigParameters:
-    """Exomiser configuration arguments."""
-
-    application_properties_path: Path = None
-    exomiser_phenotype_version: str = None
-    exomiser_hg19_version: str = None
-    exomiser_hg38_version: str = None
-
-
-def read_application_properties(config: ExomiserConfig) -> [str]:
-    """Return contents of Exomiser application.properties."""
-    with open(
-        config.run.exomiser_configurations.path_to_application_properties_config
-    ) as exomiser_config:
-        exomiser_config_lines = exomiser_config.readlines()
-    exomiser_config.close()
-    return exomiser_config_lines
-
-
-class EditExomiserApplicationProperties:
-    def __init__(self, config: ExomiserConfig, input_dir: Path, exomiser_config_contents: [str]):
-        self.config = config
-        self.input_dir = input_dir
-        self.exomiser_config_contents = exomiser_config_contents
-
-    def edit_data_path_for_local_run(self):
-        """Edit input data path for running locally."""
-        return [
-            line.replace(line, f"exomiser.data-directory={self.input_dir}\n")
-            if line.startswith("exomiser.data-directory=")
-            else line
-            for line in self.exomiser_config_contents
-        ]
-
-    def edit_data_path_for_docker_run(self):
-        """Edit input data path for running with docker."""
-        return [
-            line.replace(line, f"exomiser.data-directory={EXOMISER_DATA_DIRECTORY_TARGET_DOCKER}\n")
-            if line.startswith("exomiser.data-directory=")
-            else line
-            for line in self.exomiser_config_contents
-        ]
-
-    def edit_data_path(self) -> [str]:
-        """Return edited contents of application.properties."""
-        return (
-            self.edit_data_path_for_local_run()
-            if self.config.run.environment == "local"
-            else self.edit_data_path_for_docker_run()
-        )
-
-
-def write_edited_application_properties(
-    config: ExomiserConfig, input_dir: Path, exomiser_config_contents: [str]
-) -> None:
-    """Write application.properties with edited contents."""
-    with open(
-        config.run.exomiser_configurations.path_to_application_properties_config, "w"
-    ) as exomiser_config:
-        exomiser_config.writelines(
-            EditExomiserApplicationProperties(
-                config, input_dir, exomiser_config_contents
-            ).edit_data_path()
-        )
-    exomiser_config.close()
+    exomiser_application_properties: Path
 
 
 def mount_docker(
     input_dir: Path,
     testdata_dir: Path,
-    config: ExomiserConfig,
     tool_input_commands_dir: Path,
     raw_results_dir: Path,
+    phenotype_only: bool,
 ) -> BasicDockerMountsForExomiser:
     """Create docker mounts for paths required for running Exomiser."""
     test_data = os.listdir(str(testdata_dir))
@@ -147,72 +83,29 @@ def mount_docker(
             f"{Path(testdata_dir).joinpath([sub_dir for sub_dir in test_data if 'vcf' in str(sub_dir)][0])}"
             f"{os.sep}:{VCF_TARGET_DIRECTORY_DOCKER}"
         )
-        if not config.run.phenotype_only
+        if not phenotype_only
         else None
     )
-    exomiser_yaml = f"{config.run.path_to_analysis_yaml.parents[0]}{os.sep}:{EXOMISER_YAML_TARGET_DIRECTORY_DOCKER}"
+    exomiser_yaml = f"{input_dir}:{EXOMISER_YAML_TARGET_DIRECTORY_DOCKER}"
     batch_file_path = f"{tool_input_commands_dir}/:{INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER}"
     exomiser_data_dir = f"{input_dir}{os.sep}:{EXOMISER_DATA_DIRECTORY_TARGET_DOCKER}"
     results_dir = f"{raw_results_dir}/:{RAW_RESULTS_TARGET_DIRECTORY_DOCKER}"
-    if config.run.exomiser_configurations.path_to_application_properties_config is None:
-        return BasicDockerMountsForExomiser(
-            phenopacket_test_data=phenopacket_test_data,
-            vcf_test_data=vcf_test_data,
-            exomiser_yaml=exomiser_yaml,
-            tool_input_commands_path=batch_file_path,
-            exomiser_data_dir=exomiser_data_dir,
-            raw_results_dir=results_dir,
-        )
-    else:
-        exomiser_config = (
-            f"{config.run.exomiser_configurations.path_to_application_properties_config.parents[0]}{os.sep}"
-            f":{EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}"
-        )
-        return BasicDockerMountsForExomiser(
-            phenopacket_test_data=phenopacket_test_data,
-            vcf_test_data=vcf_test_data,
-            exomiser_yaml=exomiser_yaml,
-            tool_input_commands_path=batch_file_path,
-            exomiser_data_dir=exomiser_data_dir,
-            exomiser_application_properties=exomiser_config,
-            raw_results_dir=results_dir,
-        )
-
-
-def add_exomiser_config_file_for_docker(config: ExomiserConfig) -> ExomiserConfigParameters:
-    """Add application.properties path to config parameters."""
-    return ExomiserConfigParameters(
-        application_properties_path=config.run.exomiser_configurations.path_to_application_properties_config.parents[
-            0
-        ]
-    )
-
-
-def add_exomiser_config_parameters_for_docker(
-    config: ExomiserConfig,
-) -> ExomiserConfigParameters:
-    """Add manual arguments required for application.properties."""
-    configs = config.run.exomiser_configurations.application_properties_arguments
-    return ExomiserConfigParameters(
-        exomiser_hg19_version=configs.exomiser_hg19_version,
-        exomiser_hg38_version=configs.exomiser_hg38_version,
-        exomiser_phenotype_version=configs.exomiser_phenotype_version,
-    )
-
-
-def exomiser_config_parameters(config: ExomiserConfig) -> ExomiserConfigParameters:
-    """Add application.properties path to config arguments if specified, otherwise add manual configurations."""
-    return (
-        add_exomiser_config_file_for_docker(config)
-        if config.run.exomiser_configurations.path_to_application_properties_config is not None
-        else add_exomiser_config_parameters_for_docker(config)
+    exomiser_config = f"{input_dir}{os.sep}" f":{EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}"
+    return BasicDockerMountsForExomiser(
+        phenopacket_test_data=phenopacket_test_data,
+        vcf_test_data=vcf_test_data,
+        exomiser_yaml=exomiser_yaml,
+        tool_input_commands_path=batch_file_path,
+        exomiser_data_dir=exomiser_data_dir,
+        exomiser_application_properties=exomiser_config,
+        raw_results_dir=results_dir,
     )
 
 
 def run_exomiser_local(
     input_dir: Path,
     testdata_dir: Path,
-    config: ExomiserConfig,
+    config: ExomiserConfigurations,
     output_dir: Path,
     tool_input_commands_dir: Path,
     exomiser_version: str,
@@ -227,12 +120,10 @@ def run_exomiser_local(
     ]
     exomiser_jar_file = [
         filename
-        for filename in all_files(config.run.path_to_exomiser_software_directory)
+        for filename in all_files(input_dir.joinpath(config.exomiser_software_directory))
         if filename.name.endswith(".jar")
     ][0]
-    exomiser_jar_file_path = config.run.path_to_exomiser_software_directory.joinpath(
-        exomiser_jar_file
-    )
+    exomiser_jar_file_path = config.exomiser_software_directory.joinpath(exomiser_jar_file)
     for file in batch_files:
         subprocess.run(
             [
@@ -253,33 +144,22 @@ def run_exomiser_local(
         )
 
 
-def create_docker_run_command(config: ExomiserConfig, batch_file: Path) -> [str]:
+def create_docker_run_command(batch_file: Path) -> [str]:
     """Creates docker run command."""
-    exomiser_config_params = exomiser_config_parameters(config)
-    if exomiser_config_params.application_properties_path is None:
-        return [
-            "--batch",
-            "/exomiser-batch-file/" + batch_file.name,
-            f"--exomiser.data-directory={EXOMISER_DATA_DIRECTORY_TARGET_DOCKER}"
-            f"--exomiser.hg19.data-version={exomiser_config_params.exomiser_hg19_version}",
-            f"--exomiser.hg38.data-version={exomiser_config_params.exomiser_hg38_version}",
-            f"--exomiser.phenotype.data-version={exomiser_config_params.exomiser_phenotype_version}",
-        ]
-    else:
-        return [
-            "--batch",
-            f"{INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER}" + batch_file.name,
-            f"--spring.config.location={EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}application.properties",
-        ]
+    return [
+        "--batch",
+        f"{INPUT_COMMANDS_TARGET_DIRECTORY_DOCKER}" + batch_file.name,
+        f"--spring.config.location={EXOMISER_CONFIG_TARGET_DIRECTORY_DOCKER}application.properties",
+    ]
 
 
 def run_exomiser_docker(
     input_dir: Path,
     testdata_dir: Path,
-    config: ExomiserConfig,
     tool_input_commands_dir: Path,
     raw_results_dir: Path,
     exomiser_version: str,
+    phenotype_only: bool,
 ):
     """Run Exomiser with docker."""
     print("...running exomiser...")
@@ -290,9 +170,9 @@ def run_exomiser_docker(
         if file.name.startswith(Path(testdata_dir).name)
     ]
     for file in batch_files:
-        docker_command = create_docker_run_command(config, file)
+        docker_command = create_docker_run_command(file)
         docker_mounts = mount_docker(
-            input_dir, testdata_dir, config, tool_input_commands_dir, raw_results_dir
+            input_dir, testdata_dir, tool_input_commands_dir, raw_results_dir, phenotype_only
         )
         vol = [
             docker_mounts.vcf_test_data,
@@ -317,15 +197,21 @@ def run_exomiser_docker(
 def run_exomiser(
     input_dir: Path,
     testdata_dir,
-    config: ExomiserConfig,
+    config: ExomiserConfigurations,
     output_dir: Path,
     tool_input_commands_dir: Path,
     raw_results_dir: Path,
     exomiser_version: str,
+    phenotype_only: bool,
 ):
     """Run Exomiser with specified environment."""
     run_exomiser_local(
         input_dir, testdata_dir, config, output_dir, tool_input_commands_dir, exomiser_version
-    ) if config.run.environment == "local" else run_exomiser_docker(
-        input_dir, testdata_dir, config, tool_input_commands_dir, raw_results_dir, exomiser_version
+    ) if config.environment == "local" else run_exomiser_docker(
+        input_dir,
+        testdata_dir,
+        tool_input_commands_dir,
+        raw_results_dir,
+        exomiser_version,
+        phenotype_only,
     )

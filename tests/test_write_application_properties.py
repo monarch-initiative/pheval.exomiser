@@ -6,6 +6,7 @@ from pathlib import Path
 from pheval_exomiser.prepare.tool_specific_configuration_options import (
     ApplicationProperties,
     ExomiserConfigurations,
+    PostProcessing,
 )
 from pheval_exomiser.prepare.write_application_properties import ExomiserConfigurationFileWriter
 
@@ -20,7 +21,9 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
             input_dir=Path(cls.input_dir),
             configurations=ExomiserConfigurations(
                 environment="local",
+                exomiser_software_directory="exomiser-cli-13.2.0",
                 analysis_configuration_file=Path("preset_exome_analysis.py"),
+                max_jobs=50,
                 application_properties=ApplicationProperties(
                     remm_version="0.3.1.post1",
                     cadd_version="1.4",
@@ -32,6 +35,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
                     cache_type="caffeine",
                     cache_caffeine_spec=60000,
                 ),
+                post_process=PostProcessing(score_name="combinedScore", sort_order="descending"),
             ),
         )
 

@@ -19,22 +19,28 @@ The input directory config.yaml should be formatted like so:
 ```yaml
 tool: exomiser
 tool_version: 13.2.0
-phenotype_only: True
+phenotype_only: False # NOTE phenotype-only preset analysis should only be run with Exomiser versions >= 13.2.0
 tool_specific_configuration_options:
   environment: local
+  exomiser_software_directory: exomiser-cli-13.2.0
   analysis_configuration_file: preset-exome-analysis.yml
+  max_jobs: 0
   application_properties:
     remm_version:
     cadd_version:
     hg19_data_version: 2302
     hg19_local_frequency_path:
-    hg38_data_version:
-    hg38_local_frequency_path:
+    hg38_data_version: 2302
     phenotype_data_version: 2302
-    cache_type:            #either none,simple,caffeine
+    cache_type:
     cache_caffeine_spec:
+  post_process:
+    score_name: combinedScore
+    sort_order: DESCENDING
 ```
-The bare minimum fields are filled to give an idea on the requirements. This is so that the application.properties can be correctly configured.
+The bare minimum fields are filled to give an idea on the requirements. This is so that the application.properties can be correctly configured. An example config has been provided `pheval.exomiser/config.yaml`.
+
+The analysis configuration file should be located within the input directory.
 
 If using optional databases, such as REMM/CADD/local frequency the optional data input should look like so in the input
 directory:
