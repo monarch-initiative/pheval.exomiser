@@ -67,4 +67,5 @@ class ExomiserPhEvalRunner(PhEvalRunner):
             raw_results_dir=self.raw_results_dir,
             output_dir=self.output_dir,
             phenotype_only=self.input_dir_config.phenotype_only,
+            disease_analysis=self.input_dir_config.disease_analysis,
         )
