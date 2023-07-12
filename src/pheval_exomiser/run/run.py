@@ -105,7 +105,6 @@ def mount_docker(
 def run_exomiser_local(
     input_dir: Path,
     testdata_dir: Path,
-    config: ExomiserConfigurations,
     output_dir: Path,
     tool_input_commands_dir: Path,
     exomiser_version: str,
@@ -120,10 +119,10 @@ def run_exomiser_local(
     ]
     exomiser_jar_file = [
         filename
-        for filename in all_files(input_dir.joinpath(config.exomiser_software_directory))
+        for filename in all_files(input_dir)
         if filename.name.endswith(".jar")
     ][0]
-    exomiser_jar_file_path = config.exomiser_software_directory.joinpath(exomiser_jar_file)
+    exomiser_jar_file_path = input_dir.joinpath(exomiser_jar_file)
     for file in batch_files:
         subprocess.run(
             [
@@ -206,7 +205,7 @@ def run_exomiser(
 ):
     """Run Exomiser with specified environment."""
     run_exomiser_local(
-        input_dir, testdata_dir, config, output_dir, tool_input_commands_dir, exomiser_version
+        input_dir, testdata_dir, output_dir, tool_input_commands_dir, exomiser_version
     ) if config.environment == "local" else run_exomiser_docker(
         input_dir,
         testdata_dir,

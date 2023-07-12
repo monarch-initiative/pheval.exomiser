@@ -54,7 +54,6 @@ class ExomiserConfigurations(BaseModel):
     """
 
     environment: str = Field(...)
-    exomiser_software_directory: Path = Field(...)
     analysis_configuration_file: Path = Field(...)
     max_jobs: int = Field(...)
     application_properties: ApplicationProperties = Field(...)
