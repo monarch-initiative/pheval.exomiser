@@ -1,6 +1,6 @@
 # Exomiser Runner for PhEval
 
-This is the Exomiser plugin for PhEval.
+This is the Exomiser plugin for PhEval. Documentation on how to set up and run the PhEval pipeline with the Exomiser runner is detailed [here](https://monarch-initiative.github.io/pheval/exomiser_pipeline/).
 
 ## Configuring a run:
 
