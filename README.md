@@ -1,8 +1,19 @@
 # Exomiser Runner for PhEval
 
-This is the Exomiser plugin for PhEval. Documentation on how to set up and run the PhEval pipeline with the Exomiser runner is detailed [here](https://monarch-initiative.github.io/pheval/exomiser_pipeline/).
+This is the Exomiser plugin for PhEval. With this plugin, you can leverage the variant prioritisation tool, Exomiser, to run the PhEval pipeline seamlessly. Detailed documentation on how to set up and run the PhEval MakeFile pipeline with the Exomiser runner can be found [here](https://monarch-initiative.github.io/pheval/exomiser_pipeline/). Set-up for running with the full PhEval MakeFile pipeline differs to when setting up for a single run, instructions on how to set up the appropriate directory layout (input directory and test data directory) is detailed here.
 
-## Configuring a run:
+## Installation
+
+Clone the pheval.exomiser repo and set up the poetry environment:
+
+```shell
+git clone https://github.com/monarch-initiative/pheval.exomiser.git
+cd pheval.exomiser
+poetry shell
+poetry install
+```
+
+## Configuring a *single* run:
 
 ### Setting up the input directory
 
@@ -33,11 +44,11 @@ tool_specific_configuration_options:
 ```
 The bare minimum fields are filled to give an idea on the requirements. This is so that the application.properties for Exomiser can be correctly configured. An example config has been provided `pheval.exomiser/config.yaml`.
 
-The Exomiser input data directories (phenotype and variant) should also be located in the input directory - or a symlink pointing to the location.
+The Exomiser input data directories (phenotype database and variant database) should also be located in the input directory - or a symlink pointing to the location.
 
 The `exomiser_software_directory` points to the name of the Exomiser distribution directory located in the input directory.
 
-The analysis configuration file (in this case: `preset-exome-analysis.yml` should be located within the input directory.
+The analysis configuration file (in this case: `preset-exome-analysis.yml`) should be located within the input directory.
 
 If using optional databases, such as REMM/CADD/local frequency the optional data input should look like so in the input
 directory:
@@ -62,8 +73,6 @@ directory:
 
 The overall structure of the input directory may look something like this (omitting some files for clarity):
 ```tree
-
-    
 .
 ├── 2302_hg19
 │   ├── 2302_hg19_clinvar_whitelist.tsv.gz
@@ -94,9 +103,6 @@ The overall structure of the input directory may look something like this (omitt
 │       └── hg38
 │           ├── InDels.tsv.gz
 │           └── whole_genome_SNVs.tsv.gz
-├── exomiser-cli-13.2.0
-│   ├── exomiser-cli-13.2.0.jar
-│   └── local_frequency_test_hg38.tsv.gz
 ├── local
 │   ├── local_frequency_test_hg19.tsv.gz
 │   └── local_frequency_test_hg38.tsv.gz
