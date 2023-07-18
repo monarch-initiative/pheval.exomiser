@@ -145,7 +145,7 @@ class TestCommandCreator(unittest.TestCase):
             environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
-            variant_analysis=False,
+            variant_analysis=True,
             output_options_dir_files=None,
             output_options_file=Path(
                 "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
@@ -167,7 +167,7 @@ class TestCommandCreator(unittest.TestCase):
             environment="local",
             phenopacket_path=Path("/path/to/phenopacket.json"),
             phenopacket=phenopacket,
-            variant_analysis=True,
+            variant_analysis=False,
             output_options_dir_files=None,
             output_options_file=None,
             raw_results_dir=Path("/path/to/results_dir"),
@@ -209,7 +209,7 @@ class TestCommandCreator(unittest.TestCase):
                 vcf_file=None,
                 vcf_assembly=None,
                 raw_results_dir=Path("/path/to/results_dir"),
-                variant_analysis=True,
+                variant_analysis=False,
             ),
         )
 
@@ -269,7 +269,7 @@ class TestCommandCreator(unittest.TestCase):
                 vcf_file=Path("/path/to/vcf_dir/test_1.vcf"),
                 vcf_assembly="GRCh37",
                 raw_results_dir=Path("/path/to/results_dir"),
-                variant_analysis=False,
+                variant_analysis=True,
                 output_options_file=Path(
                     "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
                 ),
@@ -285,6 +285,6 @@ class TestCommandCreator(unittest.TestCase):
                 vcf_file=None,
                 vcf_assembly=None,
                 raw_results_dir=Path("/path/to/results_dir"),
-                variant_analysis=True,
+                variant_analysis=False,
             ),
         )
