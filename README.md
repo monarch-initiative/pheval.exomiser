@@ -23,6 +23,7 @@ A `config.yaml` should be located in the input directory and formatted like so:
 tool: exomiser
 tool_version: 13.2.0
 phenotype_only: False # NOTE phenotype-only preset analysis should only be run with Exomiser versions >= 13.2.0
+disease_analysis: False
 tool_specific_configuration_options:
   environment: local
   exomiser_software_directory: exomiser-cli-13.2.0

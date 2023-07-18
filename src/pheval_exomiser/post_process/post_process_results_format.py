@@ -4,6 +4,7 @@ from pathlib import Path
 
 import click
 from pheval.post_processing.post_processing import (
+    PhEvalDiseaseResult,
     PhEvalGeneResult,
     PhEvalVariantResult,
     generate_pheval_result,
@@ -118,10 +119,54 @@ class PhEvalVariantResultFromExomiserJsonCreator:
         return simplified_exomiser_result
 
 
+class PhEvalDiseaseResultFromExomiserJsonCreator:
+    def __init__(self, exomiser_json_result: [dict]):
+        self.exomiser_json_result = exomiser_json_result
+
+    @staticmethod
+    def _find_disease_name(result_entry: dict) -> str:
+        """Return disease term from Exomiser result entry."""
+        return result_entry["diseaseTerm"]
+
+    @staticmethod
+    def _find_disease_identifier(result_entry: dict) -> int:
+        """Return disease ID from Exomiser result entry."""
+        return result_entry["diseaseId"]
+
+    @staticmethod
+    def _find_relevant_score(result_entry) -> float:
+        """Return score from Exomiser result entry."""
+        return round(result_entry["score"], 4)
+
+    def extract_pheval_disease_requirements(self) -> [PhEvalDiseaseResult]:
+        """Extract data required to produce PhEval disease output."""
+        simplified_exomiser_result = []
+        for result_entry in self.exomiser_json_result:
+            try:
+                for disease in result_entry["priorityResults"]["HIPHIVE_PRIORITY"][
+                    "diseaseMatches"
+                ]:
+                    simplified_exomiser_result.append(
+                        PhEvalDiseaseResult(
+                            disease_name=self._find_disease_name(disease["model"]),
+                            disease_identifier=self._find_disease_identifier(disease["model"]),
+                            score=self._find_relevant_score(disease),
+                        )
+                    )
+            except KeyError:
+                pass
+        return simplified_exomiser_result
+
+
 def create_standardised_results(
-    results_dir: Path, output_dir: Path, score_name: str, sort_order: str, phenotype_only: bool
+    results_dir: Path,
+    output_dir: Path,
+    score_name: str,
+    sort_order: str,
+    phenotype_only: bool,
+    disease_analysis: bool,
 ) -> None:
-    """Write standardised gene and variant results from default Exomiser json output."""
+    """Write standardised gene/variant/disease results from default Exomiser json output."""
     for exomiser_json_result in files_with_suffix(results_dir, ".json"):
         exomiser_result = read_exomiser_json_result(exomiser_json_result)
         pheval_gene_requirements = PhEvalGeneResultFromExomiserJsonCreator(
@@ -139,6 +184,16 @@ def create_standardised_results(
             ).extract_pheval_variant_requirements()
             generate_pheval_result(
                 pheval_result=pheval_variant_requirements,
+                sort_order_str=sort_order,
+                output_dir=output_dir,
+                tool_result_path=exomiser_json_result,
+            )
+        if disease_analysis:
+            pheval_disease_requirements = PhEvalDiseaseResultFromExomiserJsonCreator(
+                exomiser_result
+            ).extract_pheval_disease_requirements()
+            generate_pheval_result(
+                pheval_result=pheval_disease_requirements,
                 sort_order_str=sort_order,
                 output_dir=output_dir,
                 tool_result_path=exomiser_json_result,
@@ -186,12 +241,28 @@ def create_standardised_results(
     default=False,
     help="Specify if Exomiser was run with phenotype-only analysis.",
 )
+@click.option(
+    "--disease-analysis/--no-disease-analysis",
+    type=bool,
+    default=False,
+    help="Specify whether to create PhEval disease results",
+)
 def post_process_exomiser_results(
-    output_dir: Path, results_dir: Path, score_name: str, sort_order: str, phenotype_only: bool
+    output_dir: Path,
+    results_dir: Path,
+    score_name: str,
+    sort_order: str,
+    phenotype_only: bool,
+    disease_analysis: bool,
 ):
     """Post-process Exomiser json results into PhEval gene and variant outputs."""
     output_dir.joinpath("pheval_gene_results").mkdir(parents=True, exist_ok=True)
     output_dir.joinpath("pheval_variant_results").mkdir(
         parents=True, exist_ok=True
     ) if not phenotype_only else None
-    create_standardised_results(results_dir, output_dir, score_name, sort_order, phenotype_only)
+    output_dir.joinpath("pheval_disease_results").mkdir(
+        parents=True, exist_ok=True
+    ) if disease_analysis else None
+    create_standardised_results(
+        results_dir, output_dir, score_name, sort_order, phenotype_only, disease_analysis
+    )

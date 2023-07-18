@@ -5,7 +5,11 @@ from pheval_exomiser.prepare.tool_specific_configuration_options import Exomiser
 
 
 def post_process_result_format(
-    config: ExomiserConfigurations, raw_results_dir: Path, output_dir: Path, phenotype_only: bool
+    config: ExomiserConfigurations,
+    raw_results_dir: Path,
+    output_dir: Path,
+    phenotype_only: bool,
+    disease_analysis: bool,
 ):
     """Standardise Exomiser json format to separated gene and variant results."""
     print("...standardising results format...")
@@ -15,5 +19,6 @@ def post_process_result_format(
         score_name=config.post_process.score_name,
         sort_order=config.post_process.sort_order,
         phenotype_only=phenotype_only,
+        disease_analysis=disease_analysis,
     )
     print("done")
