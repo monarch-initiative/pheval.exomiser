@@ -30,18 +30,11 @@ def prepare_batch_files(
 ) -> None:
     """Prepare the exomiser batch files"""
     print("...preparing batch files...")
-    vcf_dir_name = [directory for directory in Path(testdata_dir).glob("vcf")]
     create_batch_file(
         environment=config.environment,
         analysis=input_dir.joinpath(config.analysis_configuration_file),
-        phenopacket_dir=Path(testdata_dir).joinpath(
-            [
-                directory
-                for directory in os.listdir(str(testdata_dir))
-                if "phenopackets" in str(directory)
-            ][0]
-        ),
-        vcf_dir=vcf_dir_name[0] if vcf_dir_name != [] else None,
+        phenopacket_dir=Path(testdata_dir).joinpath("phenopackets"),
+        vcf_dir=Path(testdata_dir).joinpath("vcf") if not phenotype_only else None,
         output_dir=tool_input_commands_dir,
         batch_prefix=Path(testdata_dir).name,
         max_jobs=config.max_jobs,
@@ -73,16 +66,12 @@ def mount_docker(
     phenotype_only: bool,
 ) -> BasicDockerMountsForExomiser:
     """Create docker mounts for paths required for running Exomiser."""
-    test_data = os.listdir(str(testdata_dir))
     phenopacket_test_data = (
-        f"{Path(testdata_dir).joinpath([sub_dir for sub_dir in test_data if 'phenopackets' in str(sub_dir)][0])}"
+        f"{Path(testdata_dir).joinpath('phenopackets')}"
         f"{os.sep}:{PHENOPACKET_TARGET_DIRECTORY_DOCKER}"
     )
     vcf_test_data = (
-        (
-            f"{Path(testdata_dir).joinpath([sub_dir for sub_dir in test_data if 'vcf' in str(sub_dir)][0])}"
-            f"{os.sep}:{VCF_TARGET_DIRECTORY_DOCKER}"
-        )
+        f"{Path(testdata_dir).joinpath('vcf')}{os.sep}:{VCF_TARGET_DIRECTORY_DOCKER}"
         if not phenotype_only
         else None
     )
