@@ -43,7 +43,7 @@ class ExomiserPhEvalRunner(PhEvalRunner):
             testdata_dir=self.testdata_dir,
             tool_input_commands_dir=self.tool_input_commands_dir,
             raw_results_dir=self.raw_results_dir,
-            phenotype_only=self.input_dir_config.phenotype_only,
+            variant_analysis=self.input_dir_config.variant_analysis,
         )
         run_exomiser(
             input_dir=self.input_dir,
@@ -53,7 +53,7 @@ class ExomiserPhEvalRunner(PhEvalRunner):
             tool_input_commands_dir=self.tool_input_commands_dir,
             raw_results_dir=self.raw_results_dir,
             exomiser_version=self.version,
-            phenotype_only=self.input_dir_config.phenotype_only,
+            variant_analysis=self.input_dir_config.variant_analysis,
         )
 
     def post_process(self):
@@ -66,6 +66,7 @@ class ExomiserPhEvalRunner(PhEvalRunner):
             config=config,
             raw_results_dir=self.raw_results_dir,
             output_dir=self.output_dir,
-            phenotype_only=self.input_dir_config.phenotype_only,
+            variant_analysis=self.input_dir_config.variant_analysis,
+            gene_analysis=self.input_dir_config.gene_analysis,
             disease_analysis=self.input_dir_config.disease_analysis,
         )
