@@ -71,7 +71,7 @@ directory:
 ```
 
 
-The overall structure of the input directory may look something like this (omitting some files for clarity):
+The overall structure of the input directory should look like this with the cadd, local and remm directories being optional, depending on the exomiser configuration:
 ```tree
 .
 ├── 2302_hg19
