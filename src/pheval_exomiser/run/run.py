@@ -26,22 +26,23 @@ def prepare_batch_files(
     config: ExomiserConfigurations,
     tool_input_commands_dir: Path,
     raw_results_dir: Path,
-    phenotype_only: bool,
+    variant_analysis: bool,
 ) -> None:
     """Prepare the exomiser batch files"""
     print("...preparing batch files...")
+    vcf_dir_name = Path(testdata_dir).joinpath("vcf")
     create_batch_file(
         environment=config.environment,
         analysis=input_dir.joinpath(config.analysis_configuration_file),
         phenopacket_dir=Path(testdata_dir).joinpath("phenopackets"),
-        vcf_dir=Path(testdata_dir).joinpath("vcf") if not phenotype_only else None,
+        vcf_dir=vcf_dir_name if variant_analysis else None,
         output_dir=tool_input_commands_dir,
         batch_prefix=Path(testdata_dir).name,
         max_jobs=config.max_jobs,
         output_options_file=None,
         output_options_dir=None,
         results_dir=raw_results_dir,
-        phenotype_only=phenotype_only,
+        variant_analysis=variant_analysis,
     )
 
 
@@ -63,7 +64,7 @@ def mount_docker(
     testdata_dir: Path,
     tool_input_commands_dir: Path,
     raw_results_dir: Path,
-    phenotype_only: bool,
+    variant_analysis: bool,
 ) -> BasicDockerMountsForExomiser:
     """Create docker mounts for paths required for running Exomiser."""
     phenopacket_test_data = (
@@ -71,8 +72,8 @@ def mount_docker(
         f"{os.sep}:{PHENOPACKET_TARGET_DIRECTORY_DOCKER}"
     )
     vcf_test_data = (
-        f"{Path(testdata_dir).joinpath('vcf')}{os.sep}:{VCF_TARGET_DIRECTORY_DOCKER}"
-        if not phenotype_only
+        (f"{Path(testdata_dir).joinpath('vcf')}" f"{os.sep}:{VCF_TARGET_DIRECTORY_DOCKER}")
+        if variant_analysis
         else None
     )
     exomiser_yaml = f"{input_dir}:{EXOMISER_YAML_TARGET_DIRECTORY_DOCKER}"
@@ -148,7 +149,7 @@ def run_exomiser_docker(
     tool_input_commands_dir: Path,
     raw_results_dir: Path,
     exomiser_version: str,
-    phenotype_only: bool,
+    variant_analysis: bool,
 ):
     """Run Exomiser with docker."""
     print("...running exomiser...")
@@ -161,7 +162,7 @@ def run_exomiser_docker(
     for file in batch_files:
         docker_command = create_docker_run_command(file)
         docker_mounts = mount_docker(
-            input_dir, testdata_dir, tool_input_commands_dir, raw_results_dir, phenotype_only
+            input_dir, testdata_dir, tool_input_commands_dir, raw_results_dir, variant_analysis
         )
         vol = [
             docker_mounts.vcf_test_data,
@@ -191,7 +192,7 @@ def run_exomiser(
     tool_input_commands_dir: Path,
     raw_results_dir: Path,
     exomiser_version: str,
-    phenotype_only: bool,
+    variant_analysis: bool,
 ):
     """Run Exomiser with specified environment."""
     run_exomiser_local(
@@ -202,5 +203,5 @@ def run_exomiser(
         tool_input_commands_dir,
         raw_results_dir,
         exomiser_version,
-        phenotype_only,
+        variant_analysis,
     )

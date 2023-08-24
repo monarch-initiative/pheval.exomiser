@@ -8,7 +8,8 @@ def post_process_result_format(
     config: ExomiserConfigurations,
     raw_results_dir: Path,
     output_dir: Path,
-    phenotype_only: bool,
+    variant_analysis: bool,
+    gene_analysis: bool,
     disease_analysis: bool,
 ):
     """Standardise Exomiser json format to separated gene and variant results."""
@@ -18,7 +19,8 @@ def post_process_result_format(
         output_dir=output_dir,
         score_name=config.post_process.score_name,
         sort_order=config.post_process.sort_order,
-        phenotype_only=phenotype_only,
+        variant_analysis=variant_analysis,
+        gene_analysis=gene_analysis,
         disease_analysis=disease_analysis,
     )
     print("done")
