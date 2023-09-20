@@ -117,7 +117,7 @@ def run_exomiser_local(
     for file in batch_files:
         subprocess.run(
             [
-                "/usr/bin/java",
+                "java",
                 "-Xmx4g",
                 "-jar",
                 exomiser_jar_file_path,
