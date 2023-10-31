@@ -61,6 +61,9 @@ class PhEvalGeneResultFromExomiserJsonCreator:
 
 
 class PhEvalVariantResultFromExomiserJsonCreator:
+    acmg_pathogenic_label = "PATHOGENIC"
+    acmg_likely_pathogenic_label = "LIKELY_PATHOGENIC"
+
     def __init__(self, exomiser_json_result: [dict], score_name: str):
         self.exomiser_json_result = exomiser_json_result
         self.score_name = score_name
@@ -111,8 +114,10 @@ class PhEvalVariantResultFromExomiserJsonCreator:
                 score=score,
             ):
                 if (
-                    assignment["acmgClassification"] == "PATHOGENIC"
-                    or assignment["acmgClassification"] == "LIKELY_PATHOGENIC"
+                    assignment["acmgClassification"]
+                    == PhEvalVariantResultFromExomiserJsonCreator.acmg_pathogenic_label
+                    or assignment["acmgClassification"]
+                    == PhEvalVariantResultFromExomiserJsonCreator.acmg_likely_pathogenic_label
                 ):
                     return True
 
