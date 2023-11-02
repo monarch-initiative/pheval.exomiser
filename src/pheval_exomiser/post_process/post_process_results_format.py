@@ -178,7 +178,7 @@ def create_standardised_results(
                 pheval_result=pheval_gene_requirements,
                 sort_order_str=sort_order,
                 output_dir=output_dir,
-                tool_result_path=trim_exomiser_result_filename(trim_exomiser_result_filename()),
+                tool_result_path=trim_exomiser_result_filename(exomiser_json_result),
             )
         if variant_analysis:
             pheval_variant_requirements = PhEvalVariantResultFromExomiserJsonCreator(
