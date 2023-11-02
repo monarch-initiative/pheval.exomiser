@@ -178,7 +178,7 @@ def create_standardised_results(
                 pheval_result=pheval_gene_requirements,
                 sort_order_str=sort_order,
                 output_dir=output_dir,
-                tool_result_path=exomiser_json_result,
+                tool_result_path=trim_exomiser_result_filename(trim_exomiser_result_filename()),
             )
         if variant_analysis:
             pheval_variant_requirements = PhEvalVariantResultFromExomiserJsonCreator(
@@ -188,7 +188,7 @@ def create_standardised_results(
                 pheval_result=pheval_variant_requirements,
                 sort_order_str=sort_order,
                 output_dir=output_dir,
-                tool_result_path=exomiser_json_result,
+                tool_result_path=trim_exomiser_result_filename(exomiser_json_result),
             )
         if disease_analysis:
             pheval_disease_requirements = PhEvalDiseaseResultFromExomiserJsonCreator(
@@ -198,7 +198,7 @@ def create_standardised_results(
                 pheval_result=pheval_disease_requirements,
                 sort_order_str=sort_order,
                 output_dir=output_dir,
-                tool_result_path=exomiser_json_result,
+                tool_result_path=trim_exomiser_result_filename(exomiser_json_result),
             )
 
 
