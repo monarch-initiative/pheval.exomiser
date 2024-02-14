@@ -195,13 +195,17 @@ def run_exomiser(
     variant_analysis: bool,
 ):
     """Run Exomiser with specified environment."""
-    run_exomiser_local(
-        input_dir, testdata_dir, config, output_dir, tool_input_commands_dir, exomiser_version
-    ) if config.environment == "local" else run_exomiser_docker(
-        input_dir,
-        testdata_dir,
-        tool_input_commands_dir,
-        raw_results_dir,
-        exomiser_version,
-        variant_analysis,
+    (
+        run_exomiser_local(
+            input_dir, testdata_dir, config, output_dir, tool_input_commands_dir, exomiser_version
+        )
+        if config.environment == "local"
+        else run_exomiser_docker(
+            input_dir,
+            testdata_dir,
+            tool_input_commands_dir,
+            raw_results_dir,
+            exomiser_version,
+            variant_analysis,
+        )
     )

@@ -265,15 +265,21 @@ def post_process_exomiser_results(
     disease_analysis: bool,
 ):
     """Post-process Exomiser json results into PhEval gene and variant outputs."""
-    output_dir.joinpath("pheval_gene_results").mkdir(
-        parents=True, exist_ok=True
-    ) if gene_analysis else None
-    output_dir.joinpath("pheval_variant_results").mkdir(
-        parents=True, exist_ok=True
-    ) if variant_analysis else None
-    output_dir.joinpath("pheval_disease_results").mkdir(
-        parents=True, exist_ok=True
-    ) if disease_analysis else None
+    (
+        output_dir.joinpath("pheval_gene_results").mkdir(parents=True, exist_ok=True)
+        if gene_analysis
+        else None
+    )
+    (
+        output_dir.joinpath("pheval_variant_results").mkdir(parents=True, exist_ok=True)
+        if variant_analysis
+        else None
+    )
+    (
+        output_dir.joinpath("pheval_disease_results").mkdir(parents=True, exist_ok=True)
+        if disease_analysis
+        else None
+    )
     create_standardised_results(
         results_dir,
         output_dir,

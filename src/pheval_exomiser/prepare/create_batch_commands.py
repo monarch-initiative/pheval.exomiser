@@ -78,9 +78,11 @@ class CommandCreator:
             return ExomiserCommandLineArguments(
                 sample=f"{PHENOPACKET_TARGET_DIRECTORY_DOCKER}{Path(self.phenopacket_path.name)}",
                 variant_analysis=self.variant_analysis,
-                output_options_file=f"{OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER}{Path(output_options_file).name}"
-                if output_options_file is not None
-                else None,
+                output_options_file=(
+                    f"{OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER}{Path(output_options_file).name}"
+                    if output_options_file is not None
+                    else None
+                ),
                 raw_results_dir=RAW_RESULTS_TARGET_DIRECTORY_DOCKER,
             )
         elif self.environment == "local":
@@ -111,9 +113,11 @@ class CommandCreator:
                 sample=f"{PHENOPACKET_TARGET_DIRECTORY_DOCKER}{Path(self.phenopacket_path.name)}",
                 vcf_file=f"{VCF_TARGET_DIRECTORY_DOCKER}{Path(vcf_file_data.uri).name}",
                 vcf_assembly=vcf_file_data.file_attributes["genomeAssembly"],
-                output_options_file=f"{OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER}{Path(output_options_file).name}"
-                if output_options_file is not None
-                else None,
+                output_options_file=(
+                    f"{OUTPUT_OPTIONS_TARGET_DIRECTORY_DOCKER}{Path(output_options_file).name}"
+                    if output_options_file is not None
+                    else None
+                ),
                 variant_analysis=self.variant_analysis,
                 raw_results_dir=RAW_RESULTS_TARGET_DIRECTORY_DOCKER,
                 analysis_yaml=f"{EXOMISER_YAML_TARGET_DIRECTORY_DOCKER}{Path(self.analysis_yaml).name}",
@@ -185,18 +189,22 @@ class CommandsWriter:
     def write_results_dir(self, command_arguments: ExomiserCommandLineArguments) -> None:
         """Write results directory for exomiser ≥13.2.0 to run."""
         try:
-            self.file.write(
-                " --output-directory " + str(command_arguments.raw_results_dir)
-            ) if command_arguments.raw_results_dir is not None else None
+            (
+                self.file.write(" --output-directory " + str(command_arguments.raw_results_dir))
+                if command_arguments.raw_results_dir is not None
+                else None
+            )
         except IOError:
             print("Error writing ", self.file)
 
     def write_output_options(self, command_arguments: ExomiserCommandLineArguments) -> None:
         """Write a command out for exomiser ≤13.1.0 to run - including output option file specified."""
         try:
-            self.file.write(
-                " --output " + str(command_arguments.output_options_file)
-            ) if command_arguments.output_options_file is not None else None
+            (
+                self.file.write(" --output " + str(command_arguments.output_options_file))
+                if command_arguments.output_options_file is not None
+                else None
+            )
         except IOError:
             print("Error writing ", self.file)
 
@@ -230,9 +238,11 @@ class CommandsWriter:
         self.file.write("\n")
 
     def write_local_commands(self, command_arguments: ExomiserCommandLineArguments):
-        self.write_analysis_command(
-            command_arguments
-        ) if self.variant_analysis else self.write_phenotype_only_command(command_arguments)
+        (
+            self.write_analysis_command(command_arguments)
+            if self.variant_analysis
+            else self.write_phenotype_only_command(command_arguments)
+        )
 
     def close(self) -> None:
         """Close file."""
@@ -324,18 +334,20 @@ def create_batch_file(
         output_options_file,
         analysis,
     )
-    BatchFileWriter(
-        command_arguments,
-        variant_analysis,
-        output_dir,
-        batch_prefix,
-    ).write_all_commands() if max_jobs == 0 else BatchFileWriter(
-        command_arguments,
-        variant_analysis,
-        output_dir,
-        batch_prefix,
-    ).create_split_batch_files(
-        max_jobs
+    (
+        BatchFileWriter(
+            command_arguments,
+            variant_analysis,
+            output_dir,
+            batch_prefix,
+        ).write_all_commands()
+        if max_jobs == 0
+        else BatchFileWriter(
+            command_arguments,
+            variant_analysis,
+            output_dir,
+            batch_prefix,
+        ).create_split_batch_files(max_jobs)
     )
 
 
