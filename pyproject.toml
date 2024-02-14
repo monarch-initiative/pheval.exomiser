@@ -18,8 +18,8 @@ google = "^3.0.0"
 pyaml = "^21.10.1"
 oaklib = "^0.5.12"
 docker = "^6.0.1"
-pheval = {git = "https://github.com/monarch-initiative/pheval.git"}
 pydantic = "^1.10.7"
+pheval = "^0.3.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
