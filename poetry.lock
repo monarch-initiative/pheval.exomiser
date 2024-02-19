@@ -2412,13 +2412,13 @@ protobuf = "3.20.1"
 
 [[package]]
 name = "pheval"
-version = "0.3.0"
+version = "0.3.1"
 description = ""
 optional = false
 python-versions = ">=3.9,<4.0.0"
 files = [
-    {file = "pheval-0.3.0-py3-none-any.whl", hash = "sha256:12cb26a0631ffaffe818f9cfd96368ef6550dd9d50ab0fdc13b245bdf76a77b3"},
-    {file = "pheval-0.3.0.tar.gz", hash = "sha256:160a7da00a5f2e121853c922448076c647d820a172aa40072f4a9ac36c055c70"},
+    {file = "pheval-0.3.1-py3-none-any.whl", hash = "sha256:56e20ce454f6e12b811f362b884fc930456e0da46b1ecbc0437a6dbedfc2805f"},
+    {file = "pheval-0.3.1.tar.gz", hash = "sha256:cafe36602ec834f84fe6802521227a34830fc2ddb8ccec8490b6c81ac055b6d5"},
 ]
 
 [package.dependencies]
@@ -4442,4 +4442,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0.0"
-content-hash = "9bcca0c0343abcc441c8d4fe9ce81248b58e25da2f55fbcd3cad6c49ec3ed3a4"
+content-hash = "877c032aaf7216268e3414e40fa686014abdb39d88a3b57fab22452b8a353c78"
