@@ -182,6 +182,8 @@ class CommandsWriter:
                 + str(command_arguments.vcf_file)
                 + " --assembly "
                 + command_arguments.vcf_assembly
+                + " --output-filename "
+                + f"{command_arguments.sample.stem}-exomiser"
             )
         except IOError:
             print("Error writing ", self.file)
