@@ -475,7 +475,7 @@ example_exomiser_result = [
                         "modeOfInheritance": "AUTOSOMAL_DOMINANT",
                         "disease": {"diseaseType": "UNCONFIRMED", "inheritanceMode": "UNKNOWN"},
                         "acmgEvidence": {"empty": True},
-                        "acmgClassification": "UNCERTAIN_SIGNIFICANCE",
+                        "acmgClassification": "PATHOGENIC",
                     }
                 ],
             },
@@ -834,7 +834,7 @@ example_exomiser_result = [
                         "modeOfInheritance": "AUTOSOMAL_RECESSIVE",
                         "disease": {"diseaseType": "UNCONFIRMED", "inheritanceMode": "UNKNOWN"},
                         "acmgEvidence": {"empty": True},
-                        "acmgClassification": "UNCERTAIN_SIGNIFICANCE",
+                        "acmgClassification": "PATHOGENIC",
                     },
                 ],
             },
@@ -1307,7 +1307,7 @@ example_exomiser_result = [
                         "modeOfInheritance": "AUTOSOMAL_DOMINANT",
                         "disease": {"diseaseType": "UNCONFIRMED", "inheritanceMode": "UNKNOWN"},
                         "acmgEvidence": {"empty": True},
-                        "acmgClassification": "UNCERTAIN_SIGNIFICANCE",
+                        "acmgClassification": "LIKELY_PATHOGENIC",
                     }
                 ],
             },
@@ -2388,6 +2388,183 @@ example_exomiser_result_with_disease = [
     }
 ]
 
+variant_acmg_pathogenic = [
+    {
+        "variantEvaluation": {
+            "genomeAssembly": "HG19",
+            "contigName": "3",
+            "start": 126730873,
+            "end": 126730873,
+            "ref": "G",
+            "alt": "A",
+            "id": "rs78052417",
+            "type": "SNV",
+            "length": 1,
+            "phredScore": 2970.4399999999996,
+            "variantEffect": "MISSENSE_VARIANT",
+            "filterStatus": "PASSED",
+            "contributesToGeneScore": True,
+            "variantScore": 0.55660325,
+            "frequencyScore": 0.9972702,
+            "pathogenicityScore": 0.5581268,
+            "predictedPathogenic": True,
+            "passedFilterTypes": [
+                "FAILED_VARIANT_FILTER",
+                "PATHOGENICITY_FILTER",
+                "FREQUENCY_FILTER",
+                "VARIANT_EFFECT_FILTER",
+                "INHERITANCE_FILTER",
+            ],
+            "frequencyData": {
+                "rsId": "rs78052417",
+                "knownFrequencies": [
+                    {"source": "THOUSAND_GENOMES", "frequency": 0.01997},
+                    {"source": "TOPMED", "frequency": 0.001133},
+                    {"source": "EXAC_NON_FINNISH_EUROPEAN", "frequency": 0.004534462},
+                    {"source": "GNOMAD_E_NFE", "frequency": 0.0035905354},
+                ],
+                "score": 0.9972702,
+            },
+            "pathogenicityData": {
+                "clinVarData": {"primaryInterpretation": "NOT_PROVIDED"},
+                "mostPathogenicScore": {"source": "MVP", "score": 0.5581268},
+                "score": 0.5581268,
+                "predictedPathogenicityScores": [
+                    {"source": "REVEL", "score": 0.348},
+                    {"source": "MVP", "score": 0.5581268},
+                ],
+            },
+            "compatibleInheritanceModes": ["AUTOSOMAL_DOMINANT", "AUTOSOMAL_RECESSIVE"],
+            "contributingInheritanceModes": ["AUTOSOMAL_DOMINANT", "AUTOSOMAL_RECESSIVE"],
+            "transcriptAnnotations": [
+                {
+                    "variantEffect": "MISSENSE_VARIANT",
+                    "geneSymbol": "PLXNA1",
+                    "accession": "ENST00000251772.4",
+                    "hgvsGenomic": "g.126730873G>A",
+                    "hgvsCdna": "c.2116G>A",
+                    "hgvsProtein": "p.(Ala706Thr)",
+                    "rankType": "EXON",
+                    "rank": 9,
+                    "rankTotal": 31,
+                },
+                {
+                    "variantEffect": "MISSENSE_VARIANT",
+                    "geneSymbol": "PLXNA1",
+                    "accession": "ENST00000393409.2",
+                    "hgvsGenomic": "g.126730873G>A",
+                    "hgvsCdna": "c.2185G>A",
+                    "hgvsProtein": "p.(Ala729Thr)",
+                    "rankType": "EXON",
+                    "rank": 9,
+                    "rankTotal": 31,
+                },
+            ],
+        },
+        "geneIdentifier": {
+            "geneId": "ENSG00000114554",
+            "geneSymbol": "PLXNA1",
+            "hgncId": "HGNC:9099",
+            "hgncSymbol": "PLXNA1",
+            "entrezId": "5361",
+            "ensemblId": "ENSG00000114554",
+            "ucscId": "uc003ejg.3",
+        },
+        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+        "disease": {"diseaseType": "UNCONFIRMED", "inheritanceMode": "UNKNOWN"},
+        "acmgEvidence": {"empty": True},
+        "acmgClassification": "PATHOGENIC",
+    }
+]
+variant_acmg_uncertain_significance = [
+    {
+        "variantEvaluation": {
+            "genomeAssembly": "HG19",
+            "contigName": "3",
+            "start": 126730873,
+            "end": 126730873,
+            "ref": "G",
+            "alt": "A",
+            "id": "rs78052417",
+            "type": "SNV",
+            "length": 1,
+            "phredScore": 2970.4399999999996,
+            "variantEffect": "MISSENSE_VARIANT",
+            "filterStatus": "PASSED",
+            "contributesToGeneScore": True,
+            "variantScore": 0.55660325,
+            "frequencyScore": 0.9972702,
+            "pathogenicityScore": 0.5581268,
+            "predictedPathogenic": True,
+            "passedFilterTypes": [
+                "FAILED_VARIANT_FILTER",
+                "PATHOGENICITY_FILTER",
+                "FREQUENCY_FILTER",
+                "VARIANT_EFFECT_FILTER",
+                "INHERITANCE_FILTER",
+            ],
+            "frequencyData": {
+                "rsId": "rs78052417",
+                "knownFrequencies": [
+                    {"source": "THOUSAND_GENOMES", "frequency": 0.01997},
+                    {"source": "TOPMED", "frequency": 0.001133},
+                    {"source": "EXAC_NON_FINNISH_EUROPEAN", "frequency": 0.004534462},
+                    {"source": "GNOMAD_E_NFE", "frequency": 0.0035905354},
+                ],
+                "score": 0.9972702,
+            },
+            "pathogenicityData": {
+                "clinVarData": {"primaryInterpretation": "NOT_PROVIDED"},
+                "mostPathogenicScore": {"source": "MVP", "score": 0.5581268},
+                "score": 0.5581268,
+                "predictedPathogenicityScores": [
+                    {"source": "REVEL", "score": 0.348},
+                    {"source": "MVP", "score": 0.5581268},
+                ],
+            },
+            "compatibleInheritanceModes": ["AUTOSOMAL_DOMINANT", "AUTOSOMAL_RECESSIVE"],
+            "contributingInheritanceModes": ["AUTOSOMAL_DOMINANT", "AUTOSOMAL_RECESSIVE"],
+            "transcriptAnnotations": [
+                {
+                    "variantEffect": "MISSENSE_VARIANT",
+                    "geneSymbol": "PLXNA1",
+                    "accession": "ENST00000251772.4",
+                    "hgvsGenomic": "g.126730873G>A",
+                    "hgvsCdna": "c.2116G>A",
+                    "hgvsProtein": "p.(Ala706Thr)",
+                    "rankType": "EXON",
+                    "rank": 9,
+                    "rankTotal": 31,
+                },
+                {
+                    "variantEffect": "MISSENSE_VARIANT",
+                    "geneSymbol": "PLXNA1",
+                    "accession": "ENST00000393409.2",
+                    "hgvsGenomic": "g.126730873G>A",
+                    "hgvsCdna": "c.2185G>A",
+                    "hgvsProtein": "p.(Ala729Thr)",
+                    "rankType": "EXON",
+                    "rank": 9,
+                    "rankTotal": 31,
+                },
+            ],
+        },
+        "geneIdentifier": {
+            "geneId": "ENSG00000114554",
+            "geneSymbol": "PLXNA1",
+            "hgncId": "HGNC:9099",
+            "hgncSymbol": "PLXNA1",
+            "entrezId": "5361",
+            "ensemblId": "ENSG00000114554",
+            "ucscId": "uc003ejg.3",
+        },
+        "modeOfInheritance": "AUTOSOMAL_DOMINANT",
+        "disease": {"diseaseType": "UNCONFIRMED", "inheritanceMode": "UNKNOWN"},
+        "acmgEvidence": {"empty": True},
+        "acmgClassification": "UNCERTAIN_SIGNIFICANCE",
+    }
+]
+
 
 class TestPhEvalGeneResultFromExomiserJsonCreator(unittest.TestCase):
     @classmethod
@@ -2466,6 +2643,28 @@ class TestPhEvalVariantFromExomiserJsonCreator(unittest.TestCase):
             0.0484,
         )
 
+    def test__filter_for_acmg_assignments_pathogenic(self):
+        self.assertTrue(
+            self.json_result._filter_for_acmg_assignments(
+                PhEvalVariantResult(
+                    chromosome="3", start=126730873, end=126730873, ref="G", alt="A", score=0.0484
+                ),
+                score=0.0484,
+                variant_acmg_assignments=variant_acmg_pathogenic,
+            )
+        )
+
+    def test__filter_for_acmg_assignments_uncertain_significance(self):
+        self.assertFalse(
+            self.json_result._filter_for_acmg_assignments(
+                PhEvalVariantResult(
+                    chromosome="3", start=126730873, end=126730873, ref="G", alt="A", score=0.0484
+                ),
+                score=0.0484,
+                variant_acmg_assignments=variant_acmg_uncertain_significance,
+            )
+        )
+
     def test_extract_pheval_variant_requirements(self):
         self.assertEqual(
             self.json_result.extract_pheval_variant_requirements(),
@@ -2473,6 +2672,19 @@ class TestPhEvalVariantFromExomiserJsonCreator(unittest.TestCase):
                 PhEvalVariantResult(
                     chromosome="3", start=126730873, end=126730873, ref="G", alt="A", score=0.0484
                 ),
+                PhEvalVariantResult(
+                    chromosome="3", start=126730873, end=126730873, ref="G", alt="A", score=0.0484
+                ),
+                PhEvalVariantResult(
+                    chromosome="3", start=126741108, end=126741108, ref="G", alt="A", score=0.0484
+                ),
+            ],
+        )
+
+    def test_extract_pheval_variant_requirements_filter_acmg(self):
+        self.assertEqual(
+            self.json_result.extract_pheval_variant_requirements(True),
+            [
                 PhEvalVariantResult(
                     chromosome="3", start=126730873, end=126730873, ref="G", alt="A", score=0.0484
                 ),

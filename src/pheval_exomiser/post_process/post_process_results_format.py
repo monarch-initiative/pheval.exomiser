@@ -61,6 +61,7 @@ class PhEvalGeneResultFromExomiserJsonCreator:
 
 
 class PhEvalVariantResultFromExomiserJsonCreator:
+
     def __init__(self, exomiser_json_result: [dict], score_name: str):
         self.exomiser_json_result = exomiser_json_result
         self.score_name = score_name
@@ -97,7 +98,27 @@ class PhEvalVariantResultFromExomiserJsonCreator:
         """Return score from Exomiser result entry."""
         return round(result_entry[self.score_name], 4)
 
-    def extract_pheval_variant_requirements(self) -> [PhEvalVariantResult]:
+    def _filter_for_acmg_assignments(
+        self, variant: PhEvalVariantResult, score: float, variant_acmg_assignments: dict
+    ) -> bool:
+        """Filter variants if they meet the PATHOGENIC or LIKELY_PATHOGENIC ACMG classification."""
+        for assignment in variant_acmg_assignments:
+            if variant == PhEvalVariantResult(
+                chromosome=self._find_chromosome(assignment["variantEvaluation"]),
+                start=self._find_start_pos(assignment["variantEvaluation"]),
+                end=self._find_end_pos(assignment["variantEvaluation"]),
+                ref=self._find_ref(assignment["variantEvaluation"]),
+                alt=self._find_alt(assignment["variantEvaluation"]),
+                score=score,
+            ) and (
+                assignment["acmgClassification"] == "PATHOGENIC"
+                or assignment["acmgClassification"] == "LIKELY_PATHOGENIC"
+            ):
+                return True
+
+    def extract_pheval_variant_requirements(
+        self, use_acmg_filter: bool = False
+    ) -> [PhEvalVariantResult]:
         """Extract data required to produce PhEval variant output."""
         simplified_exomiser_result = []
         for result_entry in self.exomiser_json_result:
@@ -105,17 +126,23 @@ class PhEvalVariantResultFromExomiserJsonCreator:
                 if self.score_name in result_entry:
                     if "contributingVariants" in gene_hit:
                         score = self._find_relevant_score(result_entry)
-                        for cv in gene_hit["contributingVariants"]:
-                            simplified_exomiser_result.append(
-                                PhEvalVariantResult(
-                                    chromosome=self._find_chromosome(cv),
-                                    start=self._find_start_pos(cv),
-                                    end=self._find_end_pos(cv),
-                                    ref=self._find_ref(cv),
-                                    alt=self._find_alt(cv),
-                                    score=score,
-                                )
+                        contributing_variants = gene_hit["contributingVariants"]
+                        variant_acmg_assignments = gene_hit["acmgAssignments"]
+                        for cv in contributing_variants:
+                            variant = PhEvalVariantResult(
+                                chromosome=self._find_chromosome(cv),
+                                start=self._find_start_pos(cv),
+                                end=self._find_end_pos(cv),
+                                ref=self._find_ref(cv),
+                                alt=self._find_alt(cv),
+                                score=score,
                             )
+                            if use_acmg_filter and self._filter_for_acmg_assignments(
+                                variant, score, variant_acmg_assignments
+                            ):
+                                simplified_exomiser_result.append(variant)
+                            if not use_acmg_filter:
+                                simplified_exomiser_result.append(variant)
         return simplified_exomiser_result
 
 
@@ -166,6 +193,7 @@ def create_standardised_results(
     variant_analysis: bool,
     gene_analysis: bool,
     disease_analysis: bool,
+    include_acmg: bool = False,
 ) -> None:
     """Write standardised gene/variant/disease results from default Exomiser json output."""
     for exomiser_json_result in files_with_suffix(results_dir, ".json"):
@@ -183,7 +211,7 @@ def create_standardised_results(
         if variant_analysis:
             pheval_variant_requirements = PhEvalVariantResultFromExomiserJsonCreator(
                 exomiser_result, score_name
-            ).extract_pheval_variant_requirements()
+            ).extract_pheval_variant_requirements(include_acmg)
             generate_pheval_result(
                 pheval_result=pheval_variant_requirements,
                 sort_order_str=sort_order,
@@ -255,6 +283,13 @@ def create_standardised_results(
     default=False,
     help="Specify whether to create PhEval disease results.",
 )
+@click.option(
+    "--include-acmg",
+    is_flag=True,
+    type=bool,
+    default=False,
+    help="Specify whether to include ACMG filter for PATHOGENIC or LIKELY_PATHOGENIC classifications.",
+)
 def post_process_exomiser_results(
     output_dir: Path,
     results_dir: Path,
@@ -263,6 +298,7 @@ def post_process_exomiser_results(
     gene_analysis: bool,
     variant_analysis: bool,
     disease_analysis: bool,
+    include_acmg: bool,
 ):
     """Post-process Exomiser json results into PhEval gene and variant outputs."""
     (
@@ -288,4 +324,5 @@ def post_process_exomiser_results(
         variant_analysis,
         gene_analysis,
         disease_analysis,
+        include_acmg,
     )
