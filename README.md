@@ -35,10 +35,10 @@ tool_specific_configuration_options:
     cadd_version:
     hg19_data_version: 2302
     hg19_local_frequency_path: # name of hg19 local frequency file 
-    hg19_whitelist: 2302_hg19_clinvar_whitelist.tsv.gz # only required for Exomiser v13.3.0 and earlier, can be left blank for Exomiser v14.0.0 onwards.
+    hg19_whitelist_path: 2302_hg19_clinvar_whitelist.tsv.gz # only required for Exomiser v13.3.0 and earlier, can be left blank for Exomiser v14.0.0 onwards.
     hg38_data_version: 2302
     hg38_local_frequency_path: # name of hg38 local frequency file 
-    hg38_whitelist:
+    hg38_whitelist_path:
     phenotype_data_version: 2302
     cache_type:
     cache_caffeine_spec:

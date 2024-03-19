@@ -34,8 +34,8 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
                     hg38_data_version="2302",
                     cache_type="caffeine",
                     cache_caffeine_spec=60000,
-                    hg19_whitelist="2302_hg19_clinvar_whitelist.tsv.gz",
-                    hg38_whitelist="2302_hg38_clinvar_whitelist.tsv.gz",
+                    hg19_whitelist_path="2302_hg19_clinvar_whitelist.tsv.gz",
+                    hg38_whitelist_path="2302_hg38_clinvar_whitelist.tsv.gz",
                 ),
                 post_process=PostProcessing(score_name="combinedScore", sort_order="descending"),
             ),
@@ -327,7 +327,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_hg19_white_list_path_none_specified(self):
-        self.application_properties_settings.configurations.application_properties.hg19_whitelist = (
+        self.application_properties_settings.configurations.application_properties.hg19_whitelist_path = (
             None
         )
         self.application_properties_settings.write_hg19_white_list_path()
@@ -349,7 +349,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         )
 
     def test_write_hg38_white_list_path_none_specified(self):
-        self.application_properties_settings.configurations.application_properties.hg38_whitelist = (
+        self.application_properties_settings.configurations.application_properties.hg38_whitelist_path = (
             None
         )
         self.application_properties_settings.write_hg38_white_list_path()

@@ -144,16 +144,18 @@ class ExomiserConfigurationFileWriter:
 
     def write_hg19_white_list_path(self) -> None:
         """Write the hg19 whitelist path to application.properties file."""
-        if self.configurations.application_properties.hg19_whitelist is not None:
+        if self.configurations.application_properties.hg19_whitelist_path is not None:
             self.application_properties.write(
-                f"exomiser.hg19.variant-white-list-path={self.configurations.application_properties.hg19_whitelist}\n"
+                f"exomiser.hg19.variant-white-list-path="
+                f"{self.configurations.application_properties.hg19_whitelist_path}\n"
             )
 
     def write_hg38_white_list_path(self) -> None:
         """Write the hg38 whitelist path to application.properties file."""
-        if self.configurations.application_properties.hg38_whitelist is not None:
+        if self.configurations.application_properties.hg38_whitelist_path is not None:
             self.application_properties.write(
-                f"exomiser.hg38.variant-white-list-path={self.configurations.application_properties.hg38_whitelist}\n"
+                f"exomiser.hg38.variant-white-list-path="
+                f"{self.configurations.application_properties.hg38_whitelist_path}\n"
             )
 
     def write_cache_type(self):
