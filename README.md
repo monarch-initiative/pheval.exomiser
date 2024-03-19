@@ -35,8 +35,10 @@ tool_specific_configuration_options:
     cadd_version:
     hg19_data_version: 2302
     hg19_local_frequency_path: # name of hg19 local frequency file 
+    hg19_whitelist_path: 2302_hg19_clinvar_whitelist.tsv.gz # only required for Exomiser v13.3.0 and earlier, can be left blank for Exomiser v14.0.0 onwards.
     hg38_data_version: 2302
     hg38_local_frequency_path: # name of hg38 local frequency file 
+    hg38_whitelist_path:
     phenotype_data_version: 2302
     cache_type:
     cache_caffeine_spec:
@@ -51,6 +53,8 @@ The Exomiser input data directories (phenotype database and variant database) sh
 The `exomiser_software_directory` points to the name of the Exomiser distribution directory located in the input directory.
 
 The analysis configuration file (in this case: `preset-exome-analysis.yml`) should be located within the input directory.
+
+The whitelist paths for the hg19 and hg38 dbs need only be specified for Exomiser v13.3.0 and earlier (unless specifying your own whitelist), as Exomiser v14.0.0 now includes this in the db.
 
 If using optional databases, such as REMM/CADD/local frequency the optional data input should look like so in the input
 directory:

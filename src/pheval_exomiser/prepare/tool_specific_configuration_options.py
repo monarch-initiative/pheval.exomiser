@@ -11,8 +11,10 @@ class ApplicationProperties(BaseModel):
         cadd_version (str): Version of the CADD database
         hg19_data_version (str): Data version of the hg19 Exomiser data
         hg19_local_frequency_path (Path): The file name of the hg19 local frequency file
+        hg19_whitelist_path (Path): The file name of the hg19 whitelist.
         hg38_data_version (str): Data version of the hg38 Exomiser data
         hg38_local_frequency_path (Path): The file name of the hg38 local frequency file
+        hg38_whitelist_path (Path): The file name of the hg38 whitelist.
         phenotype_data_version (str): Data version of the Exomiser phenotype data
         cache_caffeine_spec (int): Cache limit
     """
@@ -21,8 +23,10 @@ class ApplicationProperties(BaseModel):
     cadd_version: str = Field(None)
     hg19_data_version: str = Field(None)
     hg19_local_frequency_path: Path = Field(None)
+    hg19_whitelist_path: Path = Field(None)
     hg38_data_version: str = Field(None)
     hg38_local_frequency_path: Path = Field(None)
+    hg38_whitelist_path: Path = Field(None)
     phenotype_data_version: str = Field(None)
     cache_type: str = Field(None)
     cache_caffeine_spec: int = Field(None)

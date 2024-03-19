@@ -14,8 +14,10 @@ tool_specific_configuration_options:
     cadd_version:
     hg19_data_version: 2302
     hg19_local_frequency_path:
+    hg19_whitelist_path:
     hg38_data_version: 2302
     hg38_local_frequency_path:
+    hg38_whitelist_path:
     phenotype_data_version: 2302
     # either none, simple, or caffeine
     cache_type: none
