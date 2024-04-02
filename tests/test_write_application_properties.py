@@ -34,6 +34,8 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
                     hg38_data_version="2302",
                     cache_type="caffeine",
                     cache_caffeine_spec=60000,
+                    hg19_whitelist_path="2302_hg19_clinvar_whitelist.tsv.gz",
+                    hg38_whitelist_path="2302_hg38_clinvar_whitelist.tsv.gz",
                 ),
                 post_process=PostProcessing(score_name="combinedScore", sort_order="descending"),
             ),
@@ -321,14 +323,11 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         config.close()
         self.assertEqual(
             contents,
-            [
-                "exomiser.hg19.variant-white-list-path="
-                "${exomiser.hg19.data-version}_hg19_clinvar_whitelist.tsv.gz\n"
-            ],
+            ["exomiser.hg19.variant-white-list-path=" "2302_hg19_clinvar_whitelist.tsv.gz\n"],
         )
 
     def test_write_hg19_white_list_path_none_specified(self):
-        self.application_properties_settings.configurations.application_properties.hg19_data_version = (
+        self.application_properties_settings.configurations.application_properties.hg19_whitelist_path = (
             None
         )
         self.application_properties_settings.write_hg19_white_list_path()
@@ -346,14 +345,11 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
         config.close()
         self.assertEqual(
             contents,
-            [
-                "exomiser.hg38.variant-white-list-path="
-                "${exomiser.hg38.data-version}_hg38_clinvar_whitelist.tsv.gz\n"
-            ],
+            ["exomiser.hg38.variant-white-list-path=" "2302_hg38_clinvar_whitelist.tsv.gz\n"],
         )
 
     def test_write_hg38_white_list_path_none_specified(self):
-        self.application_properties_settings.configurations.application_properties.hg38_data_version = (
+        self.application_properties_settings.configurations.application_properties.hg38_whitelist_path = (
             None
         )
         self.application_properties_settings.write_hg38_white_list_path()
@@ -426,8 +422,8 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
                 "${exomiser.data-directory}/local/local_frequency_test_hg38.tsv.gz\n",
                 "exomiser.hg38.remm-path=${exomiser.data-directory}/remm/ReMM.v${remm.version}.hg38.tsv.gz\n",
                 "exomiser.phenotype.data-version=2302\n",
-                "exomiser.hg19.variant-white-list-path=${exomiser.hg19.data-version}_hg19_clinvar_whitelist.tsv.gz\n",
-                "exomiser.hg38.variant-white-list-path=${exomiser.hg38.data-version}_hg38_clinvar_whitelist.tsv.gz\n",
+                "exomiser.hg19.variant-white-list-path=2302_hg19_clinvar_whitelist.tsv.gz\n",
+                "exomiser.hg38.variant-white-list-path=2302_hg38_clinvar_whitelist.tsv.gz\n",
                 "remm.version=0.3.1.post1\n",
             ],
         )
