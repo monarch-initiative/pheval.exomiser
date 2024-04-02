@@ -7,7 +7,7 @@ from typing import Optional
 import click
 from phenopackets import Family, Phenopacket
 from pheval.prepare.custom_exceptions import MutuallyExclusiveOptionError
-from pheval.utils.file_utils import all_files, files_with_suffix, obtain_closest_file_name
+from pheval.utils.file_utils import all_files, files_with_suffix
 from pheval.utils.phenopacket_utils import PhenopacketUtil, phenopacket_reader
 
 from pheval_exomiser.constants import (
@@ -69,7 +69,9 @@ class CommandCreator:
             return (
                 self.output_options_file
                 if self.output_options_dir_files is None
-                else obtain_closest_file_name(self.phenopacket_path, self.output_options_dir_files)
+                else self.output_options_dir_files[0].parent.joinpath(
+                    self.phenopacket_path.stem + "-output_options.yml"
+                )
             )
 
     def add_phenotype_only_arguments(self) -> ExomiserCommandLineArguments:

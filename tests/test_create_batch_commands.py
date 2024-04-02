@@ -148,7 +148,7 @@ class TestCommandCreator(unittest.TestCase):
             variant_analysis=True,
             output_options_dir_files=None,
             output_options_file=Path(
-                "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
+                "/full/path/to/some/alternate/output_options/phenopacket-output_options.yml"
             ),
             raw_results_dir=Path("/path/to/results_dir"),
             analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
@@ -180,7 +180,7 @@ class TestCommandCreator(unittest.TestCase):
             variant_analysis=True,
             output_options_dir_files=None,
             output_options_file=Path(
-                "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
+                "/full/path/to/some/alternate/output_options/phenopacket-output_options.yml"
             ),
             raw_results_dir=Path("/path/to/results_dir"),
             analysis_yaml=None,
@@ -189,13 +189,13 @@ class TestCommandCreator(unittest.TestCase):
     def test_assign_output_options_file_from_dir(self):
         self.assertEqual(
             self.command_creator_output_options_dir.assign_output_options_file(),
-            Path("/full/path/to/some/alternate/output_options/phenopacket-output-options.json"),
+            Path("/full/path/to/some/alternate/output_options/phenopacket-output_options.yml"),
         )
 
     def test_assign_output_options_file(self):
         self.assertEqual(
             self.command_creator_output_options_file.assign_output_options_file(),
-            Path("/full/path/to/some/alternate/output_options/phenopacket-output-options.json"),
+            Path("/full/path/to/some/alternate/output_options/phenopacket-output_options.yml"),
         )
 
     def test_assign_output_options_none(self):
@@ -223,7 +223,7 @@ class TestCommandCreator(unittest.TestCase):
                 raw_results_dir=Path("/path/to/results_dir"),
                 variant_analysis=True,
                 output_options_file=Path(
-                    "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
+                    "/full/path/to/some/alternate/output_options/phenopacket-output_options.yml"
                 ),
             ),
         )
@@ -240,7 +240,7 @@ class TestCommandCreator(unittest.TestCase):
                 raw_results_dir=Path("/path/to/results_dir"),
                 variant_analysis=False,
                 output_options_file=Path(
-                    "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
+                    "/full/path/to/some/alternate/output_options/phenopacket-output_options.yml"
                 ),
                 analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
             ),
@@ -271,7 +271,7 @@ class TestCommandCreator(unittest.TestCase):
                 raw_results_dir=Path("/path/to/results_dir"),
                 variant_analysis=True,
                 output_options_file=Path(
-                    "/full/path/to/some/alternate/output_options/phenopacket-output-options.json"
+                    "/full/path/to/some/alternate/output_options/phenopacket-output_options.yml"
                 ),
                 analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
             ),
