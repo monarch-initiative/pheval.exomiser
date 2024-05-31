@@ -42,6 +42,7 @@ tool_specific_configuration_options:
     phenotype_data_version: 2302
     cache_type:
     cache_caffeine_spec:
+  output_formats: [JSON,HTML] # options include HTML, JSON, TSV_VARIANT, TSV_GENE, VCF
   post_process:
     score_name: combinedScore
     sort_order: DESCENDING
