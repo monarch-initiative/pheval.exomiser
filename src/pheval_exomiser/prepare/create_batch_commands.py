@@ -220,6 +220,7 @@ class CommandsWriter:
             print("Error writing ", self.file)
 
     def write_output_format(self, command_arguments: ExomiserCommandLineArguments) -> None:
+        """Write output formats for Exomiser raw result output."""
         try:
             (
                 self.file.write(" --output-format " + ",".join(command_arguments.output_formats))
