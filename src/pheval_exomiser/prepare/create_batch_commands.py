@@ -32,7 +32,7 @@ class ExomiserCommandLineArguments:
     output_formats: List[str] or None = None
 
 
-def get_all_files_from_output_opt_directory(output_options_dir: Path) -> list[Path] or None:
+def get_all_files_from_output_opt_directory(output_options_dir: Path) -> List[Path] or None:
     """Obtain all output options files if directory is specified - otherwise returns none."""
     return None if output_options_dir is None else all_files(output_options_dir)
 
@@ -46,11 +46,11 @@ class CommandCreator:
         phenopacket_path: Path,
         phenopacket: Phenopacket or Family,
         variant_analysis: bool,
-        output_options_dir_files: list[Path] or None,
+        output_options_dir_files: List[Path] or None,
         output_options_file: Path or None,
         raw_results_dir: Path or None,
         analysis_yaml: Path or None,
-        output_formats: list[Path] or None,
+        output_formats: List[str] or None,
     ):
         self.environment = environment
         self.phenopacket_path = phenopacket_path
@@ -148,8 +148,8 @@ def create_command_arguments(
     output_options_dir: Path or None = None,
     output_options_file: Path or None = None,
     analysis_yaml: Path or None = None,
-    output_formats: list[Path] or None = None,
-) -> list[ExomiserCommandLineArguments]:
+    output_formats: List[str] or None = None,
+) -> List[ExomiserCommandLineArguments]:
     """Return a list of Exomiser command line arguments for a directory of phenopackets."""
     phenopacket_paths = files_with_suffix(phenopacket_dir, ".json")
     commands = []
@@ -281,7 +281,7 @@ class BatchFileWriter:
 
     def __init__(
         self,
-        command_arguments_list: list[ExomiserCommandLineArguments],
+        command_arguments_list: List[ExomiserCommandLineArguments],
         variant_analysis: bool,
         output_dir: Path,
         batch_prefix: str,
