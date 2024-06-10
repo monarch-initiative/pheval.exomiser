@@ -140,6 +140,7 @@ class TestCommandCreator(unittest.TestCase):
             output_options_file=None,
             raw_results_dir=Path("/path/to/results_dir"),
             analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
+            output_formats=["JSON"],
         )
         cls.command_creator_output_options_file = CommandCreator(
             environment="local",
@@ -152,6 +153,7 @@ class TestCommandCreator(unittest.TestCase):
             ),
             raw_results_dir=Path("/path/to/results_dir"),
             analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
+            output_formats=["JSON"],
         )
         cls.command_creator_none = CommandCreator(
             environment="local",
@@ -162,6 +164,7 @@ class TestCommandCreator(unittest.TestCase):
             output_options_file=None,
             raw_results_dir=Path("/path/to/results_dir"),
             analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
+            output_formats=["JSON"],
         )
         cls.command_creator_phenotype_only = CommandCreator(
             environment="local",
@@ -172,6 +175,7 @@ class TestCommandCreator(unittest.TestCase):
             output_options_file=None,
             raw_results_dir=Path("/path/to/results_dir"),
             analysis_yaml=None,
+            output_formats=["JSON", "HTML"],
         )
         cls.command_creator_phenotype_only_output_options = CommandCreator(
             environment="local",
@@ -184,6 +188,7 @@ class TestCommandCreator(unittest.TestCase):
             ),
             raw_results_dir=Path("/path/to/results_dir"),
             analysis_yaml=None,
+            output_formats=["JSON"],
         )
 
     def test_assign_output_options_file_from_dir(self):
@@ -210,6 +215,7 @@ class TestCommandCreator(unittest.TestCase):
                 vcf_assembly=None,
                 raw_results_dir=Path("/path/to/results_dir"),
                 variant_analysis=False,
+                output_formats=["JSON", "HTML"],
             ),
         )
 
@@ -225,6 +231,7 @@ class TestCommandCreator(unittest.TestCase):
                 output_options_file=Path(
                     "/full/path/to/some/alternate/output_options/phenopacket-output_options.yml"
                 ),
+                output_formats=["JSON"],
             ),
         )
 
@@ -243,6 +250,7 @@ class TestCommandCreator(unittest.TestCase):
                     "/full/path/to/some/alternate/output_options/phenopacket-output_options.yml"
                 ),
                 analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
+                output_formats=["JSON"],
             ),
         )
 
@@ -256,6 +264,7 @@ class TestCommandCreator(unittest.TestCase):
                 raw_results_dir=Path("/path/to/results_dir"),
                 variant_analysis=False,
                 analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
+                output_formats=["JSON"],
             ),
         )
 
@@ -274,6 +283,7 @@ class TestCommandCreator(unittest.TestCase):
                     "/full/path/to/some/alternate/output_options/phenopacket-output_options.yml"
                 ),
                 analysis_yaml=Path("/path/to/exomiser_analysis.yaml"),
+                output_formats=["JSON"],
             ),
         )
 
@@ -286,5 +296,6 @@ class TestCommandCreator(unittest.TestCase):
                 vcf_assembly=None,
                 raw_results_dir=Path("/path/to/results_dir"),
                 variant_analysis=False,
+                output_formats=["JSON", "HTML"],
             ),
         )

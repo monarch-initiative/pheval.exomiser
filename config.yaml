@@ -22,6 +22,7 @@ tool_specific_configuration_options:
     # either none, simple, or caffeine
     cache_type: none
     cache_caffeine_spec:
+  output_formats: JSON # can be HTML, JSON, TSV_VARIANT, TSV_GENE, VCF
   post_process:
     # For Exomiser, valid ranking methods include combinedScore, priorityScore, variantScore or pValue
     score_name: combinedScore
