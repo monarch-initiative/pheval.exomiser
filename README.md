@@ -119,7 +119,7 @@ The overall structure of the input directory should look like this with the cadd
 ```
 ### Setting up the testdata directory
 
-The Exomiser plugin for PhEval accepts phenopackets and vcf files as an input for running Exomiser. The plugin can be run in `phenotype_only` mode, where only phenopackets are required as an input, however, this *must* be specified in the `config.yaml`.
+The Exomiser plugin for PhEval accepts phenopackets and vcf files as an input for running Exomiser. The plugin can be run in `phenotype_only` mode, where only phenopackets are required as an input, however, this *must* be specified in the `config.yaml` by setting `variant_analysis: False`
 
 The testdata directory should include subdirectories named `phenopackets` and `vcf` if running with variant prioritisation.
 
