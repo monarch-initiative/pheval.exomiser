@@ -130,6 +130,7 @@ def run_exomiser_local(
                 "--batch",
                 file,
                 f"--spring.config.location={Path(input_dir).joinpath('application.properties')}",
+                " --output-format JSON"
             ],
             shell=False,
         )
