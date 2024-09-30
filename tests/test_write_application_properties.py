@@ -37,6 +37,7 @@ class TestExomiserConfigurationFileWriter(unittest.TestCase):
                     hg19_whitelist_path="2302_hg19_clinvar_whitelist.tsv.gz",
                     hg38_whitelist_path="2302_hg38_clinvar_whitelist.tsv.gz",
                 ),
+                output_formats=["JSON"],
                 post_process=PostProcessing(score_name="combinedScore", sort_order="descending"),
             ),
         )

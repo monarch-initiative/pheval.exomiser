@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -54,6 +55,7 @@ class ExomiserConfigurations(BaseModel):
         analysis_configuration_file (Path): The file name of the analysis configuration file located in the input_dir
         max_jobs (int): Maximum number of jobs to run in a batch
         application_properties (ApplicationProperties): application.properties configurations
+        output_formats: List(str): List of raw output formats.
         post_process (PostProcessing): Post-processing configurations
     """
 
@@ -62,4 +64,5 @@ class ExomiserConfigurations(BaseModel):
     analysis_configuration_file: Path = Field(...)
     max_jobs: int = Field(...)
     application_properties: ApplicationProperties = Field(...)
+    output_formats: List[str] = Field(None)
     post_process: PostProcessing = Field(...)

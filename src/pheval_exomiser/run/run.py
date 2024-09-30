@@ -31,6 +31,11 @@ def prepare_batch_files(
     """Prepare the exomiser batch files"""
     print("...preparing batch files...")
     vcf_dir_name = Path(testdata_dir).joinpath("vcf")
+    output_formats = (
+        config.output_formats + ["JSON"]
+        if config.output_formats and "JSON" not in config.output_formats
+        else config.output_formats
+    )
     create_batch_file(
         environment=config.environment,
         analysis=input_dir.joinpath(config.analysis_configuration_file),
@@ -43,6 +48,7 @@ def prepare_batch_files(
         output_options_dir=None,
         results_dir=raw_results_dir,
         variant_analysis=variant_analysis,
+        output_formats=output_formats,
     )
 
 

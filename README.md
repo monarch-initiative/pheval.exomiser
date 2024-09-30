@@ -42,6 +42,7 @@ tool_specific_configuration_options:
     phenotype_data_version: 2302
     cache_type:
     cache_caffeine_spec:
+  output_formats: [JSON,HTML] # options include HTML, JSON, TSV_VARIANT, TSV_GENE, VCF
   post_process:
     score_name: combinedScore
     sort_order: DESCENDING
@@ -55,6 +56,8 @@ The `exomiser_software_directory` points to the name of the Exomiser distributio
 The analysis configuration file (in this case: `preset-exome-analysis.yml`) should be located within the input directory.
 
 The whitelist paths for the hg19 and hg38 dbs need only be specified for Exomiser v13.3.0 and earlier (unless specifying your own whitelist), as Exomiser v14.0.0 now includes this in the db.
+
+To save on diskspace we recommend limiting the Exomiser output to JSON, this can be specified by setting the `output_formats` field in the `config.yaml` to [JSON]
 
 If using optional databases, such as REMM/CADD/local frequency the optional data input should look like so in the input
 directory:
@@ -118,7 +121,7 @@ The overall structure of the input directory should look like this with the cadd
 ```
 ### Setting up the testdata directory
 
-The Exomiser plugin for PhEval accepts phenopackets and vcf files as an input for running Exomiser. The plugin can be run in `phenotype_only` mode, where only phenopackets are required as an input, however, this *must* be specified in the `config.yaml`.
+The Exomiser plugin for PhEval accepts phenopackets and vcf files as an input for running Exomiser. The plugin can be run in `phenotype_only` mode, where only phenopackets are required as an input, however, this *must* be specified in the `config.yaml` by setting `variant_analysis: False`
 
 The testdata directory should include subdirectories named `phenopackets` and `vcf` if running with variant prioritisation.
 
