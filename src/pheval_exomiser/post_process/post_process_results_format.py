@@ -182,7 +182,12 @@ class PhEvalDiseaseResultFromExomiserJsonCreator:
                     )
             except KeyError:
                 pass
-        return simplified_exomiser_result
+        return list(
+            {
+                (result.disease_identifier, result.score): result
+                for result in simplified_exomiser_result
+            }.values()
+        )
 
 
 def create_standardised_results(
