@@ -4,7 +4,13 @@ This is the Exomiser plugin for PhEval. With this plugin, you can leverage the v
 
 ## Installation
 
-Clone the pheval.exomiser repo and set up the poetry environment:
+You can install the Exomiser directly with PyPi (recommended):
+
+```shell
+pip install pheval.exomiser
+```
+
+Alternatively you can clone the pheval.exomiser repo and set up the poetry environment:
 
 ```shell
 git clone https://github.com/monarch-initiative/pheval.exomiser.git
