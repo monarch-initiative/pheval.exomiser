@@ -1,5 +1,6 @@
 import unittest
 from copy import copy
+from unittest.mock import patch
 
 from pheval.post_processing.post_processing import (
     PhEvalDiseaseResult,
@@ -2665,31 +2666,71 @@ class TestPhEvalVariantFromExomiserJsonCreator(unittest.TestCase):
             )
         )
 
-    def test_extract_pheval_variant_requirements(self):
+    @patch.object(
+        PhEvalVariantResultFromExomiserJsonCreator,
+        "add_or_find_variant_group",
+        return_value="mocked_id",
+    )
+    def test_extract_pheval_variant_requirements(self, mock_add_or_find_variant_group):
         self.assertEqual(
             self.json_result.extract_pheval_variant_requirements(),
             [
                 PhEvalVariantResult(
-                    chromosome="3", start=126730873, end=126730873, ref="G", alt="A", score=0.0484
+                    chromosome="3",
+                    start=126730873,
+                    end=126730873,
+                    ref="G",
+                    alt="A",
+                    score=0.0484,
+                    grouping_id="mocked_id",
                 ),
                 PhEvalVariantResult(
-                    chromosome="3", start=126730873, end=126730873, ref="G", alt="A", score=0.0484
+                    chromosome="3",
+                    start=126730873,
+                    end=126730873,
+                    ref="G",
+                    alt="A",
+                    score=0.0484,
+                    grouping_id="mocked_id",
                 ),
                 PhEvalVariantResult(
-                    chromosome="3", start=126741108, end=126741108, ref="G", alt="A", score=0.0484
+                    chromosome="3",
+                    start=126741108,
+                    end=126741108,
+                    ref="G",
+                    alt="A",
+                    score=0.0484,
+                    grouping_id="mocked_id",
                 ),
             ],
         )
 
-    def test_extract_pheval_variant_requirements_filter_acmg(self):
+    @patch.object(
+        PhEvalVariantResultFromExomiserJsonCreator,
+        "add_or_find_variant_group",
+        return_value="mocked_id",
+    )
+    def test_extract_pheval_variant_requirements_filter_acmg(self, mock_add_or_find_variant_group):
         self.assertEqual(
             self.json_result.extract_pheval_variant_requirements(True),
             [
                 PhEvalVariantResult(
-                    chromosome="3", start=126730873, end=126730873, ref="G", alt="A", score=0.0484
+                    chromosome="3",
+                    start=126730873,
+                    end=126730873,
+                    ref="G",
+                    alt="A",
+                    score=0.0484,
+                    grouping_id="mocked_id",
                 ),
                 PhEvalVariantResult(
-                    chromosome="3", start=126741108, end=126741108, ref="G", alt="A", score=0.0484
+                    chromosome="3",
+                    start=126741108,
+                    end=126741108,
+                    ref="G",
+                    alt="A",
+                    score=0.0484,
+                    grouping_id="mocked_id",
                 ),
             ],
         )
