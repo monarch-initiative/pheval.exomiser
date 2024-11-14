@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pheval_exomiser"
-version = "0.2.6"
+version = "0.2.7"
 description = ""
 authors = ["Yasemin Bridges <y.bridges@qmul.ac.uk>",
     "Julius Jacobsen <j.jacobsen@qmul.ac.uk>",
@@ -18,7 +18,8 @@ google = "^3.0.0"
 pyaml = "^21.10.1"
 oaklib = "^0.5.12"
 docker = "^6.0.1"
-pydantic = "^1.10.7"
+pydantic = "^2.7.1"
+numpy = "<2"
 pheval = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
