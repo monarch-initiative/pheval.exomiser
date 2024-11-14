@@ -19,6 +19,7 @@ pyaml = "^21.10.1"
 oaklib = "^0.5.12"
 docker = "^6.0.1"
 pydantic = "^2.7.1"
+numpy = "<2"
 pheval = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
