@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -20,17 +20,17 @@ class ApplicationProperties(BaseModel):
         cache_caffeine_spec (int): Cache limit
     """
 
-    remm_version: str = Field(None)
-    cadd_version: str = Field(None)
-    hg19_data_version: str = Field(None)
-    hg19_local_frequency_path: Path = Field(None)
-    hg19_whitelist_path: Path = Field(None)
-    hg38_data_version: str = Field(None)
-    hg38_local_frequency_path: Path = Field(None)
-    hg38_whitelist_path: Path = Field(None)
-    phenotype_data_version: str = Field(None)
-    cache_type: str = Field(None)
-    cache_caffeine_spec: int = Field(None)
+    remm_version: Optional[str] = Field(None)
+    cadd_version: Optional[str] = Field(None)
+    hg19_data_version: Optional[str] = Field(None)
+    hg19_local_frequency_path: Optional[Path] = Field(None)
+    hg19_whitelist_path: Optional[Path] = Field(None)
+    hg38_data_version: Optional[str] = Field(None)
+    hg38_local_frequency_path: Optional[Path] = Field(None)
+    hg38_whitelist_path: Optional[Path] = Field(None)
+    phenotype_data_version: Optional[str] = Field(None)
+    cache_type: Optional[str] = Field(None)
+    cache_caffeine_spec: Optional[int] = Field(None)
 
 
 class PostProcessing(BaseModel):
@@ -64,5 +64,5 @@ class ExomiserConfigurations(BaseModel):
     analysis_configuration_file: Path = Field(...)
     max_jobs: int = Field(...)
     application_properties: ApplicationProperties = Field(...)
-    output_formats: List[str] = Field(None)
+    output_formats: Optional[List[str]] = Field(None)
     post_process: PostProcessing = Field(...)
