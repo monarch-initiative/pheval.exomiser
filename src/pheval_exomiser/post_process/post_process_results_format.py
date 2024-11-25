@@ -1,5 +1,8 @@
 #!/usr/bin/python
+import copy
 import json
+import uuid
+from enum import Enum
 from pathlib import Path
 
 import click
@@ -10,6 +13,21 @@ from pheval.post_processing.post_processing import (
     generate_pheval_result,
 )
 from pheval.utils.file_utils import files_with_suffix
+
+
+class ModeOfInheritance(Enum):
+    """Enumeration representing mode of inheritance."""
+
+    AUTOSOMAL_DOMINANT = 1
+    """Autosomal dominant mode of inheritance."""
+    AUTOSOMAL_RECESSIVE = 2
+    """Autosomal recessive mode of inheritance."""
+    X_DOMINANT = 1
+    """X dominant mode of inheritance."""
+    X_RECESSIVE = 2
+    """X recessive mode of inheritance."""
+    MITOCHONDRIAL = 3
+    """Mitochondrial mode of inheritance."""
 
 
 def read_exomiser_json_result(exomiser_result_path: Path) -> dict:
@@ -65,6 +83,7 @@ class PhEvalVariantResultFromExomiserJsonCreator:
     def __init__(self, exomiser_json_result: [dict], score_name: str):
         self.exomiser_json_result = exomiser_json_result
         self.score_name = score_name
+        self.variant_grouping = {}
 
     @staticmethod
     def _find_chromosome(result_entry: dict) -> str:
@@ -94,16 +113,28 @@ class PhEvalVariantResultFromExomiserJsonCreator:
         else:
             return ""
 
-    def _find_relevant_score(self, result_entry) -> float:
+    def _find_relevant_score(self, result_entry: dict) -> float:
         """Return score from Exomiser result entry."""
         return round(result_entry[self.score_name], 4)
+
+    @staticmethod
+    def _find_gene_symbol(result_entry: dict) -> str:
+        """Return gene symbol from Exomiser result entry."""
+        return result_entry["geneSymbol"]
+
+    @staticmethod
+    def _find_mode_of_inheritance(result_entry: dict) -> str:
+        """Return mode of inheritance from Exomiser result entry."""
+        return result_entry["modeOfInheritance"]
 
     def _filter_for_acmg_assignments(
         self, variant: PhEvalVariantResult, score: float, variant_acmg_assignments: dict
     ) -> bool:
         """Filter variants if they meet the PATHOGENIC or LIKELY_PATHOGENIC ACMG classification."""
         for assignment in variant_acmg_assignments:
-            if variant == PhEvalVariantResult(
+            variant_copy = copy.deepcopy(variant)
+            variant_copy.grouping_id = None
+            if variant_copy == PhEvalVariantResult(
                 chromosome=self._find_chromosome(assignment["variantEvaluation"]),
                 start=self._find_start_pos(assignment["variantEvaluation"]),
                 end=self._find_end_pos(assignment["variantEvaluation"]),
@@ -115,6 +146,24 @@ class PhEvalVariantResultFromExomiserJsonCreator:
                 or assignment["acmgClassification"] == "LIKELY_PATHOGENIC"
             ):
                 return True
+
+    @staticmethod
+    def _define_grouping_id():
+        """Define a unique id for grouping results."""
+        return str(uuid.uuid4())
+
+    def add_or_find_variant_group(self, score: float, gene_symbol: str, moi: int) -> str:
+        """
+        Retrieves the grouping ID for a variant based on score, gene symbol, and mode of inheritance (MOI).
+        If no grouping ID exists for the specified combination, a new ID is generated, stored, and returned.
+        """
+        key = f"{moi}|{gene_symbol}|{score}"
+        if key in self.variant_grouping:
+            return self.variant_grouping[key]
+        else:
+            grouping_id = self._define_grouping_id()
+            self.variant_grouping[key] = grouping_id
+            return grouping_id
 
     def extract_pheval_variant_requirements(
         self, use_acmg_filter: bool = False
@@ -129,6 +178,11 @@ class PhEvalVariantResultFromExomiserJsonCreator:
                         contributing_variants = gene_hit["contributingVariants"]
                         variant_acmg_assignments = gene_hit["acmgAssignments"]
                         for cv in contributing_variants:
+                            grouping_id = self.add_or_find_variant_group(
+                                score,
+                                self._find_gene_symbol(result_entry),
+                                ModeOfInheritance[self._find_mode_of_inheritance(gene_hit)].value,
+                            )
                             variant = PhEvalVariantResult(
                                 chromosome=self._find_chromosome(cv),
                                 start=self._find_start_pos(cv),
@@ -136,6 +190,7 @@ class PhEvalVariantResultFromExomiserJsonCreator:
                                 ref=self._find_ref(cv),
                                 alt=self._find_alt(cv),
                                 score=score,
+                                grouping_id=grouping_id,
                             )
                             if use_acmg_filter and self._filter_for_acmg_assignments(
                                 variant, score, variant_acmg_assignments
@@ -156,7 +211,7 @@ class PhEvalDiseaseResultFromExomiserJsonCreator:
         return result_entry["diseaseTerm"]
 
     @staticmethod
-    def _find_disease_identifier(result_entry: dict) -> int:
+    def _find_disease_identifier(result_entry: dict) -> str:
         """Return disease ID from Exomiser result entry."""
         return result_entry["diseaseId"]
 
