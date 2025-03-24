@@ -67,6 +67,7 @@ class ExomiserPhEvalRunner(PhEvalRunner):
             config=config,
             raw_results_dir=self.raw_results_dir,
             output_dir=self.output_dir,
+            phenopacket_dir=self.testdata_dir.joinpath("phenopackets"),
             variant_analysis=self.input_dir_config.variant_analysis,
             gene_analysis=self.input_dir_config.gene_analysis,
             disease_analysis=self.input_dir_config.disease_analysis,
