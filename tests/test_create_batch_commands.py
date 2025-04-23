@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from phenopackets import (
     Diagnosis,
@@ -235,7 +236,8 @@ class TestCommandCreator(unittest.TestCase):
             ),
         )
 
-    def test_add_variant_analysis_arguments(self):
+    @patch("pathlib.Path.exists", return_value=True)
+    def test_add_variant_analysis_arguments(self, mock_exists):
         self.assertEqual(
             self.command_creator_output_options_dir.add_variant_analysis_arguments(
                 Path("/path/to/vcf_dir")
@@ -254,7 +256,8 @@ class TestCommandCreator(unittest.TestCase):
             ),
         )
 
-    def test_add_variant_analysis_arguments_none(self):
+    @patch("pathlib.Path.exists", return_value=True)
+    def test_add_variant_analysis_arguments_none(self, mock_exists):
         self.assertEqual(
             self.command_creator_none.add_variant_analysis_arguments(Path("/path/to/vcf_dir")),
             ExomiserCommandLineArguments(
@@ -268,7 +271,8 @@ class TestCommandCreator(unittest.TestCase):
             ),
         )
 
-    def test_add_command_line_arguments(self):
+    @patch("pathlib.Path.exists", return_value=True)
+    def test_add_command_line_arguments(self, mock_exists):
         self.assertEqual(
             self.command_creator_output_options_file.add_command_line_arguments(
                 Path("/path/to/vcf_dir")

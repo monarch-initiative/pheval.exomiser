@@ -100,8 +100,14 @@ class CommandCreator:
             )
 
     def add_variant_analysis_arguments(self, vcf_dir: Path) -> ExomiserCommandLineArguments:
-        vcf_file_data = PhenopacketUtil(self.phenopacket).vcf_file_data(
-            self.phenopacket_path, vcf_dir
+        vcf_file_data = (
+            PhenopacketUtil(self.phenopacket).vcf_file_data(self.phenopacket_path, vcf_dir)
+            if vcf_dir.exists()
+            else [
+                file
+                for file in self.phenopacket.files
+                if file.file_attributes["fileFormat"] == "vcf"
+            ][0]
         )
         output_options_file = self.assign_output_options_file()
         if self.environment == "local":
