@@ -136,7 +136,7 @@ def create_standardised_results(
 ):
     sort_order = SortOrder.ASCENDING if sort_order.lower() == "ascending" else SortOrder.DESCENDING
     for exomiser_json_result_path in files_with_suffix(result_dir, ".json"):
-        exomiser_json_result = pl.read_json(exomiser_json_result_path)
+        exomiser_json_result = pl.read_json(exomiser_json_result_path, infer_schema_length=None)
         if gene_analysis:
             gene_results = extract_gene_results_from_json(exomiser_json_result, score_name)
             generate_gene_result(
