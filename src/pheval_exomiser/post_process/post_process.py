@@ -12,9 +12,9 @@ def post_process_result_format(
     variant_analysis: bool,
     gene_analysis: bool,
     disease_analysis: bool,
+    exomiser_version: str,
 ):
     """Standardise Exomiser json format to separated gene and variant results."""
-    print("...standardising results format...")
     create_standardised_results(
         result_dir=raw_results_dir,
         output_dir=output_dir,
@@ -24,5 +24,5 @@ def post_process_result_format(
         gene_analysis=gene_analysis,
         disease_analysis=disease_analysis,
         variant_analysis=variant_analysis,
+        exomiser_version=exomiser_version,
     )
-    print("done")

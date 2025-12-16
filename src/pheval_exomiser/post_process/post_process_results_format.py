@@ -4,6 +4,7 @@ from pathlib import Path
 
 import click
 import polars as pl
+from packaging import version
 from pheval.post_processing.post_processing import (
     SortOrder,
     generate_disease_result,
@@ -15,10 +16,15 @@ from pheval.utils.file_utils import files_with_suffix
 
 class ModeOfInheritance(Enum):
     AUTOSOMAL_DOMINANT = 1
+    AD = 1
     AUTOSOMAL_RECESSIVE = 2
+    AR = 2
     X_DOMINANT = 1
+    XD = 1
     X_RECESSIVE = 2
+    XR = 2
     MITOCHONDRIAL = 3
+    MT = 3
 
 
 def trim_exomiser_result_filename(exomiser_result_path: Path) -> Path:
@@ -38,6 +44,18 @@ def extract_gene_results_from_json(
     ).drop_nulls()
 
 
+def extract_gene_results_from_parquet(
+    exomiser_parquet_result: pl.DataFrame, score_name: str
+) -> pl.DataFrame:
+    return exomiser_parquet_result.select(
+        [
+            pl.col("geneSymbol").alias("gene_symbol"),
+            pl.col("ensemblGeneId").alias("gene_identifier"),
+            pl.col(score_name).fill_null(0).round(4).alias("score"),
+        ]
+    )
+
+
 def extract_disease_results_from_json(exomiser_json_result: pl.DataFrame) -> pl.DataFrame:
     return (
         exomiser_json_result.select(
@@ -51,6 +69,18 @@ def extract_disease_results_from_json(exomiser_json_result: pl.DataFrame) -> pl.
         .unnest("diseaseMatches")
         .unnest("model")
         .select([pl.col("diseaseId").alias("disease_identifier"), pl.col("score").round(4)])
+        .drop_nulls()
+    )
+
+
+def extract_disease_results_from_parquet(exomiser_parquet_result: pl.DataFrame) -> pl.DataFrame:
+    return (
+        exomiser_parquet_result.select(pl.col("diseaseMatches"))
+        .explode("diseaseMatches")
+        .select(
+            pl.col("diseaseMatches").struct.field("diseaseId").alias("disease_identifier"),
+            pl.col("diseaseMatches").struct.field("score").alias("score"),
+        )
         .drop_nulls()
     )
 
@@ -124,6 +154,67 @@ def extract_variant_results_from_json(
     )
 
 
+def extract_variant_results_from_parquet(
+    exomiser_parquet_result: pl.DataFrame, score_name: str
+) -> pl.DataFrame:
+    contributing_variant_only = exomiser_parquet_result.filter(
+        pl.col("isContributingVariant") == True  # noqa
+    )
+    return (
+        contributing_variant_only.select(
+            [
+                pl.col("geneSymbol"),
+                pl.col("contigName").alias("chrom").cast(pl.String),
+                pl.col("start").cast(pl.Int64),
+                pl.col("end").cast(pl.Int64),
+                pl.col("ref"),
+                pl.col("alt"),
+                pl.col(score_name).alias("score"),
+                pl.col("moi")
+                .map_elements(lambda moi: ModeOfInheritance[moi].value, return_dtype=pl.Int8)
+                .alias("moi_enum"),
+            ]
+        )
+        .with_columns(
+            [
+                (pl.col("moi_enum") == 2).alias("is_recessive"),
+                pl.when(pl.col("moi_enum") == 2)
+                .then(
+                    pl.format(
+                        "recessive|{}|{}|{}",
+                        pl.col("geneSymbol"),
+                        pl.col("score"),
+                        pl.col("moi_enum"),
+                    )
+                )
+                .otherwise(
+                    pl.format(
+                        "dominant|{}|{}|{}|{}|{}|{}",
+                        pl.col("chrom"),
+                        pl.col("start"),
+                        pl.col("end"),
+                        pl.col("ref"),
+                        pl.col("alt"),
+                        pl.col("score"),
+                    )
+                )
+                .alias("group_key"),
+            ]
+        )
+        .with_columns(
+            [
+                pl.col("group_key")
+                .rank("dense")
+                .cast(pl.UInt32)
+                .map_elements(
+                    lambda i: str(uuid.uuid5(uuid.NAMESPACE_DNS, str(i))), return_dtype=pl.String
+                )
+                .alias("grouping_id")
+            ]
+        )
+    )
+
+
 def create_standardised_results(
     result_dir: Path,
     output_dir: Path,
@@ -133,36 +224,55 @@ def create_standardised_results(
     gene_analysis: bool,
     disease_analysis: bool,
     variant_analysis: bool,
+    exomiser_version: str,
 ):
     sort_order = SortOrder.ASCENDING if sort_order.lower() == "ascending" else SortOrder.DESCENDING
-    for exomiser_json_result_path in files_with_suffix(result_dir, ".json"):
-        exomiser_json_result = pl.read_json(exomiser_json_result_path)
+    use_parquet = True if version.parse(exomiser_version) >= version.parse("15.0.0") else False
+    read_result = pl.read_parquet if use_parquet else pl.read_json
+    result_files = (
+        files_with_suffix(result_dir, ".parquet")
+        if use_parquet
+        else files_with_suffix(result_dir, ".json")
+    )
+    for exomiser_result_path in result_files:
+        exomiser_result = read_result(exomiser_result_path)
         if gene_analysis:
-            gene_results = extract_gene_results_from_json(exomiser_json_result, score_name)
+            gene_results = (
+                extract_gene_results_from_parquet(exomiser_result, score_name)
+                if use_parquet
+                else extract_gene_results_from_json(exomiser_result, score_name)
+            )
             generate_gene_result(
                 results=gene_results,
                 sort_order=sort_order,
                 output_dir=output_dir,
-                result_path=trim_exomiser_result_filename(exomiser_json_result_path),
+                result_path=trim_exomiser_result_filename(exomiser_result_path),
                 phenopacket_dir=phenopacket_dir,
             )
         if disease_analysis:
-            disease_results = extract_disease_results_from_json(exomiser_json_result)
+            disease_results = (
+                extract_disease_results_from_parquet(exomiser_result)
+                if use_parquet
+                else extract_disease_results_from_json(exomiser_result)
+            )
             generate_disease_result(
                 results=disease_results,
                 sort_order=sort_order,
                 output_dir=output_dir,
-                result_path=trim_exomiser_result_filename(exomiser_json_result_path),
+                result_path=trim_exomiser_result_filename(exomiser_result_path),
                 phenopacket_dir=phenopacket_dir,
             )
-
         if variant_analysis:
-            variant_results = extract_variant_results_from_json(exomiser_json_result, score_name)
+            variant_results = (
+                extract_variant_results_from_parquet(exomiser_result, score_name)
+                if use_parquet
+                else extract_variant_results_from_json(exomiser_result, score_name)
+            )
             generate_variant_result(
                 results=variant_results,
                 sort_order=sort_order,
                 output_dir=output_dir,
-                result_path=trim_exomiser_result_filename(exomiser_json_result_path),
+                result_path=trim_exomiser_result_filename(exomiser_result_path),
                 phenopacket_dir=phenopacket_dir,
             )
 
@@ -228,6 +338,14 @@ def create_standardised_results(
     default=False,
     help="Specify whether to create PhEval disease results.",
 )
+@click.option(
+    "--version",
+    "-v",
+    required=True,
+    help="Exomiser version used to generate results.",
+    default="15.0.0",
+    show_default=True,
+)
 def post_process_exomiser_results(
     output_dir: Path,
     results_dir: Path,
@@ -237,6 +355,7 @@ def post_process_exomiser_results(
     gene_analysis: bool,
     variant_analysis: bool,
     disease_analysis: bool,
+    version: str,
 ):
     """Post-process Exomiser json results into PhEval gene and variant outputs."""
     (
@@ -263,4 +382,5 @@ def post_process_exomiser_results(
         variant_analysis=variant_analysis,
         gene_analysis=gene_analysis,
         disease_analysis=disease_analysis,
+        exomiser_version=version,
     )
