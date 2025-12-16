@@ -264,7 +264,6 @@ class CommandsWriter:
             + phenotype_only
         )
 
-
     def write_phenotype_only_command(self, command_arguments: ExomiserCommandLineArguments):
         try:
             self.write_basic_phenotype_only_command(command_arguments)
@@ -531,5 +530,5 @@ def prepare_exomiser_batch(
         output_options_dir=output_options_dir,
         output_options_file=output_options_file,
         output_formats=list(output_formats),
-        exomiser_version=exomiser_version
+        exomiser_version=exomiser_version,
     )
