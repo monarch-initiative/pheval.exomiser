@@ -139,6 +139,9 @@ e.g.,
    └── vcf
 ```
 
+> [!IMPORTANT]  
+> If a `vcf` directory is not found in the testdata directory then the path to the VCF will be taken from the phenopacket if `variant_analysis` is set to True.
+
 ## Run command
 
 Once the testdata and input directories are correctly configured for the run, the `pheval run` command can be executed.
