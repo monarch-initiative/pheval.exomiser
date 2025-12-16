@@ -45,6 +45,7 @@ class ExomiserPhEvalRunner(PhEvalRunner):
             tool_input_commands_dir=self.tool_input_commands_dir,
             raw_results_dir=self.raw_results_dir,
             variant_analysis=self.input_dir_config.variant_analysis,
+            exomiser_version=self.version,
         )
         run_exomiser(
             input_dir=self.input_dir,
@@ -71,4 +72,5 @@ class ExomiserPhEvalRunner(PhEvalRunner):
             variant_analysis=self.input_dir_config.variant_analysis,
             gene_analysis=self.input_dir_config.gene_analysis,
             disease_analysis=self.input_dir_config.disease_analysis,
+            exomiser_version=self.version,
         )

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import click
+from packaging import version
 from phenopackets import Family, Phenopacket
 from pheval.prepare.custom_exceptions import MutuallyExclusiveOptionError
 from pheval.utils.file_utils import all_files, files_with_suffix
@@ -189,9 +190,10 @@ def create_command_arguments(
 class CommandsWriter:
     """Write a command to file."""
 
-    def __init__(self, file: Path, variant_analysis: bool):
+    def __init__(self, file: Path, variant_analysis: bool, exomiser_version: str):
         self.file = open(file, "w")
         self.variant_analysis = variant_analysis
+        self.exomiser_version = exomiser_version
 
     def write_basic_analysis_command(self, command_arguments: ExomiserCommandLineArguments):
         """Write basic analysis command for Exomiser"""
@@ -246,6 +248,11 @@ class CommandsWriter:
         self, command_arguments: ExomiserCommandLineArguments
     ) -> None:
         """Write a phenotype-only command out for exomiser ≥13.2.0 to run."""
+        phenotype_only = (
+            "phenotype-only"
+            if version.parse(self.exomiser_version) < version.parse("15.0.0")
+            else "phenotype_only"
+        )
         self.file.write(
             "--sample "
             + str(command_arguments.sample)
@@ -254,7 +261,7 @@ class CommandsWriter:
             + " --output-filename "
             + f"{Path(command_arguments.sample).stem}-exomiser"
             + " --preset "
-            + "phenotype-only"
+            + phenotype_only
         )
 
     def write_phenotype_only_command(self, command_arguments: ExomiserCommandLineArguments):
@@ -290,11 +297,13 @@ class BatchFileWriter:
         variant_analysis: bool,
         output_dir: Path,
         batch_prefix: str,
+        exomiser_version: str,
     ):
         self.command_arguments_list = command_arguments_list
         self.variant_analysis = variant_analysis
         self.output_dir = output_dir
         self.batch_prefix = batch_prefix
+        self.exomiser_version = exomiser_version
 
     def write_commands(self, commands_writer: CommandsWriter) -> None:
         """Write command arguments to a file."""
@@ -305,7 +314,9 @@ class BatchFileWriter:
     def write_temp_file(self) -> str:
         """Write commands out to a temporary file."""
         temp = tempfile.NamedTemporaryFile(delete=False)
-        commands_writer = CommandsWriter(Path(temp.name), self.variant_analysis)
+        commands_writer = CommandsWriter(
+            Path(temp.name), self.variant_analysis, self.exomiser_version
+        )
         self.write_commands(commands_writer)
         return temp.name
 
@@ -314,6 +325,7 @@ class BatchFileWriter:
         commands_writer = CommandsWriter(
             Path(self.output_dir).joinpath(self.batch_prefix + "-exomiser-batch.txt"),
             self.variant_analysis,
+            self.exomiser_version,
         )
         self.write_commands(commands_writer)
 
@@ -349,6 +361,7 @@ def create_batch_file(
     max_jobs: int,
     variant_analysis: bool,
     results_dir: Path,
+    exomiser_version: str,
     output_options_dir: Path = None,
     output_options_file: Path = None,
     output_formats: List[str] = None,
@@ -367,10 +380,7 @@ def create_batch_file(
     )
     (
         BatchFileWriter(
-            command_arguments,
-            variant_analysis,
-            output_dir,
-            batch_prefix,
+            command_arguments, variant_analysis, output_dir, batch_prefix, exomiser_version
         ).write_all_commands()
         if max_jobs == 0
         else BatchFileWriter(
@@ -378,6 +388,7 @@ def create_batch_file(
             variant_analysis,
             output_dir,
             batch_prefix,
+            exomiser_version,
         ).create_split_batch_files(max_jobs)
     )
 
@@ -411,7 +422,6 @@ def create_batch_file(
 @click.option(
     "--vcf-dir",
     "-v",
-    # required=True,
     metavar="PATH",
     type=Path,
     help="Path to VCF directory.",
@@ -457,6 +467,14 @@ def create_batch_file(
     help="Results directory for Exomiser results - compatible with versions 13.2.0 onwards.",
 )
 @click.option(
+    "--exomiser-version",
+    "-v",
+    required=True,
+    help="Exomiser version used to generate results.",
+    default="15.0.0",
+    show_default=True,
+)
+@click.option(
     "--output-options-dir",
     "-O",
     cls=MutuallyExclusiveOptionError,
@@ -492,6 +510,7 @@ def prepare_exomiser_batch(
     batch_prefix: str,
     max_jobs: int,
     variant_analysis: bool,
+    exomiser_version: str,
     output_options_dir: Path = None,
     output_options_file: Path = None,
     output_formats: List[str] = None,
@@ -511,4 +530,5 @@ def prepare_exomiser_batch(
         output_options_dir=output_options_dir,
         output_options_file=output_options_file,
         output_formats=list(output_formats),
+        exomiser_version=exomiser_version,
     )
