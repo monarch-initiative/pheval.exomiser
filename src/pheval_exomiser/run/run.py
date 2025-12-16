@@ -27,15 +27,17 @@ def prepare_batch_files(
     tool_input_commands_dir: Path,
     raw_results_dir: Path,
     variant_analysis: bool,
+    exomiser_version: str,
 ) -> None:
     """Prepare the exomiser batch files"""
     print("...preparing batch files...")
     vcf_dir_name = Path(testdata_dir).joinpath("vcf")
-    output_formats = (
-        config.output_formats + ["JSON"]
-        if config.output_formats and "JSON" not in config.output_formats
-        else config.output_formats
-    )
+    if version.parse(exomiser_version) >= version.parse("15.0.0"):
+        if "PARQUET" not in config.output_formats:
+            config.output_formats.append("PARQUET")
+    elif version.parse(exomiser_version) < version.parse("15.0.0"):
+        if "JSON" not in config.output_formats:
+            config.output_formats.append("JSON")
     create_batch_file(
         environment=config.environment,
         analysis=input_dir.joinpath(config.analysis_configuration_file),
@@ -48,7 +50,8 @@ def prepare_batch_files(
         output_options_dir=None,
         results_dir=raw_results_dir,
         variant_analysis=variant_analysis,
-        output_formats=output_formats,
+        output_formats=config.output_formats,
+        exomiser_version=exomiser_version,
     )
 
 
@@ -121,18 +124,32 @@ def run_exomiser_local(
     ][0]
     exomiser_jar_file_path = config.exomiser_software_directory.joinpath(exomiser_jar_file)
     for file in batch_files:
-        subprocess.run(
-            [
-                "java",
-                "-Xmx4g",
-                "-jar",
-                exomiser_jar_file_path,
-                "--batch",
-                file,
-                f"--spring.config.location={Path(input_dir).joinpath('application.properties')}",
-            ],
-            shell=False,
-        )
+        if version.parse(exomiser_version) < version.parse("15.0.0"):
+            subprocess.run(
+                [
+                    "java",
+                    "-Xmx4g",
+                    "-jar",
+                    exomiser_jar_file_path,
+                    "--batch",
+                    file,
+                    f"--spring.config.location={Path(input_dir).joinpath('application.properties')}",
+                ],
+                shell=False,
+            )
+        elif version.parse(exomiser_version) >= version.parse("15.0.0"):
+            subprocess.run(
+                [
+                    "java",
+                    "-Xmx4g",
+                    f"-Dspring.config.location={str(Path(input_dir).joinpath('application.properties'))}",
+                    "-jar",
+                    exomiser_jar_file_path,
+                    "batch",
+                    file,
+                ],
+                shell=False,
+            )
     if version.parse(exomiser_version) < version.parse("13.1.0"):
         os.rename(
             f"{output_dir}/results",
