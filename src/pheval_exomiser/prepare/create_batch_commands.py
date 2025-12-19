@@ -90,7 +90,7 @@ class CommandCreator:
                 ),
                 raw_results_dir=Path(RAW_RESULTS_TARGET_DIRECTORY_DOCKER),
                 output_formats=self.output_formats,
-                analysis_yaml=self.analysis_yaml
+                analysis_yaml=self.analysis_yaml,
             )
         elif self.environment == "local":
             return ExomiserCommandLineArguments(

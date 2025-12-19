@@ -40,7 +40,11 @@ def prepare_batch_files(
             config.output_formats.append("JSON")
     create_batch_file(
         environment=config.environment,
-        analysis=input_dir.joinpath(config.analysis_configuration_file) if config.analysis_configuration_file else None,
+        analysis=(
+            input_dir.joinpath(config.analysis_configuration_file)
+            if config.analysis_configuration_file
+            else None
+        ),
         phenopacket_dir=Path(testdata_dir).joinpath("phenopackets"),
         vcf_dir=vcf_dir_name if variant_analysis else None,
         output_dir=tool_input_commands_dir,
