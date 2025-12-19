@@ -90,6 +90,7 @@ class CommandCreator:
                 ),
                 raw_results_dir=Path(RAW_RESULTS_TARGET_DIRECTORY_DOCKER),
                 output_formats=self.output_formats,
+                analysis_yaml=self.analysis_yaml,
             )
         elif self.environment == "local":
             return ExomiserCommandLineArguments(
@@ -98,6 +99,7 @@ class CommandCreator:
                 output_options_file=output_options_file,
                 raw_results_dir=self.results_dir,
                 output_formats=self.output_formats,
+                analysis_yaml=self.analysis_yaml,
             )
         raise ValueError(f"Unknown environment: {self.environment}")
 
@@ -248,11 +250,14 @@ class CommandsWriter:
         self, command_arguments: ExomiserCommandLineArguments
     ) -> None:
         """Write a phenotype-only command out for exomiser ≥13.2.0 to run."""
-        phenotype_only = (
-            "phenotype-only"
-            if version.parse(self.exomiser_version) < version.parse("15.0.0")
-            else "phenotype_only"
-        )
+        if command_arguments.analysis_yaml is None:
+            phenotype_only_statement = (
+                " --preset phenotype-only"
+                if version.parse(self.exomiser_version) < version.parse("15.0.0")
+                else " --preset phenotype_only"
+            )
+        else:
+            phenotype_only_statement = f" --analysis {str(command_arguments.analysis_yaml)}"
         self.file.write(
             "--sample "
             + str(command_arguments.sample)
@@ -260,8 +265,7 @@ class CommandsWriter:
             + str(command_arguments.raw_results_dir)
             + " --output-filename "
             + f"{Path(command_arguments.sample).stem}-exomiser"
-            + " --preset "
-            + phenotype_only
+            + phenotype_only_statement
         )
 
     def write_phenotype_only_command(self, command_arguments: ExomiserCommandLineArguments):

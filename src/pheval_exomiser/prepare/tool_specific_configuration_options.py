@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -61,7 +61,7 @@ class ExomiserConfigurations(BaseModel):
 
     environment: str = Field(...)
     exomiser_software_directory: Path = Field(...)
-    analysis_configuration_file: Path = Field(...)
+    analysis_configuration_file: Union[Path | None] = Field(...)
     max_jobs: int = Field(...)
     application_properties: ApplicationProperties = Field(...)
     output_formats: Optional[List[str]] = Field(None)
