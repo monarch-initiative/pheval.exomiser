@@ -1,6 +1,6 @@
 # Exomiser Runner for PhEval
 
-This is the Exomiser plugin for PhEval. With this plugin, you can leverage the variant prioritisation tool, Exomiser, to run the PhEval pipeline seamlessly. Detailed documentation on how to set up and run the PhEval Makefile pipeline with the Exomiser runner can be found [here](https://monarch-initiative.github.io/pheval/exomiser_pipeline/). The setup process for running the full PhEval Makefile pipeline differs from setting up for a single run. The Makefile pipeline creates directory structures for corpora and configurations to handle multiple run configurations. Detailed instructions on setting up the appropriate directory layout, including the input directory and test data directory, can be found here.
+This is the Exomiser plugin for PhEval. With this plugin, you can leverage the variant prioritisation tool, Exomiser, to run the PhEval pipeline seamlessly. Instructions for setting up the appropriate directory layout, including the input directory and test data directory for a single PhEval run, can be found here.
 
 ## Installation
 
