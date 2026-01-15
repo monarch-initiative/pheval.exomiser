@@ -28,9 +28,9 @@ A `config.yaml` should be located in the input directory and formatted like so:
 ```yaml
 tool: exomiser
 tool_version: 13.2.0
-variant_analysis: True
-gene_analysis: True
-disease_analysis: False
+variant_analysis: true
+gene_analysis: true
+disease_analysis: false
 tool_specific_configuration_options:
   environment: local
   exomiser_software_directory: exomiser-cli-13.2.0
