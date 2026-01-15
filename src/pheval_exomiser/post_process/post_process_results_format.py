@@ -235,7 +235,7 @@ def create_standardised_results(
         else files_with_suffix(result_dir, ".json")
     )
     for exomiser_result_path in result_files:
-        exomiser_result = read_result(exomiser_result_path)
+        exomiser_result = read_result(exomiser_result_path, infer_schema_length=None)
         if gene_analysis:
             gene_results = (
                 extract_gene_results_from_parquet(exomiser_result, score_name)
