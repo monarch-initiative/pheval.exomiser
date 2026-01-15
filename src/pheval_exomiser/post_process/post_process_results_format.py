@@ -35,11 +35,12 @@ def trim_exomiser_result_filename(exomiser_result_path: Path) -> Path:
 def extract_gene_results_from_json(
     exomiser_json_result: pl.DataFrame, score_name: str
 ) -> pl.DataFrame:
+    score_expr = pl.col(score_name) if score_name in exomiser_json_result.columns else pl.lit(0.0)
     return exomiser_json_result.select(
         [
             pl.col("geneSymbol").alias("gene_symbol"),
             pl.col("geneIdentifier").struct.field("geneId").alias("gene_identifier"),
-            pl.col(score_name).fill_null(0).round(4).alias("score"),
+            score_expr.fill_null(0.0).round(4).alias("score"),
         ]
     ).drop_nulls()
 
@@ -228,14 +229,17 @@ def create_standardised_results(
 ):
     sort_order = SortOrder.ASCENDING if sort_order.lower() == "ascending" else SortOrder.DESCENDING
     use_parquet = True if version.parse(exomiser_version) >= version.parse("15.0.0") else False
-    read_result = pl.read_parquet if use_parquet else pl.read_json
+
     result_files = (
         files_with_suffix(result_dir, ".parquet")
         if use_parquet
         else files_with_suffix(result_dir, ".json")
     )
     for exomiser_result_path in result_files:
-        exomiser_result = read_result(exomiser_result_path)
+        if use_parquet:
+            exomiser_result = pl.read_parquet(exomiser_result_path)
+        else:
+            exomiser_result = pl.read_json(exomiser_result_path, infer_schema_length=None)
         if gene_analysis:
             gene_results = (
                 extract_gene_results_from_parquet(exomiser_result, score_name)
