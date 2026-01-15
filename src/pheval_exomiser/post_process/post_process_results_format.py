@@ -229,7 +229,6 @@ def create_standardised_results(
 ):
     sort_order = SortOrder.ASCENDING if sort_order.lower() == "ascending" else SortOrder.DESCENDING
     use_parquet = True if version.parse(exomiser_version) >= version.parse("15.0.0") else False
-
     result_files = (
         files_with_suffix(result_dir, ".parquet")
         if use_parquet
