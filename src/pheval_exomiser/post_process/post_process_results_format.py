@@ -54,6 +54,9 @@ def extract_gene_results_from_parquet(
             pl.col("ensemblGeneId").alias("gene_identifier"),
             pl.col(score_name).fill_null(0).round(4).alias("score"),
         ]
+    ).unique(
+        subset=["gene_symbol", "gene_identifier"],
+        keep="first",
     )
 
 
