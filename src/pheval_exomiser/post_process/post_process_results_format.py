@@ -49,7 +49,9 @@ def extract_gene_results_from_parquet(
     exomiser_parquet_result: pl.DataFrame, score_name: str, variant_analysis: bool
 ) -> pl.DataFrame:
     if variant_analysis:
-        exomiser_parquet_result = exomiser_parquet_result.filter(pl.col("isContributingVariant") == True)
+        exomiser_parquet_result = exomiser_parquet_result.filter(
+            pl.col("isContributingVariant") == True  # noqa
+        )
     return exomiser_parquet_result.select(
         [
             pl.col("geneSymbol").alias("gene_symbol"),
