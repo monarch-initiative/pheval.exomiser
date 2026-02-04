@@ -46,14 +46,21 @@ def extract_gene_results_from_json(
 
 
 def extract_gene_results_from_parquet(
-    exomiser_parquet_result: pl.DataFrame, score_name: str
+    exomiser_parquet_result: pl.DataFrame, score_name: str, variant_analysis: bool
 ) -> pl.DataFrame:
+    if variant_analysis:
+        exomiser_parquet_result = exomiser_parquet_result.filter(
+            pl.col("isContributingVariant") == True  # noqa
+        )
     return exomiser_parquet_result.select(
         [
             pl.col("geneSymbol").alias("gene_symbol"),
             pl.col("ensemblGeneId").alias("gene_identifier"),
             pl.col(score_name).fill_null(0).round(4).alias("score"),
         ]
+    ).unique(
+        subset=["gene_symbol", "gene_identifier"],
+        keep="first",
     )
 
 
@@ -241,7 +248,7 @@ def create_standardised_results(
             exomiser_result = pl.read_json(exomiser_result_path, infer_schema_length=None)
         if gene_analysis:
             gene_results = (
-                extract_gene_results_from_parquet(exomiser_result, score_name)
+                extract_gene_results_from_parquet(exomiser_result, score_name, variant_analysis)
                 if use_parquet
                 else extract_gene_results_from_json(exomiser_result, score_name)
             )
