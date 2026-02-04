@@ -13,6 +13,19 @@ from pheval.post_processing.post_processing import (
 )
 from pheval.utils.file_utils import files_with_suffix
 
+EXOMISER_LT_15 = {"combinedScore", "priorityScore", "variantScore", "pValue"}
+EXOMISER_GTE_15 = {"geneCombinedScore", "geneVariantScore", "pValue"}
+
+ALL_SCORE_NAMES = sorted(EXOMISER_LT_15 | EXOMISER_GTE_15)
+
+
+def _allowed_score_names(exomiser_version: str) -> set[str]:
+    return (
+        EXOMISER_GTE_15
+        if version.parse(exomiser_version) >= version.parse("15.0.0")
+        else EXOMISER_LT_15
+    )
+
 
 class ModeOfInheritance(Enum):
     AUTOSOMAL_DOMINANT = 1
@@ -25,6 +38,28 @@ class ModeOfInheritance(Enum):
     XR = 2
     MITOCHONDRIAL = 3
     MT = 3
+
+
+def check_score_name(score_name: str, version: str):
+    """
+    Validates the provided score name for compatibility with the specified Exomiser version.
+
+    Args:
+        score_name: str
+            The name of the score to validate.
+        version: str
+            The Exomiser version for which the validation is performed.
+    Raises:
+        click.BadParameter: Raised if the provided score name is not valid,
+        including the list of allowed score names in the error message.
+    """
+    allowed_score_names = _allowed_score_names(version)
+    if score_name not in allowed_score_names:
+        raise click.BadParameter(
+            f"'{score_name}' is not valid for Exomiser {version}. "
+            f"Allowed values: {', '.join(sorted(allowed_score_names))}.",
+            param_hint="--score-name",
+        )
 
 
 def trim_exomiser_result_filename(exomiser_result_path: Path) -> Path:
@@ -315,11 +350,9 @@ def create_standardised_results(
 @click.option(
     "--score-name",
     "-s",
+    type=click.Choice(ALL_SCORE_NAMES),
+    help="Score column to extract (valid values depend on Exomiser version).",
     required=True,
-    help="Score name to extract from results.",
-    type=click.Choice(["combinedScore", "priorityScore", "variantScore", "pValue"]),
-    default="combinedScore",
-    show_default=True,
 )
 @click.option(
     "--sort-order",
@@ -383,6 +416,7 @@ def post_process_exomiser_results(
         if disease_analysis
         else None
     )
+    check_score_name(score_name, version)
     create_standardised_results(
         result_dir=results_dir,
         output_dir=output_dir,
