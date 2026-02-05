@@ -12,11 +12,14 @@ from pheval.post_processing.post_processing import (
     generate_variant_result,
 )
 from pheval.utils.file_utils import files_with_suffix
+from pheval.utils.logger import get_logger
 
 EXOMISER_LT_15 = {"combinedScore", "priorityScore", "variantScore", "pValue"}
 EXOMISER_GTE_15 = {"geneCombinedScore", "geneVariantScore", "pValue"}
 
 ALL_SCORE_NAMES = sorted(EXOMISER_LT_15 | EXOMISER_GTE_15)
+
+logger = get_logger()
 
 
 def _allowed_score_names(exomiser_version: str) -> set[str]:
@@ -277,49 +280,53 @@ def create_standardised_results(
         else files_with_suffix(result_dir, ".json")
     )
     for exomiser_result_path in result_files:
-        if use_parquet:
-            exomiser_result = pl.read_parquet(exomiser_result_path)
-        else:
-            exomiser_result = pl.read_json(exomiser_result_path, infer_schema_length=None)
-        if gene_analysis:
-            gene_results = (
-                extract_gene_results_from_parquet(exomiser_result, score_name, variant_analysis)
-                if use_parquet
-                else extract_gene_results_from_json(exomiser_result, score_name)
-            )
-            generate_gene_result(
-                results=gene_results,
-                sort_order=sort_order,
-                output_dir=output_dir,
-                result_path=trim_exomiser_result_filename(exomiser_result_path),
-                phenopacket_dir=phenopacket_dir,
-            )
-        if disease_analysis:
-            disease_results = (
-                extract_disease_results_from_parquet(exomiser_result)
-                if use_parquet
-                else extract_disease_results_from_json(exomiser_result)
-            )
-            generate_disease_result(
-                results=disease_results,
-                sort_order=sort_order,
-                output_dir=output_dir,
-                result_path=trim_exomiser_result_filename(exomiser_result_path),
-                phenopacket_dir=phenopacket_dir,
-            )
-        if variant_analysis:
-            variant_results = (
-                extract_variant_results_from_parquet(exomiser_result, score_name)
-                if use_parquet
-                else extract_variant_results_from_json(exomiser_result, score_name)
-            )
-            generate_variant_result(
-                results=variant_results,
-                sort_order=sort_order,
-                output_dir=output_dir,
-                result_path=trim_exomiser_result_filename(exomiser_result_path),
-                phenopacket_dir=phenopacket_dir,
-            )
+        try:
+            if use_parquet:
+                exomiser_result = pl.read_parquet(exomiser_result_path)
+            else:
+                exomiser_result = pl.read_json(exomiser_result_path, infer_schema_length=None)
+            if gene_analysis:
+                gene_results = (
+                    extract_gene_results_from_parquet(exomiser_result, score_name, variant_analysis)
+                    if use_parquet
+                    else extract_gene_results_from_json(exomiser_result, score_name)
+                )
+                generate_gene_result(
+                    results=gene_results,
+                    sort_order=sort_order,
+                    output_dir=output_dir,
+                    result_path=trim_exomiser_result_filename(exomiser_result_path),
+                    phenopacket_dir=phenopacket_dir,
+                )
+            if disease_analysis:
+                disease_results = (
+                    extract_disease_results_from_parquet(exomiser_result)
+                    if use_parquet
+                    else extract_disease_results_from_json(exomiser_result)
+                )
+                generate_disease_result(
+                    results=disease_results,
+                    sort_order=sort_order,
+                    output_dir=output_dir,
+                    result_path=trim_exomiser_result_filename(exomiser_result_path),
+                    phenopacket_dir=phenopacket_dir,
+                )
+            if variant_analysis:
+                variant_results = (
+                    extract_variant_results_from_parquet(exomiser_result, score_name)
+                    if use_parquet
+                    else extract_variant_results_from_json(exomiser_result, score_name)
+                )
+                generate_variant_result(
+                    results=variant_results,
+                    sort_order=sort_order,
+                    output_dir=output_dir,
+                    result_path=trim_exomiser_result_filename(exomiser_result_path),
+                    phenopacket_dir=phenopacket_dir,
+                )
+        except Exception:
+            logger.exception("Failed processing Exomiser result file: %s", exomiser_result_path)
+            raise
 
 
 @click.command()
