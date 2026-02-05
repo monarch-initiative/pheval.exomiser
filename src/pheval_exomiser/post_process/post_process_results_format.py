@@ -136,6 +136,7 @@ def extract_variant_results_from_json(
 ) -> pl.DataFrame:
     return (
         exomiser_json_result.filter(pl.col("geneScores").is_not_null())
+        .filter(pl.col(score_name).is_not_null())
         .select([pl.col("geneScores"), pl.col(score_name).alias("score"), pl.col("geneSymbol")])
         .explode("geneScores")
         .unnest("geneScores")
