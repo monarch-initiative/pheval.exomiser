@@ -1,7 +1,6 @@
 # Exomiser Runner for PhEval
 
-This page documents the **Exomiser runner plugin** for PhEval.  
-It allows [Exomiser](https://github.com/exomiser/Exomiser) to be executed within the PhEval framework.
+This is the [Exomiser](https://github.com/exomiser/Exomiser) plugin for PhEval. With this plugin, you can leverage the variant prioritisation tool, Exomiser, to run the PhEval pipeline seamlessly. Instructions for setting up the appropriate directory layout, including the input directory and test data directory for a single PhEval run, can be found here
 
 ---
 
