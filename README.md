@@ -1,172 +1,239 @@
 # Exomiser Runner for PhEval
 
-This is the Exomiser plugin for PhEval. With this plugin, you can leverage the variant prioritisation tool, Exomiser, to run the PhEval pipeline seamlessly. Instructions for setting up the appropriate directory layout, including the input directory and test data directory for a single PhEval run, can be found here.
+This is the [Exomiser](https://github.com/exomiser/Exomiser) plugin for PhEval. With this plugin, you can leverage the variant prioritisation tool, Exomiser, to run the PhEval pipeline seamlessly. Instructions for setting up the appropriate directory layout, including the input directory and test data directory for a single PhEval run, can be found here
+
+---
+
+## Contents
+
+- [Quick start](#quick-start-running-exomiser-with-pheval)
+- [Installation](#installation)
+- [Running with `pheval run`](#running-with-pheval-run)
+- [Input directory structure](#input-directory-structure)
+- [Test data directory structure](#testdata-directory-structure)
+- [Post-processing pre-generated Exomiser results](#post-processing-pre-generated-exomiser-results)
+- [Generating Exomiser batch files](#generating-exomiser-batch-files)
+- [Outputs](#outputs)
+
+---
+
+## Quick start: running Exomiser with PhEval
+
+```bash
+pheval run \
+  --input-dir /path/to/input_dir \
+  --testdata-dir /path/to/testdata_dir \
+  --runner exomiserphevalrunner \
+  --output-dir /path/to/output_dir \
+  --version 15.0.0
+```
+
+This command will:
+
+1. Prepare Exomiser inputs 
+2. Execute Exomiser  
+3. Post-process raw Exomiser outputs into **PhEval-standardised Parquet results** ready for benchmarking  
+
+---
 
 ## Installation
 
-You can install the Exomiser directly with PyPi (recommended):
+Install from PyPI (recommended):
 
-```shell
+```bash
 pip install pheval.exomiser
 ```
 
-Alternatively you can clone the pheval.exomiser repo and set up the poetry environment:
+Or from source:
 
-```shell
+```bash
 git clone https://github.com/monarch-initiative/pheval.exomiser.git
 cd pheval.exomiser
-poetry shell
 poetry install
+poetry shell
 ```
 
-## Configuring a *single* run:
+---
 
-### Setting up the input directory
+## Running with `pheval run`
 
-A `config.yaml` should be located in the input directory and formatted like so:
+The `pheval run` command manages the full lifecycle:
+
+prepare → run → post-process.
+
+```bash
+pheval run \
+  --input-dir /path/to/input_dir \
+  --testdata-dir /path/to/testdata_dir \
+  --runner exomiserphevalrunner \
+  --output-dir /path/to/output_dir \
+  --version 15.0.0
+```
+
+---
+
+## Input directory structure
+
+The input directory contains **all Exomiser configuration, databases, and software**.
+
+### Required files
+
+```text
+input_dir/
+├── config.yaml
+├── exomiser-cli-15.0.0/
+│   └── exomiser-cli-15.0.0.jar
+├── preset-exome-analysis.yml
+├── 2302_phenotype/
+├── 2302_hg19/
+└── 2302_hg38/
+```
+
+### `config.yaml`
 
 ```yaml
 tool: exomiser
-tool_version: 13.2.0
+tool_version: 15.0.0
+# NOTE gene-only preset analysis should only be run with Exomiser versions >= 13.2.0
 variant_analysis: true
 gene_analysis: true
 disease_analysis: false
 tool_specific_configuration_options:
   environment: local
-  exomiser_software_directory: exomiser-cli-13.2.0
-  analysis_configuration_file: preset-exome-analysis.yml
+  exomiser_software_directory: exomiser-cli-15.0.0
+  analysis_configuration_file: preset-exome-analysis.yml # can be blank if running without VCF, alternatively specify your own analysis configuration file for phenotype only
   max_jobs: 0
   application_properties:
     remm_version:
     cadd_version:
-    hg19_data_version: 2302
-    hg19_local_frequency_path: # name of hg19 local frequency file 
-    hg19_whitelist_path: 2302_hg19_clinvar_whitelist.tsv.gz # only required for Exomiser v13.3.0 and earlier, can be left blank for Exomiser v14.0.0 onwards.
-    hg38_data_version: 2302
-    hg38_local_frequency_path: # name of hg38 local frequency file 
+    hg19_data_version: "2508"
+    hg19_local_frequency_path:
+    hg19_whitelist_path:
+    hg38_data_version: "2508"
+    hg38_local_frequency_path:
     hg38_whitelist_path:
-    phenotype_data_version: 2302
-    cache_type:
+    phenotype_data_version: "2508"
+    # either none, simple, or caffeine
+    cache_type: none
     cache_caffeine_spec:
-  output_formats: [JSON,HTML] # options include HTML, JSON, TSV_VARIANT, TSV_GENE, VCF
+  output_formats: [PARQUET] # options include HTML, JSON, PARQUET (v15.0.0 onwards), TSV_VARIANT, TSV_GENE, VCF
   post_process:
-    score_name: combinedScore
+    # For Exomiser < 15.0.0, valid ranking methods include combinedScore, priorityScore, variantScore or pValue
+    # For Exomiser >= 15.0.0, valid ranking methods include geneCombinedScore, geneVariantScore or pValue
+    score_name: geneCombinedScore
+    # sort order should be specified to either ASCENDING or DESCENDING
+    # ASCENDING orders results with the lowest values ranked first
+    # DESCENDING orders results with the highest values ranked first
+    # NOTE when changing the score_name ensure the sort_order is also correct
     sort_order: DESCENDING
 ```
-The bare minimum fields are filled to give an idea on the requirements. This is so that the application.properties for Exomiser can be correctly configured. An example config has been provided `pheval.exomiser/config.yaml`.
 
-The Exomiser input data directories (phenotype database and variant database) should also be located in the input directory - or a symlink pointing to the location.
+### Optional databases
 
-The `exomiser_software_directory` points to the name of the Exomiser distribution directory located in the input directory.
-
-The analysis configuration file (in this case: `preset-exome-analysis.yml`) should be located within the input directory.
-
-The whitelist paths for the hg19 and hg38 dbs need only be specified for Exomiser v13.3.0 and earlier (unless specifying your own whitelist), as Exomiser v14.0.0 now includes this in the db.
-
-To save on diskspace we recommend limiting the Exomiser output to JSON, this can be specified by setting the `output_formats` field in the `config.yaml` to [JSON]
-
-If using optional databases, such as REMM/CADD/local frequency the optional data input should look like so in the input
-directory:
-
-```tree
-├── cadd
-│   └── {{CADD-VERSION}}
-│       ├── hg19
-│       │   ├── InDels.tsv.gz
-│       │   └── whole_genome_SNVs.tsv.gz
-│       └── hg38
-│           ├── InDels.tsv.gz
-│           └── whole_genome_SNVs.tsv.gz
-├── local
-│   ├── local_frequency_test_hg19.tsv.gz
-│   └── local_frequency_test_hg38.tsv.gz
-└── remm
+```text
+input_dir/
+├── cadd/
+│   └── {{CADD-VERSION}}/
+│       ├── hg19/
+│       └── hg38/
+├── local/
+│   ├── local_frequency_test_hg19.tsv.gz
+│   └── local_frequency_test_hg38.tsv.gz
+└── remm/
     ├── ReMM.v{{REMM-VERSION}}.hg19.tsv.gz
     └── ReMM.v{{REMM-VERSION}}.hg38.tsv.gz
 ```
 
+---
 
-The overall structure of the input directory should look like this with the cadd, local and remm directories being optional, depending on the exomiser configuration:
-```tree
-.
-├── 2302_hg19
-│   ├── 2302_hg19_clinvar_whitelist.tsv.gz
-│   ├── 2302_hg19_clinvar_whitelist.tsv.gz.tbi
-│   ├── 2302_hg19_genome.h2.db
-│   ├── 2302_hg19_transcripts_ensembl.ser
-│   ├── 2302_hg19_transcripts_refseq.ser
-│   ├── 2302_hg19_transcripts_ucsc.ser
-│   └── 2302_hg19_variants.mv.db
-├── 2302_phenotype
-│   ├── 2302_phenotype.h2.db
-│   ├── hp.obo
-│   ├── phenix
-│   │   ├── ALL_SOURCES_ALL_FREQUENCIES_genes_to_phenotype.txt
-│   │   ├── hp.obo
-│   │   └── out
-│   └── rw_string_10.mv
-├── config.yaml
-├── exomiser-cli-13.2.0
-│   ├── lib
-│   └── exomiser-cli-13.2.0.jar
-├── preset-exome-analysis.yml
-├── cadd
-│   └── {{CADD-VERSION}}
-│       ├── hg19
-│       │   ├── InDels.tsv.gz
-│       │   └── whole_genome_SNVs.tsv.gz
-│       └── hg38
-│           ├── InDels.tsv.gz
-│           └── whole_genome_SNVs.tsv.gz
-├── local
-│   ├── local_frequency_test_hg19.tsv.gz
-│   └── local_frequency_test_hg38.tsv.gz
-└── remm
-    ├── ReMM.v{{REMM-VERSION}}.hg19.tsv.gz
-    └── ReMM.v{{REMM-VERSION}}.hg38.tsv.gz
-```
-### Setting up the testdata directory
+## Testdata directory structure
 
-The Exomiser plugin for PhEval accepts phenopackets and vcf files as an input for running Exomiser. The plugin can be run in `phenotype_only` mode, where only phenopackets are required as an input, however, this *must* be specified in the `config.yaml` by setting `variant_analysis: False`
-
-The testdata directory should include subdirectories named `phenopackets` and `vcf` if running with variant prioritisation.
-
-e.g., 
-
-```tree
-├── testdata_dir
-   ├── phenopackets
-   └── vcf
+```text
+testdata_dir/
+├── phenopackets/
+└── vcf/            # optional
 ```
 
-> [!IMPORTANT]  
-> If a `vcf` directory is not found in the testdata directory then the path to the VCF will be taken from the phenopacket if `variant_analysis` is set to True.
+### Phenotype-only mode
 
-## Run command
+Set:
 
-Once the testdata and input directories are correctly configured for the run, the `pheval run` command can be executed.
+```yaml
+variant_analysis: false
+```
+
+Only `phenopackets/` is required.
+
+> **Important**  
+> If `variant_analysis: true` and no `vcf/` directory exists, the VCF path
+> will be taken from the Phenopacket.
+
+---
+
+## Post-processing pre-generated Exomiser results
+
+If Exomiser was run outside PhEval:
 
 ```bash
-pheval run --input-dir /path/to/input_dir \
---testdata-dir /path/to/testdata_dir \
---runner exomiserphevalrunner \
---output-dir /path/to/output_dir \
---version 13.2.0
+pheval-exomiser post-process-exomiser-results \
+  --results-dir /path/to/exomiser_results \
+  --phenopacket-dir /path/to/phenopackets \
+  --output-dir /path/to/write/output \
+  --score-name geneCombinedScore \
+  --gene-analysis \
+  --variant-analysis \
+  --version 15.0.0
 ```
 
-## Common errors
+Use `pheval-exomiser post-process-exomiser-results --help` for more options.
 
-You may see an error that is related to the current `setuptools` being used:
+### ⚠️ Critical file naming rule (stem matching)
 
-```shell
-pkg_resources.extern.packaging.requirements.InvalidRequirement: Expected closing RIGHT_PARENTHESIS
-    requests (<3,>=2.12.*) ; extra == 'parse'
-             ~~~~~~~~~~^
+PhEval matches results to cases using **file stem equality**.
+
+```text
+Phenopacket: patient_001.json
+Result file: patient_001.json              ✅
+Result file: patient_001-exomiser.json     ✅ (auto-stripped)
+Result file: patient_001_run1.json         ❌
 ```
 
-To fix the error, `setuptools` needs to be downgraded to version 66:
+**Rule:** the result filename stem **must exactly match** the phenopacket stem.
 
-```shell
-pip uninstall setuptools
-pip install -U setuptools=="66"
+---
+
+## Generating Exomiser batch files
+
+Generate batch scripts without running Exomiser:
+
+```bash
+pheval-exomiser prepare-exomiser-batch \
+  --phenopacket-dir /phenopackets \
+  --vcf-dir /vcf \
+  --variant-analysis \
+  --analysis-yaml preset-exome-analysis.yml \
+  --output-dir /batch_files \
+  --results-dir /exomoiser_results
+  --exomiser-version 15.0.0
+  --output-formats PARQUET
+  --output-formats HTML 
 ```
+
+Use `pheval-exomiser prepare-exomiser-batch --help` for more options.
+
+This writes batch files under `tool_input_commands/`.
+
+---
+
+## Outputs
+
+```text
+output_dir/
+├── pheval_gene_results/
+├── pheval_variant_results/
+├── pheval_disease_results/
+├── raw_results/
+└── results.yml
+```
+
+These outputs are directly consumable by PhEval benchmarking utilities.
