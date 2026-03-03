@@ -84,9 +84,9 @@ input_dir/
 ├── exomiser-cli-15.0.0/
 │   └── exomiser-cli-15.0.0.jar
 ├── preset-exome-analysis.yml
-├── 2302_phenotype/
-├── 2302_hg19/
-└── 2302_hg38/
+├── 2512_phenotype/
+├── 2512_hg19/
+└── 2512_hg38/
 ```
 
 ### `config.yaml`
@@ -106,13 +106,13 @@ tool_specific_configuration_options:
   application_properties:
     remm_version:
     cadd_version:
-    hg19_data_version: "2508"
+    hg19_data_version: "2512"
     hg19_local_frequency_path:
     hg19_whitelist_path:
-    hg38_data_version: "2508"
+    hg38_data_version: "2512"
     hg38_local_frequency_path:
     hg38_whitelist_path:
-    phenotype_data_version: "2508"
+    phenotype_data_version: "2512"
     # either none, simple, or caffeine
     cache_type: none
     cache_caffeine_spec:
@@ -213,7 +213,7 @@ pheval-exomiser prepare-exomiser-batch \
   --variant-analysis \
   --analysis-yaml preset-exome-analysis.yml \
   --output-dir /batch_files \
-  --results-dir /exomoiser_results
+  --results-dir /exomiser_results
   --exomiser-version 15.0.0
   --output-formats PARQUET
   --output-formats HTML 
