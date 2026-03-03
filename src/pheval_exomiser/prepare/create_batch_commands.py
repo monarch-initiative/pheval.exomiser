@@ -454,21 +454,21 @@ def create_batch_file(
     type=bool,
     default=False,
     is_flag=True,
-    help="Run Exomiser with phenotype only preset - strongly recommended to run with versions 13.2.0 onwards.",
+    help="Run Exomiser with VCF files.",
 )
 @click.option(
     "--output-dir",
     "-d",
     type=Path,
     required=False,
-    help="Results directory for Exomiser results - compatible with versions 13.2.0 onwards.",
+    help="Path to write batch file.",
 )
 @click.option(
     "--results-dir",
     "-r",
     type=Path,
     required=False,
-    help="Results directory for Exomiser results - compatible with versions 13.2.0 onwards.",
+    help="Path to write Exomiser results - compatible with versions 13.2.0 onwards.",
 )
 @click.option(
     "--exomiser-version",
