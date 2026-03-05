@@ -103,20 +103,28 @@ def extract_gene_results_from_parquet(
 
 
 def extract_disease_results_from_json(exomiser_json_result: pl.DataFrame) -> pl.DataFrame:
-    return (
-        exomiser_json_result.select(
-            [
-                pl.col("priorityResults")
-                .struct.field("HIPHIVE_PRIORITY")
-                .struct.field("diseaseMatches")
-            ]
+    try:
+        return (
+            exomiser_json_result.select(
+                [
+                    pl.col("priorityResults")
+                    .struct.field("HIPHIVE_PRIORITY")
+                    .struct.field("diseaseMatches")
+                ]
+            )
+            .explode("diseaseMatches")
+            .unnest("diseaseMatches")
+            .unnest("model")
+            .select([pl.col("diseaseId").alias("disease_identifier"), pl.col("score").round(4)])
+            .drop_nulls()
         )
-        .explode("diseaseMatches")
-        .unnest("diseaseMatches")
-        .unnest("model")
-        .select([pl.col("diseaseId").alias("disease_identifier"), pl.col("score").round(4)])
-        .drop_nulls()
-    )
+    except pl.exceptions.StructFieldNotFoundError:
+        return pl.DataFrame(
+            schema={
+                "disease_identifier": pl.String,
+                "score": pl.Float64,
+            }
+        )
 
 
 def extract_disease_results_from_parquet(exomiser_parquet_result: pl.DataFrame) -> pl.DataFrame:
