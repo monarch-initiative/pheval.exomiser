@@ -12,17 +12,17 @@ tool_specific_configuration_options:
   application_properties:
     remm_version:
     cadd_version:
-    hg19_data_version: "2508"
+    hg19_data_version: "2512"
     hg19_local_frequency_path:
     hg19_whitelist_path:
-    hg38_data_version: "2508"
+    hg38_data_version: "2512"
     hg38_local_frequency_path:
     hg38_whitelist_path:
-    phenotype_data_version: "2508"
+    phenotype_data_version: "2512"
     # either none, simple, or caffeine
-    cache_type: none
-    cache_caffeine_spec:
-  output_formats: [PARQUET] # can be HTML, JSON, PARQUET, TSV_VARIANT, TSV_GENE, VCF
+    cache_type: caffeine
+    cache_caffeine_spec: 10000
+  output_formats: [HTML, PARQUET, TSV_VARIANT, TSV_GENE] # can be HTML, JSON, PARQUET, TSV_VARIANT, TSV_GENE, VCF
   post_process:
     # For Exomiser < 15.0.0, valid ranking methods include combinedScore, priorityScore, variantScore or pValue
     # For Exomiser >= 15.0.0, valid ranking methods include geneCombinedScore, geneVariantScore or pValue
