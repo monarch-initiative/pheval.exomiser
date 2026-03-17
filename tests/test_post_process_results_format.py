@@ -2446,7 +2446,7 @@ class TestExtractGeneResults(unittest.TestCase):
                         {
                             "gene_symbol": "PLXNA1",
                             "gene_identifier": "ENSG00000114554",
-                            "score": 0.048419,
+                            "score": 0.048419416654489886,
                         }
                     ]
                 )
@@ -2503,8 +2503,8 @@ class TestExtractDiseaseResults(unittest.TestCase):
             extract_disease_results_from_json(example_exomiser_result_with_disease).equals(
                 pl.DataFrame(
                     [
-                        {"disease_identifier": "ORPHA:25", "score": 0.917459},
-                        {"disease_identifier": "OMIM:231670", "score": 0.84402},
+                        {"disease_identifier": "ORPHA:25", "score": 0.917458700498875},
+                        {"disease_identifier": "OMIM:231670", "score": 0.8440196537772997},
                     ]
                 )
             )
