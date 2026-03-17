@@ -78,7 +78,7 @@ def extract_gene_results_from_json(
         [
             pl.col("geneSymbol").alias("gene_symbol"),
             pl.col("geneIdentifier").struct.field("geneId").alias("gene_identifier"),
-            score_expr.fill_null(0.0).round(4).alias("score"),
+            score_expr.fill_null(0.0).alias("score"),
         ]
     ).drop_nulls()
 
@@ -94,7 +94,7 @@ def extract_gene_results_from_parquet(
         [
             pl.col("geneSymbol").alias("gene_symbol"),
             pl.col("ensemblGeneId").alias("gene_identifier"),
-            pl.col(score_name).fill_null(0).round(4).alias("score"),
+            pl.col(score_name).fill_null(0).alias("score"),
         ]
     ).unique(
         subset=["gene_symbol", "gene_identifier"],
@@ -115,7 +115,7 @@ def extract_disease_results_from_json(exomiser_json_result: pl.DataFrame) -> pl.
             .explode("diseaseMatches")
             .unnest("diseaseMatches")
             .unnest("model")
-            .select([pl.col("diseaseId").alias("disease_identifier"), pl.col("score").round(4)])
+            .select([pl.col("diseaseId").alias("disease_identifier"), pl.col("score")])
             .drop_nulls()
         )
     except pl.exceptions.StructFieldNotFoundError:
