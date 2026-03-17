@@ -2504,7 +2504,7 @@ class TestExtractDiseaseResults(unittest.TestCase):
                 pl.DataFrame(
                     [
                         {"disease_identifier": "ORPHA:25", "score": 0.917459},
-                        {"disease_identifier": "OMIM:231670", "score": 0.84402 },
+                        {"disease_identifier": "OMIM:231670", "score": 0.84402},
                     ]
                 )
             )
