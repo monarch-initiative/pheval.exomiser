@@ -115,7 +115,9 @@ def extract_disease_results_from_json(exomiser_json_result: pl.DataFrame) -> pl.
             .explode("diseaseMatches")
             .unnest("diseaseMatches")
             .unnest("model")
-            .select([pl.col("diseaseId").alias("disease_identifier"), pl.col("score").fill_null(0.0)])
+            .select(
+                [pl.col("diseaseId").alias("disease_identifier"), pl.col("score").fill_null(0.0)]
+            )
             .drop_nulls()
         )
     except pl.exceptions.StructFieldNotFoundError:
@@ -144,7 +146,13 @@ def extract_variant_results_from_json(
 ) -> pl.DataFrame:
     return (
         exomiser_json_result.filter(pl.col("geneScores").is_not_null())
-        .select([pl.col("geneScores"), pl.col(score_name).fill_null(0.0).alias("score"), pl.col("geneSymbol")])
+        .select(
+            [
+                pl.col("geneScores"),
+                pl.col(score_name).fill_null(0.0).alias("score"),
+                pl.col("geneSymbol"),
+            ]
+        )
         .explode("geneScores")
         .unnest("geneScores")
         .filter(pl.col("contributingVariants").is_not_null())
