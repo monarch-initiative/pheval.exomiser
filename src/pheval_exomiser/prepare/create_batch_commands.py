@@ -1,7 +1,7 @@
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import click
 from packaging import version
@@ -33,7 +33,7 @@ class ExomiserCommandLineArguments:
     output_formats: Optional[List[str]] = None
 
 
-def get_all_files_from_output_opt_directory(output_options_dir: Path) -> List[Path] or None:
+def get_all_files_from_output_opt_directory(output_options_dir: Path) -> Optional[List[Path]]:
     """Obtain all output options files if directory is specified - otherwise returns none."""
     return None if output_options_dir is None else all_files(output_options_dir)
 
@@ -45,13 +45,13 @@ class CommandCreator:
         self,
         environment: str,
         phenopacket_path: Path,
-        phenopacket: Phenopacket or Family,
+        phenopacket: Union[Phenopacket, Family],
         variant_analysis: bool,
-        output_options_dir_files: List[Path] or None,
-        output_options_file: Path or None,
-        raw_results_dir: Path or None,
-        analysis_yaml: Path or None,
-        output_formats: List[str] or None,
+        output_options_dir_files: Optional[List[Path]],
+        output_options_file: Optional[Path],
+        raw_results_dir: Optional[Path],
+        analysis_yaml: Optional[Path],
+        output_formats: Optional[List[str]],
     ):
         self.environment = environment
         self.phenopacket_path = phenopacket_path
@@ -63,7 +63,7 @@ class CommandCreator:
         self.analysis_yaml = analysis_yaml
         self.output_formats = output_formats
 
-    def assign_output_options_file(self) -> Path or None:
+    def assign_output_options_file(self) -> Optional[Path]:
         """Return the path of a single output option yaml if specified,
         otherwise return the best match from a directory."""
         if self.output_options_dir_files is None and self.output_options_file is None:
@@ -147,7 +147,7 @@ class CommandCreator:
             )
         raise ValueError(f"Unknown environment: {self.environment}")
 
-    def add_command_line_arguments(self, vcf_dir: Path or None) -> ExomiserCommandLineArguments:
+    def add_command_line_arguments(self, vcf_dir: Optional[Path]) -> ExomiserCommandLineArguments:
         """Return a dataclass of all the command line arguments corresponding to phenopacket sample."""
         return (
             self.add_variant_analysis_arguments(vcf_dir)
@@ -159,13 +159,13 @@ class CommandCreator:
 def create_command_arguments(
     environment: str,
     phenopacket_dir: Path,
-    phenotype_only: bool,
+    variant_analysis: bool,
     vcf_dir: Path,
-    results_dir: Path or None,
-    output_options_dir: Path or None = None,
-    output_options_file: Path or None = None,
-    analysis_yaml: Path or None = None,
-    output_formats: List[str] or None = None,
+    results_dir: Optional[Path],
+    output_options_dir: Optional[Path] = None,
+    output_options_file: Optional[Path] = None,
+    analysis_yaml: Optional[Path] = None,
+    output_formats: Optional[List[str]] = None,
 ) -> List[ExomiserCommandLineArguments]:
     """Return a list of Exomiser command line arguments for a directory of phenopackets."""
     phenopacket_paths = files_with_suffix(phenopacket_dir, ".json")
@@ -178,7 +178,7 @@ def create_command_arguments(
                 environment,
                 phenopacket_path,
                 phenopacket,
-                phenotype_only,
+                variant_analysis,
                 output_option_dir_files,
                 output_options_file,
                 results_dir,
@@ -214,27 +214,18 @@ class CommandsWriter:
 
     def write_results_dir(self, command_arguments: ExomiserCommandLineArguments) -> None:
         """Write results directory for exomiser ≥13.2.0 to run."""
-        (
+        if command_arguments.raw_results_dir is not None:
             self.file.write(" --output-directory " + str(command_arguments.raw_results_dir))
-            if command_arguments.raw_results_dir is not None
-            else None
-        )
 
     def write_output_options(self, command_arguments: ExomiserCommandLineArguments) -> None:
         """Write a command out for exomiser ≤13.1.0 to run - including output option file specified."""
-        (
+        if command_arguments.output_options_file is not None:
             self.file.write(" --output " + str(command_arguments.output_options_file))
-            if command_arguments.output_options_file is not None
-            else None
-        )
 
     def write_output_format(self, command_arguments: ExomiserCommandLineArguments) -> None:
         """Write output formats for Exomiser raw result output."""
-        (
+        if command_arguments.output_formats is not None:
             self.file.write(" --output-format " + ",".join(command_arguments.output_formats))
-            if command_arguments.output_formats is not None
-            else None
-        )
 
     def write_analysis_command(self, command_arguments: ExomiserCommandLineArguments):
         try:
@@ -357,7 +348,7 @@ class BatchFileWriter:
 
 def create_batch_file(
     environment: str,
-    analysis: Path,
+    analysis: Optional[Path],
     phenopacket_dir: Path,
     vcf_dir: Path,
     output_dir: Path,
@@ -366,9 +357,9 @@ def create_batch_file(
     variant_analysis: bool,
     results_dir: Path,
     exomiser_version: str,
-    output_options_dir: Path = None,
-    output_options_file: Path = None,
-    output_formats: List[str] = None,
+    output_options_dir: Optional[Path] = None,
+    output_options_file: Optional[Path] = None,
+    output_formats: Optional[List[str]] = None,
 ) -> None:
     """Create Exomiser batch files."""
     command_arguments = create_command_arguments(
@@ -382,19 +373,14 @@ def create_batch_file(
         analysis,
         output_formats,
     )
-    (
-        BatchFileWriter(
-            command_arguments, variant_analysis, output_dir, batch_prefix, exomiser_version
-        ).write_all_commands()
-        if max_jobs == 0
-        else BatchFileWriter(
-            command_arguments,
-            variant_analysis,
-            output_dir,
-            batch_prefix,
-            exomiser_version,
-        ).create_split_batch_files(max_jobs)
+    batch_writer = BatchFileWriter(
+        command_arguments, variant_analysis, output_dir, batch_prefix, exomiser_version
     )
+    if max_jobs == 0:
+        batch_writer.write_all_commands()
+
+    else:
+        batch_writer.create_split_batch_files(max_jobs)
 
 
 @click.command()
@@ -425,7 +411,7 @@ def create_batch_file(
 )
 @click.option(
     "--vcf-dir",
-    "-v",
+    "-g",
     metavar="PATH",
     type=Path,
     help="Path to VCF directory.",
@@ -515,9 +501,9 @@ def prepare_exomiser_batch(
     max_jobs: int,
     variant_analysis: bool,
     exomiser_version: str,
-    output_options_dir: Path = None,
-    output_options_file: Path = None,
-    output_formats: List[str] = None,
+    output_options_dir: Optional[Path] = None,
+    output_options_file: Optional[Path] = None,
+    output_formats: Optional[List[str]] = None,
 ):
     """Generate Exomiser batch files."""
     Path(output_dir).joinpath("tool_input_commands").mkdir(exist_ok=True)
